@@ -1,4 +1,8 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
+Image from "next/image";
 
 const scoring = [
   ["1st", 25], ["2nd", 18], ["3rd", 15], ["4th", 12], ["5th", 10],
@@ -20,7 +24,85 @@ const gallery = [
   ["/assets/hof-singer.png", "Film · Culture · Legacy"],
   ["/assets/hof-science.png", "Music · Culture · Legacy"],
 ];
+type EthereumProvider = {
+  request: (args: {
+    method: string;
+    params?: unknown[] | Record<string, unknown>;
+  }) => Promise<unknown>;
+};
 
+function WalletButton() {
+  const [address, setAddress] = useState("");
+  const [connecting, setConnecting] = useState(false);
+
+  async function connectWallet() {
+    const ethereum = (
+      window as Window & { ethereum?: EthereumProvider }
+    ).ethereum;
+
+    if (!ethereum) {
+      alert("Please install an EVM wallet such as MetaMask.");
+      return;
+    }
+
+    try {
+      setConnecting(true);
+
+      try {
+        await ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xb626" }],
+        });
+      } catch {
+        await ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: "0xb626",
+              chainName: "Robinhood Chain Testnet",
+              nativeCurrency: {
+                name: "Ether",
+                symbol: "ETH",
+                decimals: 18,
+              },
+              rpcUrls: ["https://rpc.testnet.chain.robinhood.com"],
+              blockExplorerUrls: [
+                "https://explorer.testnet.chain.robinhood.com",
+              ],
+            },
+          ],
+        });
+      }
+
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
+
+      if (
+        Array.isArray(accounts) &&
+        typeof accounts[0] === "string"
+      ) {
+        setAddress(accounts[0]);
+      }
+    } catch (error) {
+      console.error("Wallet connection failed:", error);
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  const label = address
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    : connecting
+      ? "CONNECTING..."
+      : "CONNECT WALLET";
+
+  return (
+    <button className="wallet" type="button" onClick={connectWallet}>
+      {label}
+    </button>
+  );
+}
 function Header() {
   return (
     <header className="navWrap">
@@ -35,7 +117,7 @@ function Header() {
           <a href="#tokenomics">Tokenomics</a>
           <a href="#faq">FAQ</a>
         </div>
-        <button className="wallet" type="button">Connect Wallet</button>
+       <WalletButton />
       </nav>
     </header>
   );
