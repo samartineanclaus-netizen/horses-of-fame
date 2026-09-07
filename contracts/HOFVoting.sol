@@ -465,8 +465,173 @@ contract HOFVoting is Ownable, Pausable {
 
         return totalVP;
     }
-
     // =============================================================
+    //                  RANKING / CHAMPIONSHIP
+    // =============================================================
+
+    uint256[10] private _pointsTable = [
+        uint256(25),
+        18,
+        15,
+        12,
+        10,
+        8,
+        6,
+        4,
+        2,
+        1
+    ];
+
+    // raceId => horseId => finishing position (1-22)
+    mapping(uint256 => mapping(uint256 => uint256))
+        private _horsePosition;
+
+    // raceId => horseId => championship points
+    mapping(uint256 => mapping(uint256 => uint256))
+        private _horseRacePoints;
+
+    // horseId => cumulative championship points
+    mapping(uint256 => uint256)
+        public championshipPoints;
+
+    event RaceResultsCalculated(
+        uint256 indexed raceId
+    );
+
+    function calculateRaceResults(uint256 raceId)
+        external
+        onlyOwner
+    {
+        require(
+            races[raceId].exists,
+            "Race does not exist"
+        );
+
+        require(
+            races[raceId].finalized,
+            "Race not finalized"
+        );
+
+        require(
+            _horsePosition[raceId][1] == 0,
+            "Results already calculated"
+        );
+
+        uint256[22] memory horseIds;
+
+        for (uint256 i = 0; i < 22; i++) {
+            horseIds[i] = i + 1;
+        }
+
+        // Sort:
+        // 1. Higher VP first.
+        // 2. If VP is equal, lower HOF ID first.
+        for (uint256 i = 0; i < 21; i++) {
+            for (uint256 j = i + 1; j < 22; j++) {
+
+                uint256 horseA = horseIds[i];
+                uint256 horseB = horseIds[j];
+
+                uint256 vpA =
+                    _horseVotingPower[raceId][horseA];
+
+                uint256 vpB =
+                    _horseVotingPower[raceId][horseB];
+
+                bool swapNeeded =
+                    vpB > vpA ||
+                    (
+                        vpB == vpA &&
+                        horseB < horseA
+                    );
+
+                if (swapNeeded) {
+                    horseIds[i] = horseB;
+                    horseIds[j] = horseA;
+                }
+            }
+        }
+
+        for (uint256 i = 0; i < 22; i++) {
+
+            uint256 horseId = horseIds[i];
+            uint256 position = i + 1;
+
+            _horsePosition[raceId][horseId] =
+                position;
+
+            uint256 points = 0;
+
+            if (position <= 10) {
+                points =
+                    _pointsTable[position - 1];
+            }
+
+            _horseRacePoints[raceId][horseId] =
+                points;
+
+            championshipPoints[horseId] +=
+                points;
+        }
+
+        emit RaceResultsCalculated(raceId);
+    }
+
+    function horsePosition(
+        uint256 raceId,
+        uint256 horseId
+    )
+        external
+        view
+        returns (uint256)
+    {
+        require(
+            races[raceId].finalized,
+            "Race not finalized"
+        );
+
+        require(
+            horseId >= 1 && horseId <= 22,
+            "Invalid Hall of Fame horse"
+        );
+
+        uint256 position =
+            _horsePosition[raceId][horseId];
+
+        require(
+            position > 0,
+            "Results not calculated"
+        );
+
+        return position;
+    }
+
+    function horseRacePoints(
+        uint256 raceId,
+        uint256 horseId
+    )
+        external
+        view
+        returns (uint256)
+    {
+        require(
+            races[raceId].finalized,
+            "Race not finalized"
+        );
+
+        require(
+            horseId >= 1 && horseId <= 22,
+            "Invalid Hall of Fame horse"
+        );
+
+        require(
+            _horsePosition[raceId][horseId] > 0,
+            "Results not calculated"
+        );
+
+        return
+            _horseRacePoints[raceId][horseId];
+    }    // =============================================================
     //                         PAUSE
     // =============================================================
 
