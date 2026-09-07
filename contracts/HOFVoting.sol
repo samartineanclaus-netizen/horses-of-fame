@@ -26,70 +26,72 @@ interface IGenesisHorses {
 
 contract HOFVoting is Ownable, Pausable {
 
-    // =============================================================
-    //                         GENESIS
-    // =============================================================
-
     IGenesisHorses public immutable genesis;
 
     uint256 public constant HOF_FIRST_ID = 1;
     uint256 public constant HOF_LAST_ID = 22;
 
-    // =============================================================
-    //                         RACES
-    // =============================================================
-
     struct Race {
         bool exists;
-        bool open;
-        uint64 openedAt;
-        uint64 closesAt;
+        bool finalized;
+        uint64 commitStart;
+        uint64 commitEnd;
+        uint64 revealEnd;
     }
 
     uint256 public currentRaceId;
 
     mapping(uint256 => Race) public races;
 
-    // raceId => wallet => already voted
-    mapping(uint256 => mapping(address => bool))
-        public walletVoted;
+    // raceId => wallet => commitment hash
+    mapping(uint256 => mapping(address => bytes32))
+        private _commitments;
 
-    // raceId => tokenId => already used
+    // raceId => wallet => committed
+    mapping(uint256 => mapping(address => bool))
+        public walletCommitted;
+
+    // raceId => wallet => revealed
+    mapping(uint256 => mapping(address => bool))
+        public walletRevealed;
+
+    // raceId => tokenId => already locked/used
     mapping(uint256 => mapping(uint256 => bool))
         public tokenUsed;
 
-    // raceId => horseId => total VP
+    // VP snapshot at commit time
+    mapping(uint256 => mapping(address => uint256))
+        public committedVotingPower;
+
+    // Hidden until finalization through getter.
     mapping(uint256 => mapping(uint256 => uint256))
         private _horseVotingPower;
 
-    // raceId => total VP cast
     mapping(uint256 => uint256)
-        public totalVotingPowerCast;
-
-    // =============================================================
-    //                         EVENTS
-    // =============================================================
+        private _totalVotingPowerRevealed;
 
     event RaceOpened(
         uint256 indexed raceId,
-        uint256 openedAt,
-        uint256 closesAt
+        uint256 commitStart,
+        uint256 commitEnd,
+        uint256 revealEnd
     );
 
-    event RaceClosed(
-        uint256 indexed raceId
-    );
-
-    event VoteCast(
+    event VoteCommitted(
         uint256 indexed raceId,
         address indexed wallet,
-        uint256 indexed horseId,
         uint256 votingPower
     );
 
-    // =============================================================
-    //                         CONSTRUCTOR
-    // =============================================================
+    event VoteRevealed(
+        uint256 indexed raceId,
+        address indexed wallet,
+        uint256 votingPower
+    );
+
+    event RaceFinalized(
+        uint256 indexed raceId
+    );
 
     constructor(address genesisAddress)
         Ownable(msg.sender)
@@ -103,83 +105,82 @@ contract HOFVoting is Ownable, Pausable {
     }
 
     // =============================================================
-    //                         RACE CONTROL
+    //                       RACE CONTROL
     // =============================================================
 
-    function openRace(uint64 durationSeconds)
+    function openRace(
+        uint64 commitDuration,
+        uint64 revealDuration
+    )
         external
         onlyOwner
     {
         require(
-            durationSeconds > 0,
-            "Invalid duration"
+            commitDuration > 0,
+            "Invalid commit duration"
+        );
+
+        require(
+            revealDuration > 0,
+            "Invalid reveal duration"
         );
 
         if (currentRaceId > 0) {
-            Race storage previousRace =
-                races[currentRaceId];
-
             require(
-                !previousRace.open,
-                "Previous race still open"
+                races[currentRaceId].finalized,
+                "Previous race not finalized"
             );
         }
 
         currentRaceId++;
 
-        uint64 openedAt =
-            uint64(block.timestamp);
-
-        uint64 closesAt =
-            openedAt + durationSeconds;
+        uint64 start = uint64(block.timestamp);
+        uint64 commitEnd = start + commitDuration;
+        uint64 revealEnd = commitEnd + revealDuration;
 
         races[currentRaceId] = Race({
             exists: true,
-            open: true,
-            openedAt: openedAt,
-            closesAt: closesAt
+            finalized: false,
+            commitStart: start,
+            commitEnd: commitEnd,
+            revealEnd: revealEnd
         });
 
         emit RaceOpened(
             currentRaceId,
-            openedAt,
-            closesAt
+            start,
+            commitEnd,
+            revealEnd
         );
     }
 
-    function closeRace(uint256 raceId)
-        external
-        onlyOwner
-    {
-        Race storage race = races[raceId];
-
-        require(
-            race.exists,
-            "Race does not exist"
-        );
-
-        require(
-            race.open,
-            "Race already closed"
-        );
-
-        race.open = false;
-
-        emit RaceClosed(raceId);
-    }
-
     // =============================================================
-    //                         VOTING
+    //                         COMMIT
     // =============================================================
 
-    function vote(
+    /*
+        Frontend calculates:
+
+        keccak256(
+            abi.encode(
+                raceId,
+                wallet,
+                horseId,
+                secret
+            )
+        )
+
+        horseId and secret are NOT sent during commit.
+    */
+
+    function commitVote(
         uint256 raceId,
-        uint256 horseId
+        bytes32 commitment
     )
         external
         whenNotPaused
     {
-        Race storage race = races[raceId];
+        Race memory race = races[raceId];
 
         require(
             race.exists,
@@ -187,24 +188,19 @@ contract HOFVoting is Ownable, Pausable {
         );
 
         require(
-            race.open,
-            "Race closed"
+            block.timestamp >= race.commitStart &&
+            block.timestamp < race.commitEnd,
+            "Commit phase closed"
         );
 
         require(
-            block.timestamp < race.closesAt,
-            "Voting window ended"
+            !walletCommitted[raceId][msg.sender],
+            "Wallet already committed"
         );
 
         require(
-            horseId >= HOF_FIRST_ID &&
-            horseId <= HOF_LAST_ID,
-            "Invalid Hall of Fame horse"
-        );
-
-        require(
-            !walletVoted[raceId][msg.sender],
-            "Wallet already voted"
+            commitment != bytes32(0),
+            "Invalid commitment"
         );
 
         uint256 balance =
@@ -217,10 +213,8 @@ contract HOFVoting is Ownable, Pausable {
 
         uint256 totalVP = 0;
 
-        // Every eligible Genesis voting NFT
-        // currently held by this wallet backs
-        // the same Hall of Fame horse.
         for (uint256 i = 0; i < balance; i++) {
+
             uint256 tokenId =
                 genesis.tokenOfOwnerByIndex(
                     msg.sender,
@@ -230,12 +224,12 @@ contract HOFVoting is Ownable, Pausable {
             uint256 vp =
                 genesis.votingPowerOf(tokenId);
 
-            // Hall of Fame NFTs return 0 VP.
+            // Hall of Fame NFTs = 0 VP.
             if (vp == 0) {
                 continue;
             }
 
-            // Prevent reuse after transfer.
+            // NFT already contributed during this race.
             if (tokenUsed[raceId][tokenId]) {
                 continue;
             }
@@ -250,24 +244,191 @@ contract HOFVoting is Ownable, Pausable {
             "No eligible Voting Power"
         );
 
-        walletVoted[raceId][msg.sender] = true;
+        _commitments[raceId][msg.sender] =
+            commitment;
 
-        _horseVotingPower[raceId][horseId]
-            += totalVP;
+        walletCommitted[raceId][msg.sender] =
+            true;
 
-        totalVotingPowerCast[raceId]
-            += totalVP;
+        committedVotingPower[raceId][msg.sender] =
+            totalVP;
 
-        emit VoteCast(
+        emit VoteCommitted(
             raceId,
             msg.sender,
-            horseId,
             totalVP
         );
     }
 
     // =============================================================
-    //                         READ FUNCTIONS
+    //                         REVEAL
+    // =============================================================
+
+    function revealVote(
+        uint256 raceId,
+        uint256 horseId,
+        bytes32 secret
+    )
+        external
+        whenNotPaused
+    {
+        Race memory race = races[raceId];
+
+        require(
+            race.exists,
+            "Race does not exist"
+        );
+
+        require(
+            block.timestamp >= race.commitEnd,
+            "Reveal not started"
+        );
+
+        require(
+            block.timestamp < race.revealEnd,
+            "Reveal phase closed"
+        );
+
+        require(
+            walletCommitted[raceId][msg.sender],
+            "No commitment"
+        );
+
+        require(
+            !walletRevealed[raceId][msg.sender],
+            "Already revealed"
+        );
+
+        require(
+            horseId >= HOF_FIRST_ID &&
+            horseId <= HOF_LAST_ID,
+            "Invalid Hall of Fame horse"
+        );
+
+        bytes32 expectedCommitment =
+            keccak256(
+                abi.encode(
+                    raceId,
+                    msg.sender,
+                    horseId,
+                    secret
+                )
+            );
+
+        require(
+            expectedCommitment ==
+            _commitments[raceId][msg.sender],
+            "Invalid reveal"
+        );
+
+        uint256 vp =
+            committedVotingPower
+                [raceId]
+                [msg.sender];
+
+        require(
+            vp > 0,
+            "No committed Voting Power"
+        );
+
+        walletRevealed[raceId][msg.sender] =
+            true;
+
+        _horseVotingPower[raceId][horseId]
+            += vp;
+
+        _totalVotingPowerRevealed[raceId]
+            += vp;
+
+        emit VoteRevealed(
+            raceId,
+            msg.sender,
+            vp
+        );
+    }
+
+    // =============================================================
+    //                         FINALIZE
+    // =============================================================
+
+    function finalizeRace(uint256 raceId)
+        external
+        onlyOwner
+    {
+        Race storage race = races[raceId];
+
+        require(
+            race.exists,
+            "Race does not exist"
+        );
+
+        require(
+            !race.finalized,
+            "Race already finalized"
+        );
+
+        require(
+            block.timestamp >= race.revealEnd,
+            "Reveal phase not finished"
+        );
+
+        race.finalized = true;
+
+        emit RaceFinalized(raceId);
+    }
+
+    // =============================================================
+    //                         RESULTS
+    // =============================================================
+
+    function horseVotingPower(
+        uint256 raceId,
+        uint256 horseId
+    )
+        external
+        view
+        returns (uint256)
+    {
+        require(
+            races[raceId].exists,
+            "Race does not exist"
+        );
+
+        require(
+            races[raceId].finalized,
+            "Results still hidden"
+        );
+
+        require(
+            horseId >= HOF_FIRST_ID &&
+            horseId <= HOF_LAST_ID,
+            "Invalid Hall of Fame horse"
+        );
+
+        return
+            _horseVotingPower
+                [raceId]
+                [horseId];
+    }
+
+    function totalVotingPowerRevealed(
+        uint256 raceId
+    )
+        external
+        view
+        returns (uint256)
+    {
+        require(
+            races[raceId].finalized,
+            "Results still hidden"
+        );
+
+        return
+            _totalVotingPowerRevealed[raceId];
+    }
+
+    // =============================================================
+    //                    ELIGIBLE WALLET VP
     // =============================================================
 
     function eligibleVotingPower(
@@ -284,6 +445,7 @@ contract HOFVoting is Ownable, Pausable {
         uint256 totalVP = 0;
 
         for (uint256 i = 0; i < balance; i++) {
+
             uint256 tokenId =
                 genesis.tokenOfOwnerByIndex(
                     wallet,
@@ -302,39 +464,6 @@ contract HOFVoting is Ownable, Pausable {
         }
 
         return totalVP;
-    }
-
-    function horseVotingPower(
-        uint256 raceId,
-        uint256 horseId
-    )
-        external
-        view
-        returns (uint256)
-    {
-        require(
-            horseId >= HOF_FIRST_ID &&
-            horseId <= HOF_LAST_ID,
-            "Invalid Hall of Fame horse"
-        );
-
-        Race memory race =
-            races[raceId];
-
-        require(
-            race.exists,
-            "Race does not exist"
-        );
-
-        require(
-            !race.open ||
-            block.timestamp >= race.closesAt,
-            "Results still hidden"
-        );
-
-        return _horseVotingPower
-            [raceId]
-            [horseId];
     }
 
     // =============================================================
