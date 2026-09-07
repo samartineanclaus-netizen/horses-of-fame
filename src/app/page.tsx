@@ -148,7 +148,7 @@ function MintButton() {
       const data = encodeFunctionData({
         abi: TEST_MINT_ABI,
         functionName: "publicTestMint",
-        args: [1n],
+        args: [BigInt(1)],
       });
 
       const txHash = await ethereum.request({
