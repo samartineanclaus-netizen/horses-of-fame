@@ -14,40 +14,49 @@ async function main() {
 
   console.log("Contract:", CONTRACT_ADDRESS);
 
-  const currentSupply = Number(await genesis.totalSupply());
+  let supply = Number(await genesis.totalSupply());
+  console.log("Current supply:", supply);
 
-  console.log("Current supply:", currentSupply);
+  // Mint in safe batches to avoid block gas limit.
+  const BATCH_SIZE = 100;
 
-  // Mint remaining NFTs up to #2222.
-  if (currentSupply < 2222) {
-    const remaining = 2222 - currentSupply;
+  while (supply < 2222) {
+    const remaining = 2222 - supply;
+    const quantity = Math.min(BATCH_SIZE, remaining);
 
-    console.log(`Minting ${remaining} NFTs...`);
+    console.log(
+      `Minting #${supply + 1} - #${supply + quantity}...`
+    );
 
     const tx = await genesis.ownerMint(
       signer.address,
-      remaining
+      quantity
     );
 
     await tx.wait();
 
-    console.log("Mint complete.");
+    supply = Number(await genesis.totalSupply());
+
+    console.log(`Supply: ${supply}/2222`);
   }
 
+  console.log("Mint complete.");
+  console.log("Testing rarity boundaries...");
+
   const tests = [
-    [1,    6, 0, "HallOfFame"],
-    [22,   6, 0, "HallOfFame"],
+    [1, 6, 0, "HallOfFame"],
+    [22, 6, 0, "HallOfFame"],
 
-    [23,   5, 5, "Legendary"],
-    [212,  5, 5, "Legendary"],
+    [23, 5, 5, "Legendary"],
+    [212, 5, 5, "Legendary"],
 
-    [213,  4, 4, "Epic"],
-    [452,  4, 4, "Epic"],
+    [213, 4, 4, "Epic"],
+    [452, 4, 4, "Epic"],
 
-    [453,  3, 3, "Rare"],
-    [772,  3, 3, "Rare"],
+    [453, 3, 3, "Rare"],
+    [772, 3, 3, "Rare"],
 
-    [773,  2, 2, "Uncommon"],
+    [773, 2, 2, "Uncommon"],
     [1252, 2, 2, "Uncommon"],
 
     [1253, 1, 1, "Common"],
@@ -55,13 +64,8 @@ async function main() {
   ];
 
   for (const [id, expectedRarity, expectedVP, name] of tests) {
-    const rarity = Number(
-      await genesis.rarityOf(id)
-    );
-
-    const vp = Number(
-      await genesis.votingPowerOf(id)
-    );
+    const rarity = Number(await genesis.rarityOf(id));
+    const vp = Number(await genesis.votingPowerOf(id));
 
     console.log(
       `#${id} ${name} | rarity=${rarity} | VP=${vp}`
@@ -81,13 +85,13 @@ async function main() {
   }
 
   console.log("");
-  console.log("SUCCESS — ALL GENESIS BOUNDARIES VERIFIED");
-  console.log("1-22       Hall of Fame = 0 VP");
-  console.log("23-212     Legendary    = 5 VP");
-  console.log("213-452    Epic         = 4 VP");
-  console.log("453-772    Rare         = 3 VP");
-  console.log("773-1252   Uncommon     = 2 VP");
-  console.log("1253-2222  Common       = 1 VP");
+  console.log("SUCCESS - ALL GENESIS BOUNDARIES VERIFIED");
+  console.log("#1-22       Hall of Fame = 0 VP");
+  console.log("#23-212     Legendary    = 5 VP");
+  console.log("#213-452    Epic         = 4 VP");
+  console.log("#453-772    Rare         = 3 VP");
+  console.log("#773-1252   Uncommon     = 2 VP");
+  console.log("#1253-2222  Common       = 1 VP");
 }
 
 main().catch((error) => {
