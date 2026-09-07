@@ -1,10 +1,12 @@
 const hre = require("hardhat");
 
 const VOTING_ADDRESS =
-  "0x409B73DE70b122e67eE90763EF2Dd2647E2ad192";
+  "0x22A943735EC8d0B8E4F3f16f77EEDEf91b312E44";
 
 const GENESIS_ADDRESS =
   "0x4689053DbF9C7E63A6Ef3eeec83C59B3cB4C94fD";
+
+const BATCH_SIZE = 100;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,7 +16,7 @@ async function main() {
   const [wallet] = await hre.ethers.getSigners();
 
   console.log("====================================");
-  console.log("HOF VOTING LIVE TEST");
+  console.log("HOF VOTING BATCH LIVE TEST");
   console.log("Wallet:", wallet.address);
   console.log("Genesis:", GENESIS_ADDRESS);
   console.log("Voting:", VOTING_ADDRESS);
@@ -30,25 +32,49 @@ async function main() {
     GENESIS_ADDRESS
   );
 
-  // -------------------------------------------------
-  // 1. Check wallet
-  // -------------------------------------------------
-
+  // 1. Find every eligible NFT owned by deployer
   const balance = await genesis.balanceOf(wallet.address);
 
   console.log("Genesis balance:", balance.toString());
 
   if (balance === 0n) {
-    throw new Error("Test wallet owns no Genesis NFTs");
+    throw new Error("Wallet owns no Genesis NFTs");
   }
 
-  // -------------------------------------------------
-  // 2. Open a short test race
-  // -------------------------------------------------
+  const eligibleTokenIds = [];
+  let expectedVP = 0n;
 
+  console.log("Scanning wallet NFTs...");
+
+  for (let i = 0n; i < balance; i++) {
+    const tokenId =
+      await genesis.tokenOfOwnerByIndex(wallet.address, i);
+
+    const vp = await genesis.votingPowerOf(tokenId);
+
+    if (vp > 0n) {
+      eligibleTokenIds.push(tokenId);
+      expectedVP += vp;
+    }
+  }
+
+  console.log(
+    "Eligible NFTs:",
+    eligibleTokenIds.length
+  );
+
+  console.log(
+    "Expected total VP:",
+    expectedVP.toString()
+  );
+
+  if (eligibleTokenIds.length === 0) {
+    throw new Error("No eligible voting NFTs");
+  }
+
+  // 2. Open race
   console.log("\nOpening test race...");
 
-  // 60 sec commit + 60 sec reveal.
   const openTx = await voting.openRace(60, 60);
   await openTx.wait();
 
@@ -56,37 +82,55 @@ async function main() {
 
   console.log("Race ID:", raceId.toString());
 
-  // -------------------------------------------------
-  // 3. Check eligible VP
-  // -------------------------------------------------
+  // 3. Prepare NFTs in bounded batches
+  console.log("\nPreparing voting batches...");
 
-  const eligibleVP =
-    await voting.eligibleVotingPower(
+  for (
+    let start = 0;
+    start < eligibleTokenIds.length;
+    start += BATCH_SIZE
+  ) {
+    const batch =
+      eligibleTokenIds.slice(start, start + BATCH_SIZE);
+
+    console.log(
+      `Batch ${Math.floor(start / BATCH_SIZE) + 1}:`,
+      `${batch.length} NFTs`
+    );
+
+    const batchTx =
+      await voting.prepareVoteBatch(
+        raceId,
+        batch
+      );
+
+    await batchTx.wait();
+  }
+
+  const preparedVP =
+    await voting.preparedVotingPower(
       raceId,
       wallet.address
     );
 
   console.log(
-    "Eligible VP:",
-    eligibleVP.toString()
+    "Prepared VP:",
+    preparedVP.toString()
   );
 
-  if (eligibleVP === 0n) {
+  if (preparedVP !== expectedVP) {
     throw new Error(
-      "Wallet has no eligible Voting Power"
+      `Prepared VP mismatch: expected ${expectedVP}, got ${preparedVP}`
     );
   }
 
-  // -------------------------------------------------
-  // 4. Create commitment
-  // -------------------------------------------------
-
+  // 4. Build commitment
   const horseId = 1n;
 
   const secret =
     hre.ethers.keccak256(
       hre.ethers.toUtf8Bytes(
-        "HOF-LIVE-TEST-SECRET"
+        `HOF-LIVE-${Date.now()}`
       )
     );
 
@@ -110,24 +154,16 @@ async function main() {
         )
     );
 
-  console.log("Voting for HOF #1");
-  console.log("Commitment:", commitment);
+  console.log("\nVoting for HOF #1");
 
-  // -------------------------------------------------
-  // 5. Commit
-  // -------------------------------------------------
-
-  console.log("\nSubmitting commitment...");
-
+  // 5. Finalize commit
   const commitTx =
-    await voting.commitVote(
+    await voting.finalizeCommit(
       raceId,
       commitment
     );
 
   await commitTx.wait();
-
-  console.log("Commit successful.");
 
   const committedVP =
     await voting.committedVotingPower(
@@ -140,20 +176,17 @@ async function main() {
     committedVP.toString()
   );
 
-  // -------------------------------------------------
-  // 6. Wait for reveal phase
-  // -------------------------------------------------
+  if (committedVP !== expectedVP) {
+    throw new Error(
+      "Committed VP does not equal expected wallet VP"
+    );
+  }
 
-  console.log(
-    "\nWaiting for reveal phase..."
-  );
-
+  // 6. Wait for reveal
+  console.log("\nWaiting for reveal phase...");
   await sleep(65000);
 
-  // -------------------------------------------------
   // 7. Reveal
-  // -------------------------------------------------
-
   console.log("Revealing vote...");
 
   const revealTx =
@@ -167,47 +200,34 @@ async function main() {
 
   console.log("Reveal successful.");
 
-  // -------------------------------------------------
-  // 8. Verify results are still hidden
-  // -------------------------------------------------
+  // 8. Results must still be hidden
+  let hidden = false;
 
   try {
     await voting.horseVotingPower(
       raceId,
       horseId
     );
+  } catch (error) {
+    hidden = true;
+  }
 
+  if (!hidden) {
     throw new Error(
       "SECURITY TEST FAILED: results visible before finalization"
     );
-  } catch (error) {
-    if (
-      error.message.includes(
-        "SECURITY TEST FAILED"
-      )
-    ) {
-      throw error;
-    }
-
-    console.log(
-      "Privacy getter test: PASSED"
-    );
   }
 
-  // -------------------------------------------------
-  // 9. Wait for reveal end
-  // -------------------------------------------------
+  console.log("Privacy test: PASSED");
 
+  // 9. Wait for reveal end
   console.log(
     "\nWaiting for reveal window to close..."
   );
 
   await sleep(65000);
 
-  // -------------------------------------------------
   // 10. Finalize
-  // -------------------------------------------------
-
   console.log("Finalizing race...");
 
   const finalizeTx =
@@ -215,29 +235,15 @@ async function main() {
 
   await finalizeTx.wait();
 
-  console.log("Race finalized.");
-
-  // -------------------------------------------------
   // 11. Calculate results
-  // -------------------------------------------------
-
-  console.log(
-    "Calculating ranking and scoring..."
-  );
+  console.log("Calculating results...");
 
   const resultsTx =
-    await voting.calculateRaceResults(
-      raceId
-    );
+    await voting.calculateRaceResults(raceId);
 
   await resultsTx.wait();
 
-  console.log("Results calculated.");
-
-  // -------------------------------------------------
-  // 12. Read final results
-  // -------------------------------------------------
-
+  // 12. Verify final state
   const finalVP =
     await voting.horseVotingPower(
       raceId,
@@ -256,31 +262,39 @@ async function main() {
       horseId
     );
 
+  const totalRevealed =
+    await voting.totalVotingPowerRevealed(
+      raceId
+    );
+
   console.log("\n====================================");
-  console.log("FINAL TEST RESULTS");
+  console.log("FINAL LIVE RESULTS");
   console.log("Race:", raceId.toString());
   console.log("HOF Horse:", horseId.toString());
-  console.log("VP:", finalVP.toString());
+  console.log("Expected VP:", expectedVP.toString());
+  console.log("Final VP:", finalVP.toString());
+  console.log(
+    "Total revealed VP:",
+    totalRevealed.toString()
+  );
   console.log("Position:", position.toString());
   console.log("Points:", points.toString());
   console.log("====================================");
 
-  if (finalVP !== committedVP) {
-    throw new Error(
-      "VP mismatch after reveal"
-    );
+  if (finalVP !== expectedVP) {
+    throw new Error("Final VP mismatch");
+  }
+
+  if (totalRevealed !== expectedVP) {
+    throw new Error("Total revealed VP mismatch");
   }
 
   if (position !== 1n) {
-    throw new Error(
-      "Expected HOF #1 to finish first"
-    );
+    throw new Error("HOF #1 should finish first");
   }
 
   if (points !== 25n) {
-    throw new Error(
-      "Expected winner to receive 25 points"
-    );
+    throw new Error("Winner should receive 25 points");
   }
 
   console.log(
