@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 async function main() {
   const CONTRACT_ADDRESS =
-    "0x9137d87Fa7F7f7d78c7E7941282ec2908531083A";
+    "0x4689053DbF9C7E63A6Ef3eeec83C59B3cB4C94fD";
 
   const [signer] = await hre.ethers.getSigners();
 
@@ -14,70 +14,80 @@ async function main() {
 
   console.log("Contract:", CONTRACT_ADDRESS);
 
-  const supply = Number(await genesis.totalSupply());
-  console.log("Current supply:", supply);
+  const currentSupply = Number(await genesis.totalSupply());
 
-  // Ensure NFTs #1-#5 exist.
-  if (supply < 5) {
-    const missing = 5 - supply;
+  console.log("Current supply:", currentSupply);
 
-    console.log(`Minting ${missing} missing NFTs...`);
+  // Mint remaining NFTs up to #2222.
+  if (currentSupply < 2222) {
+    const remaining = 2222 - currentSupply;
 
-    const mintTx = await genesis.ownerMint(
+    console.log(`Minting ${remaining} NFTs...`);
+
+    const tx = await genesis.ownerMint(
       signer.address,
-      missing
-    );
-
-    await mintTx.wait();
-  }
-
-  const tests = [
-    { id: 1, rarity: 1, vp: 1, name: "Common" },
-    { id: 2, rarity: 2, vp: 2, name: "Uncommon" },
-    { id: 3, rarity: 3, vp: 3, name: "Rare" },
-    { id: 4, rarity: 4, vp: 4, name: "Epic" },
-    { id: 5, rarity: 5, vp: 5, name: "Legendary" },
-  ];
-
-  for (const test of tests) {
-    const tx = await genesis.setRarity(
-      test.id,
-      test.rarity
+      remaining
     );
 
     await tx.wait();
+
+    console.log("Mint complete.");
   }
 
-  for (const test of tests) {
-    const rarity =
-      Number(await genesis.rarityOf(test.id));
+  const tests = [
+    [1,    6, 0, "HallOfFame"],
+    [22,   6, 0, "HallOfFame"],
 
-    const vp =
-      Number(await genesis.votingPowerOf(test.id));
+    [23,   5, 5, "Legendary"],
+    [212,  5, 5, "Legendary"],
 
-    console.log(
-      `#${test.id} ${test.name} | rarity=${rarity} | VP=${vp}`
+    [213,  4, 4, "Epic"],
+    [452,  4, 4, "Epic"],
+
+    [453,  3, 3, "Rare"],
+    [772,  3, 3, "Rare"],
+
+    [773,  2, 2, "Uncommon"],
+    [1252, 2, 2, "Uncommon"],
+
+    [1253, 1, 1, "Common"],
+    [2222, 1, 1, "Common"],
+  ];
+
+  for (const [id, expectedRarity, expectedVP, name] of tests) {
+    const rarity = Number(
+      await genesis.rarityOf(id)
     );
 
-    if (rarity !== test.rarity) {
+    const vp = Number(
+      await genesis.votingPowerOf(id)
+    );
+
+    console.log(
+      `#${id} ${name} | rarity=${rarity} | VP=${vp}`
+    );
+
+    if (rarity !== expectedRarity) {
       throw new Error(
-        `Token #${test.id}: wrong rarity`
+        `#${id}: expected rarity ${expectedRarity}, got ${rarity}`
       );
     }
 
-    if (vp !== test.vp) {
+    if (vp !== expectedVP) {
       throw new Error(
-        `Token #${test.id}: wrong Voting Power`
+        `#${id}: expected VP ${expectedVP}, got ${vp}`
       );
     }
   }
 
-  console.log("SUCCESS:");
-  console.log("#1 Common = 1 VP");
-  console.log("#2 Uncommon = 2 VP");
-  console.log("#3 Rare = 3 VP");
-  console.log("#4 Epic = 4 VP");
-  console.log("#5 Legendary = 5 VP");
+  console.log("");
+  console.log("SUCCESS — ALL GENESIS BOUNDARIES VERIFIED");
+  console.log("1-22       Hall of Fame = 0 VP");
+  console.log("23-212     Legendary    = 5 VP");
+  console.log("213-452    Epic         = 4 VP");
+  console.log("453-772    Rare         = 3 VP");
+  console.log("773-1252   Uncommon     = 2 VP");
+  console.log("1253-2222  Common       = 1 VP");
 }
 
 main().catch((error) => {
