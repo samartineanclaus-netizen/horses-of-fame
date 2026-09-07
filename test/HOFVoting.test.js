@@ -22,6 +22,30 @@ describe("HOFVoting - gas scalable batching", function () {
     );
   }
 
+  async function expectRevert(promise, expectedMessage) {
+    let reverted = false;
+
+    try {
+      const tx = await promise;
+
+      if (tx && typeof tx.wait === "function") {
+        await tx.wait();
+      }
+    } catch (error) {
+      reverted = true;
+
+      expect(
+        String(error.message)
+      ).to.include(expectedMessage);
+    }
+
+    if (!reverted) {
+      throw new Error(
+        `Expected transaction to revert with: ${expectedMessage}`
+      );
+    }
+  }
+
   async function prepareAndCommit(
     signer,
     tokenIds,
@@ -29,9 +53,11 @@ describe("HOFVoting - gas scalable batching", function () {
     secret,
     raceId = 1
   ) {
-    await voting
+    const prepareTx = await voting
       .connect(signer)
       .prepareVoteBatch(raceId, tokenIds);
+
+    await prepareTx.wait();
 
     const commitment = makeCommitment(
       raceId,
@@ -40,9 +66,11 @@ describe("HOFVoting - gas scalable batching", function () {
       secret
     );
 
-    await voting
+    const commitTx = await voting
       .connect(signer)
       .finalizeCommit(raceId, commitment);
+
+    await commitTx.wait();
 
     return commitment;
   }
@@ -70,90 +98,137 @@ describe("HOFVoting - gas scalable batching", function () {
 
     await voting.waitForDeployment();
 
-    await genesis.ownerMint(owner.address, 22);
-    await genesis.ownerMint(alice.address, 1);
-    await genesis.ownerMint(bob.address, 1);
+    // #1-22 = Hall of Fame = 0 VP
+    let tx = await genesis.ownerMint(
+      owner.address,
+      22
+    );
+    await tx.wait();
 
-    await voting.openRace(100, 100);
+    // #23 = Legendary = 5 VP
+    tx = await genesis.ownerMint(
+      alice.address,
+      1
+    );
+    await tx.wait();
+
+    // #24 = Legendary = 5 VP
+    tx = await genesis.ownerMint(
+      bob.address,
+      1
+    );
+    await tx.wait();
+
+    // Local test race:
+    // 100 sec commit + 100 sec reveal
+    tx = await voting.openRace(100, 100);
+    await tx.wait();
   });
 
   it("recognizes Hall of Fame NFTs as zero VP", async function () {
-    expect(await genesis.votingPowerOf(1)).to.equal(0);
-    expect(await genesis.votingPowerOf(22)).to.equal(0);
+    expect(
+      await genesis.votingPowerOf(1)
+    ).to.equal(0n);
+
+    expect(
+      await genesis.votingPowerOf(22)
+    ).to.equal(0n);
+  });
+
+  it("recognizes Legendary voting power", async function () {
+    expect(
+      await genesis.votingPowerOf(23)
+    ).to.equal(5n);
+
+    expect(
+      await genesis.votingPowerOf(24)
+    ).to.equal(5n);
   });
 
   it("prepares an NFT batch and records VP", async function () {
-    await voting
+    const tx = await voting
       .connect(alice)
       .prepareVoteBatch(1, [23]);
+
+    await tx.wait();
 
     expect(
       await voting.preparedVotingPower(
         1,
         alice.address
       )
-    ).to.equal(5);
+    ).to.equal(5n);
 
     expect(
       await voting.tokenUsed(1, 23)
     ).to.equal(true);
   });
 
-  it("rejects Hall of Fame NFTs because they have zero VP", async function () {
-    await expect(
+  it("rejects Hall of Fame NFTs with zero VP", async function () {
+    await expectRevert(
       voting
         .connect(owner)
-        .prepareVoteBatch(1, [1])
-    ).to.be.revertedWith(
+        .prepareVoteBatch(1, [1]),
       "Token has no Voting Power"
     );
   });
 
-  it("rejects tokens not owned by the caller", async function () {
-    await expect(
+  it("rejects tokens not owned by caller", async function () {
+    await expectRevert(
       voting
         .connect(bob)
-        .prepareVoteBatch(1, [23])
-    ).to.be.revertedWith(
+        .prepareVoteBatch(1, [23]),
       "Wallet does not own token"
     );
   });
 
   it("prevents the same NFT being prepared twice", async function () {
-    await voting
+    let tx = await voting
       .connect(alice)
       .prepareVoteBatch(1, [23]);
 
-    await expect(
+    await tx.wait();
+
+    await expectRevert(
       voting
         .connect(alice)
-        .prepareVoteBatch(1, [23])
-    ).to.be.revertedWith(
+        .prepareVoteBatch(1, [23]),
       "Token already used"
     );
   });
 
   it("allows multiple batches before final commit", async function () {
-    await genesis.ownerMint(alice.address, 1);
+    // #25 = another Legendary = 5 VP
+    let tx = await genesis.ownerMint(
+      alice.address,
+      1
+    );
+    await tx.wait();
 
-    await voting
+    tx = await voting
       .connect(alice)
       .prepareVoteBatch(1, [23]);
 
-    await voting
+    await tx.wait();
+
+    tx = await voting
       .connect(alice)
       .prepareVoteBatch(1, [25]);
+
+    await tx.wait();
 
     expect(
       await voting.preparedVotingPower(
         1,
         alice.address
       )
-    ).to.equal(10);
+    ).to.equal(10n);
   });
 
   it("finalizes commitment using prepared VP", async function () {
-    const secret = ethers.id("alice-secret");
+    const secret = ethers.id(
+      "alice-secret"
+    );
 
     await prepareAndCommit(
       alice,
@@ -174,13 +249,20 @@ describe("HOFVoting - gas scalable batching", function () {
         1,
         alice.address
       )
-    ).to.equal(5);
+    ).to.equal(5n);
   });
 
   it("prevents adding NFTs after final commit", async function () {
-    await genesis.ownerMint(alice.address, 1);
+    let tx = await genesis.ownerMint(
+      alice.address,
+      1
+    );
 
-    const secret = ethers.id("alice-secret");
+    await tx.wait();
+
+    const secret = ethers.id(
+      "alice-secret"
+    );
 
     await prepareAndCommit(
       alice,
@@ -189,17 +271,18 @@ describe("HOFVoting - gas scalable batching", function () {
       secret
     );
 
-    await expect(
+    await expectRevert(
       voting
         .connect(alice)
-        .prepareVoteBatch(1, [25])
-    ).to.be.revertedWith(
+        .prepareVoteBatch(1, [25]),
       "Wallet already committed"
     );
   });
 
   it("prevents the same wallet finalizing twice", async function () {
-    const secret = ethers.id("alice-secret");
+    const secret = ethers.id(
+      "alice-secret"
+    );
 
     const commitment = makeCommitment(
       1,
@@ -208,25 +291,36 @@ describe("HOFVoting - gas scalable batching", function () {
       secret
     );
 
-    await voting
+    let tx = await voting
       .connect(alice)
       .prepareVoteBatch(1, [23]);
 
-    await voting
-      .connect(alice)
-      .finalizeCommit(1, commitment);
+    await tx.wait();
 
-    await expect(
+    tx = await voting
+      .connect(alice)
+      .finalizeCommit(
+        1,
+        commitment
+      );
+
+    await tx.wait();
+
+    await expectRevert(
       voting
         .connect(alice)
-        .finalizeCommit(1, commitment)
-    ).to.be.revertedWith(
+        .finalizeCommit(
+          1,
+          commitment
+        ),
       "Wallet already committed"
     );
   });
 
   it("prevents NFT reuse after transfer", async function () {
-    const secretAlice = ethers.id("alice-secret");
+    const secretAlice = ethers.id(
+      "alice-secret"
+    );
 
     await prepareAndCommit(
       alice,
@@ -235,7 +329,7 @@ describe("HOFVoting - gas scalable batching", function () {
       secretAlice
     );
 
-    await genesis
+    let tx = await genesis
       .connect(alice)
       .transferFrom(
         alice.address,
@@ -243,28 +337,36 @@ describe("HOFVoting - gas scalable batching", function () {
         23
       );
 
-    await expect(
+    await tx.wait();
+
+    // Bob now owns #23, but it was already
+    // used during this race.
+    await expectRevert(
       voting
         .connect(bob)
-        .prepareVoteBatch(1, [23])
-    ).to.be.revertedWith(
+        .prepareVoteBatch(1, [23]),
       "Token already used"
     );
 
-    await voting
+    // Bob's original #24 is still eligible.
+    tx = await voting
       .connect(bob)
       .prepareVoteBatch(1, [24]);
+
+    await tx.wait();
 
     expect(
       await voting.preparedVotingPower(
         1,
         bob.address
       )
-    ).to.equal(5);
+    ).to.equal(5n);
   });
 
-  it("rejects a wrong reveal secret", async function () {
-    const secret = ethers.id("correct-secret");
+  it("rejects wrong reveal secret", async function () {
+    const secret = ethers.id(
+      "correct-secret"
+    );
 
     await prepareAndCommit(
       alice,
@@ -275,23 +377,26 @@ describe("HOFVoting - gas scalable batching", function () {
 
     await advance(101);
 
-    const wrongSecret = ethers.id("wrong-secret");
+    const wrongSecret = ethers.id(
+      "wrong-secret"
+    );
 
-    await expect(
+    await expectRevert(
       voting
         .connect(alice)
         .revealVote(
           1,
           1,
           wrongSecret
-        )
-    ).to.be.revertedWith(
+        ),
       "Invalid reveal"
     );
   });
 
   it("rejects reveal for a different horse", async function () {
-    const secret = ethers.id("alice-secret");
+    const secret = ethers.id(
+      "alice-secret"
+    );
 
     await prepareAndCommit(
       alice,
@@ -302,29 +407,32 @@ describe("HOFVoting - gas scalable batching", function () {
 
     await advance(101);
 
-    await expect(
+    await expectRevert(
       voting
         .connect(alice)
         .revealVote(
           1,
           2,
           secret
-        )
-    ).to.be.revertedWith(
+        ),
       "Invalid reveal"
     );
   });
 
   it("hides horse totals before finalization", async function () {
-    await expect(
-      voting.horseVotingPower(1, 1)
-    ).to.be.revertedWith(
+    await expectRevert(
+      voting.horseVotingPower(
+        1,
+        1
+      ),
       "Results still hidden"
     );
   });
 
-  it("reveals a valid commitment and records VP", async function () {
-    const secret = ethers.id("alice-secret");
+  it("reveals valid commitment and records VP", async function () {
+    const secret = ethers.id(
+      "alice-secret"
+    );
 
     await prepareAndCommit(
       alice,
@@ -335,13 +443,15 @@ describe("HOFVoting - gas scalable batching", function () {
 
     await advance(101);
 
-    await voting
+    const tx = await voting
       .connect(alice)
       .revealVote(
         1,
         1,
         secret
       );
+
+    await tx.wait();
 
     expect(
       await voting.walletRevealed(
@@ -352,9 +462,15 @@ describe("HOFVoting - gas scalable batching", function () {
   });
 
   it("applies ranking, tie-break and scoring correctly", async function () {
-    const aliceSecret = ethers.id("alice-secret");
-    const bobSecret = ethers.id("bob-secret");
+    const aliceSecret = ethers.id(
+      "alice-secret"
+    );
 
+    const bobSecret = ethers.id(
+      "bob-secret"
+    );
+
+    // Alice: 5 VP -> HOF #2
     await prepareAndCommit(
       alice,
       [23],
@@ -362,6 +478,7 @@ describe("HOFVoting - gas scalable batching", function () {
       aliceSecret
     );
 
+    // Bob: 5 VP -> HOF #1
     await prepareAndCommit(
       bob,
       [24],
@@ -371,7 +488,7 @@ describe("HOFVoting - gas scalable batching", function () {
 
     await advance(101);
 
-    await voting
+    let tx = await voting
       .connect(alice)
       .revealVote(
         1,
@@ -379,7 +496,9 @@ describe("HOFVoting - gas scalable batching", function () {
         aliceSecret
       );
 
-    await voting
+    await tx.wait();
+
+    tx = await voting
       .connect(bob)
       .revealVote(
         1,
@@ -387,46 +506,62 @@ describe("HOFVoting - gas scalable batching", function () {
         bobSecret
       );
 
+    await tx.wait();
+
     await advance(101);
 
-    await voting.finalizeRace(1);
-    await voting.calculateRaceResults(1);
+    tx = await voting.finalizeRace(1);
+    await tx.wait();
 
+    tx = await voting.calculateRaceResults(1);
+    await tx.wait();
+
+    // Both have 5 VP.
+    // Lower HOF ID wins tie-break.
     expect(
       await voting.horsePosition(1, 1)
-    ).to.equal(1);
+    ).to.equal(1n);
 
     expect(
       await voting.horsePosition(1, 2)
-    ).to.equal(2);
+    ).to.equal(2n);
 
     expect(
       await voting.horseRacePoints(1, 1)
-    ).to.equal(25);
+    ).to.equal(25n);
 
     expect(
       await voting.horseRacePoints(1, 2)
-    ).to.equal(18);
+    ).to.equal(18n);
 
+    // Remaining zero-VP horses follow
+    // ascending HOF ID.
     expect(
       await voting.horsePosition(1, 3)
-    ).to.equal(3);
+    ).to.equal(3n);
 
     expect(
       await voting.horseRacePoints(1, 10)
-    ).to.equal(1);
+    ).to.equal(1n);
 
     expect(
       await voting.horseRacePoints(1, 11)
-    ).to.equal(0);
+    ).to.equal(0n);
 
     expect(
       await voting.horseRacePoints(1, 22)
-    ).to.equal(0);
+    ).to.equal(0n);
   });
 
-  it("supports a 100 NFT batch without wallet-wide enumeration", async function () {
-    await genesis.ownerMint(alice.address, 100);
+  it("supports exactly 100 NFTs in one batch", async function () {
+    // Mint #25 through #124.
+    // All remain inside Legendary range.
+    const mintTx = await genesis.ownerMint(
+      alice.address,
+      100
+    );
+
+    await mintTx.wait();
 
     const tokenIds = [];
 
@@ -434,32 +569,44 @@ describe("HOFVoting - gas scalable batching", function () {
       tokenIds.push(id);
     }
 
-    await voting
-      .connect(alice)
-      .prepareVoteBatch(1, tokenIds);
+    expect(tokenIds.length).to.equal(100);
 
+    const tx = await voting
+      .connect(alice)
+      .prepareVoteBatch(
+        1,
+        tokenIds
+      );
+
+    await tx.wait();
+
+    // 100 Legendary NFTs x 5 VP.
     expect(
       await voting.preparedVotingPower(
         1,
         alice.address
       )
-    ).to.be.greaterThan(0);
+    ).to.equal(500n);
   });
 
   it("rejects batches larger than 100 NFTs", async function () {
-    await genesis.ownerMint(alice.address, 101);
-
     const tokenIds = [];
 
+    // 101 entries are enough to hit
+    // MAX_BATCH_SIZE before ownership checks.
     for (let id = 25; id <= 125; id++) {
       tokenIds.push(id);
     }
 
-    await expect(
+    expect(tokenIds.length).to.equal(101);
+
+    await expectRevert(
       voting
         .connect(alice)
-        .prepareVoteBatch(1, tokenIds)
-    ).to.be.revertedWith(
+        .prepareVoteBatch(
+          1,
+          tokenIds
+        ),
       "Batch too large"
     );
   });
