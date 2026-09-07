@@ -1,0 +1,29 @@
+name: Deploy Genesis to Robinhood Testnet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Compile contract
+        run: npx hardhat compile
+
+      - name: Deploy GenesisHorses
+        env:
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          PLACEHOLDER_URI: ipfs://placeholder/
+        run: npx hardhat run deploy/deploy-genesis.js --network robinhoodTestnet
