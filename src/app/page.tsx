@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 Image from "next/image";
-
 const scoring = [
   ["1st", 25], ["2nd", 18], ["3rd", 15], ["4th", 12], ["5th", 10],
   ["6th", 8], ["7th", 6], ["8th", 4], ["9th", 2], ["10th", 1],
