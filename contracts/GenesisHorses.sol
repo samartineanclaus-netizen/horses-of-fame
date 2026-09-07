@@ -9,25 +9,50 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     using Strings for uint256;
 
+    // =============================================================
+    //                         SUPPLY
+    // =============================================================
+
     uint256 public constant MAX_SUPPLY = 2222;
+
     uint256 public constant HALL_OF_FAME_SUPPLY = 22;
     uint256 public constant VOTING_SUPPLY = 2200;
 
-    uint256 public constant COMMON_SUPPLY = 970;
-    uint256 public constant UNCOMMON_SUPPLY = 480;
-    uint256 public constant RARE_SUPPLY = 320;
-    uint256 public constant EPIC_SUPPLY = 240;
     uint256 public constant LEGENDARY_SUPPLY = 190;
+    uint256 public constant EPIC_SUPPLY = 240;
+    uint256 public constant RARE_SUPPLY = 320;
+    uint256 public constant UNCOMMON_SUPPLY = 480;
+    uint256 public constant COMMON_SUPPLY = 970;
+
+    // Fixed token ID ranges:
+    // 1    - 22   = Hall of Fame
+    // 23   - 212  = Legendary
+    // 213  - 452  = Epic
+    // 453  - 772  = Rare
+    // 773  - 1252 = Uncommon
+    // 1253 - 2222 = Common
+
+    // =============================================================
+    //                         MINT
+    // =============================================================
 
     uint256 public nextTokenId = 1;
 
     // TESTNET ONLY
     uint256 public testMintPrice = 0.001 ether;
 
+    // =============================================================
+    //                         METADATA
+    // =============================================================
+
     string private _baseTokenURI;
     string public placeholderURI;
 
     bool public revealed;
+
+    // =============================================================
+    //                         RARITY
+    // =============================================================
 
     enum Rarity {
         Unassigned,
@@ -39,7 +64,9 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         HallOfFame
     }
 
-    mapping(uint256 => Rarity) private _rarity;
+    // =============================================================
+    //                         EVENTS
+    // =============================================================
 
     event TestMint(
         address indexed minter,
@@ -47,14 +74,13 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         uint256 value
     );
 
-    event RarityAssigned(
-        uint256 indexed tokenId,
-        Rarity rarity
-    );
-
     event CollectionRevealed(string baseURI);
     event PlaceholderURIUpdated(string placeholderURI);
     event TestMintPriceUpdated(uint256 newPrice);
+
+    // =============================================================
+    //                         CONSTRUCTOR
+    // =============================================================
 
     constructor(string memory initialPlaceholderURI)
         ERC721("Horses of Fame - Genesis", "HOFGEN")
@@ -62,6 +88,10 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     {
         placeholderURI = initialPlaceholderURI;
     }
+
+    // =============================================================
+    //                         OWNER MINT
+    // =============================================================
 
     function ownerMint(address to, uint256 quantity)
         external
@@ -85,6 +115,10 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
             _safeMint(to, tokenId);
         }
     }
+
+    // =============================================================
+    //                         PUBLIC TEST MINT
+    // =============================================================
 
     function publicTestMint(uint256 quantity)
         external
@@ -141,33 +175,12 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         require(success, "Withdraw failed");
     }
 
-    function setRarity(
-        uint256 tokenId,
-        Rarity rarity_
-    )
-        external
-        onlyOwner
-    {
-        require(
-            _ownerOf(tokenId) != address(0),
-            "Token does not exist"
-        );
-
-        require(
-            rarity_ != Rarity.Unassigned,
-            "Invalid rarity"
-        );
-
-        _rarity[tokenId] = rarity_;
-
-        emit RarityAssigned(
-            tokenId,
-            rarity_
-        );
-    }
+    // =============================================================
+    //                    FIXED RARITY BY TOKEN ID
+    // =============================================================
 
     function rarityOf(uint256 tokenId)
-        external
+        public
         view
         returns (Rarity)
     {
@@ -176,31 +189,67 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
             "Token does not exist"
         );
 
-        return _rarity[tokenId];
+        if (tokenId <= 22) {
+            return Rarity.HallOfFame;
+        }
+
+        if (tokenId <= 212) {
+            return Rarity.Legendary;
+        }
+
+        if (tokenId <= 452) {
+            return Rarity.Epic;
+        }
+
+        if (tokenId <= 772) {
+            return Rarity.Rare;
+        }
+
+        if (tokenId <= 1252) {
+            return Rarity.Uncommon;
+        }
+
+        return Rarity.Common;
     }
+
+    // =============================================================
+    //                         VOTING POWER
+    // =============================================================
 
     function votingPowerOf(uint256 tokenId)
         public
         view
         returns (uint256)
     {
-        require(
-            _ownerOf(tokenId) != address(0),
-            "Token does not exist"
-        );
+        Rarity rarity_ = rarityOf(tokenId);
 
-        Rarity rarity_ = _rarity[tokenId];
+        if (rarity_ == Rarity.Legendary) {
+            return 5;
+        }
 
-        if (rarity_ == Rarity.Common) return 1;
-        if (rarity_ == Rarity.Uncommon) return 2;
-        if (rarity_ == Rarity.Rare) return 3;
-        if (rarity_ == Rarity.Epic) return 4;
-        if (rarity_ == Rarity.Legendary) return 5;
+        if (rarity_ == Rarity.Epic) {
+            return 4;
+        }
 
-        // HallOfFame = 0 VP
-        // Unassigned = 0 VP
+        if (rarity_ == Rarity.Rare) {
+            return 3;
+        }
+
+        if (rarity_ == Rarity.Uncommon) {
+            return 2;
+        }
+
+        if (rarity_ == Rarity.Common) {
+            return 1;
+        }
+
+        // Hall of Fame = 0 VP
         return 0;
     }
+
+    // =============================================================
+    //                         METADATA
+    // =============================================================
 
     function setPlaceholderURI(
         string calldata newPlaceholderURI
@@ -269,6 +318,10 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     {
         return _baseTokenURI;
     }
+
+    // =============================================================
+    //                         PAUSE
+    // =============================================================
 
     function pause()
         external
