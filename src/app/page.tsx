@@ -25,7 +25,7 @@ const gallery = [
   ["/assets/hof-science.png", "Music · Culture · Legacy"],
 ];
 
-const GENESIS_CONTRACT = "0x1a0816cE2525A3a91aC81747eaDb9814509dB00a";
+const GENESIS_CONTRACT = "0xF03b86EB96bBb33b3F304b634a91368456Ee2ad6";
 const ROBINHOOD_TESTNET_CHAIN_ID = "0xb626";
 
 const TEST_MINT_ABI = [
@@ -148,7 +148,7 @@ function MintButton() {
       const data = encodeFunctionData({
         abi: TEST_MINT_ABI,
         functionName: "publicTestMint",
-        args: [BigInt(1)],
+        args: [1n],
       });
 
       const txHash = await ethereum.request({
