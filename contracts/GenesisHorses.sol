@@ -16,7 +16,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant EPIC_SUPPLY = 240;
     uint256 public constant LEGENDARY_SUPPLY = 190;
 
-    uint256 public nextTokenId = 1;uint256 public testMintPrice = 0.001 ether;
+    uint256 public nextTokenId = 1;
+    uint256 public testMintPrice = 0.001 ether;
     string private _baseTokenURI;
     string public placeholderURI;
 
@@ -43,7 +44,26 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         placeholderURI = initialPlaceholderURI;
     }
 
-    function ownerMintfunction publicTestMint(uint256 quantity)
+ function ownerMint(address to, uint256 quantity)
+    external
+    onlyOwner
+    whenNotPaused
+{
+    require(quantity > 0, "Quantity must be greater than zero");
+    require(
+        totalSupply() + quantity <= MAX_SUPPLY,
+        "Genesis supply exceeded"
+    );
+
+    for (uint256 i = 0; i < quantity; i++) {
+        uint256 tokenId = nextTokenId;
+        nextTokenId++;
+
+        _safeMint(to, tokenId);
+    }
+}
+
+function publicTestMint(uint256 quantity)
     external
     payable
     whenNotPaused
