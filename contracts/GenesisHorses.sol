@@ -99,23 +99,17 @@ function withdrawTestFunds()
 {
     payable(owner()).transfer(address(this).balance);
 }
-        external
-        onlyOwner
-        whenNotPaused
-    {
-        require(quantity > 0, "Quantity must be greater than zero");
-        require(
-            totalSupply() + quantity <= MAX_SUPPLY,
-            "Genesis supply exceeded"
-        );
+        function withdrawTestFunds()
+    external
+    onlyOwner
+{
+    payable(owner()).transfer(address(this).balance);
+}
 
-        for (uint256 i = 0; i < quantity; i++) {
-            uint256 tokenId = nextTokenId;
-            nextTokenId++;
-
-            _safeMint(to, tokenId);
-        }
-    }
+function setRarity(
+    uint256 tokenId,
+    Rarity rarity_
+)
 
     function setRarity(
         uint256 tokenId,
