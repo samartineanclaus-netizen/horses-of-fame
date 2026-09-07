@@ -70,5 +70,5 @@ jobs:
           npx hardhat verify
           --config hardhat.verify.config.js
           --network robinhoodTestnet
-          0x1a0816cE2525A3a91aC81747eaDb9814509dB00a
+          0xF03b86EB96bBb33b3F304b634a91368456Ee2ad6
           "ipfs://placeholder/"
