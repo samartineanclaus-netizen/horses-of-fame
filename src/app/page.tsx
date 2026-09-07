@@ -25,7 +25,7 @@ const gallery = [
   ["/assets/hof-science.png", "Music · Culture · Legacy"],
 ];
 
-const GENESIS_CONTRACT = "0xF03b86EB96bBb33b3F304b634a91368456Ee2ad6";
+const GENESIS_CONTRACT = "0x9137d87Fa7F7f7d78c7E7941282ec2908531083A";
 const ROBINHOOD_TESTNET_CHAIN_ID = "0xb626";
 
 const TEST_MINT_ABI = [
