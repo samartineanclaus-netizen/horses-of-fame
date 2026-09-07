@@ -1,0 +1,46 @@
+name: Generate Genesis Metadata
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-metadata:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Generate metadata
+        run: node deploy/generate-metadata.js
+
+      - name: Verify generated files
+        run: |
+          test -f public/metadata/1.json
+          test -f public/metadata/22.json
+          test -f public/metadata/23.json
+          test -f public/metadata/212.json
+          test -f public/metadata/213.json
+          test -f public/metadata/452.json
+          test -f public/metadata/453.json
+          test -f public/metadata/772.json
+          test -f public/metadata/773.json
+          test -f public/metadata/1252.json
+          test -f public/metadata/1253.json
+          test -f public/metadata/2222.json
+
+          echo "Boundary metadata files exist."
+
+      - name: Show sample metadata
+        run: |
+          cat public/metadata/1.json
+          cat public/metadata/23.json
+          cat public/metadata/213.json
+          cat public/metadata/453.json
+          cat public/metadata/773.json
+          cat public/metadata/1253.json
