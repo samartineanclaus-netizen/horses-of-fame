@@ -1,0 +1,74 @@
+name: Verify Genesis on Robinhood Testnet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Hardhat verify plugin
+        run: npm install --no-save @nomicfoundation/hardhat-verify@^2.0.0
+
+      - name: Create verification config
+        run: |
+          cat > hardhat.verify.config.js <<'EOF'
+          require("@nomicfoundation/hardhat-ethers");
+          require("@nomicfoundation/hardhat-verify");
+
+          module.exports = {
+            solidity: {
+              version: "0.8.25",
+              settings: {
+                evmVersion: "cancun",
+                optimizer: {
+                  enabled: true,
+                  runs: 200,
+                },
+              },
+            },
+
+            networks: {
+              robinhoodTestnet: {
+                url: "https://rpc.testnet.chain.robinhood.com",
+                chainId: 46630,
+              },
+            },
+
+            etherscan: {
+              apiKey: {
+                robinhoodTestnet: "empty",
+              },
+              customChains: [
+                {
+                  network: "robinhoodTestnet",
+                  chainId: 46630,
+                  urls: {
+                    apiURL: "https://explorer.testnet.chain.robinhood.com/api",
+                    browserURL: "https://explorer.testnet.chain.robinhood.com",
+                  },
+                },
+              ],
+            },
+          };
+          EOF
+
+      - name: Verify GenesisHorses
+        run: >
+          npx hardhat verify
+          --config hardhat.verify.config.js
+          --network robinhoodTestnet
+          0x1a0816cE2525A3a91aC81747eaDb9814509dB00a
+          "ipfs://placeholder/"
