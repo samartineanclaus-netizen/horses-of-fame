@@ -38,7 +38,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     constructor(
         string memory initialPlaceholderURI
     )
-        ERC721("Horses of Fame — Genesis", "HOFGEN")
+        ERC721("Horses of Fame - Genesis", "HOFGEN")
         Ownable(msg.sender)
     {
         placeholderURI = initialPlaceholderURI;
