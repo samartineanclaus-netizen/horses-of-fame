@@ -12,6 +12,7 @@ import {
 } from "viem";
 import {
   COMMUNITY_SEASON_ABI,
+  GENESIS_VOTING_ABI,
   HOF_CONTRACTS,
   RACE_VOTING_ABI,
   ROBINHOOD_TESTNET_RPC,
@@ -22,6 +23,7 @@ import {
 type StoredPick = { horse: number; salt: `0x${string}` };
 type RaceState = { opensAt: bigint; closesAt: bigint; votingOpen: boolean };
 type WalletRaceState = { committed: boolean; committedVP: bigint; revealed: boolean; revealedHorse: number };
+type EligibleNft = { tokenId: bigint; vp: bigint };
 
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
 const ZERO_BYTES32 = `0x${"0".repeat(64)}`;
@@ -45,6 +47,10 @@ function formatTimestamp(timestamp: bigint) {
   return new Date(ms).toLocaleString();
 }
 
+function nftListValue(nfts: EligibleNft[]) {
+  return nfts.map((nft) => nft.tokenId.toString()).join(", ");
+}
+
 export default function RacePage() {
   const [account, setAccount] = useState("");
   const [horse, setHorse] = useState("1");
@@ -53,11 +59,14 @@ export default function RacePage() {
   const [status, setStatus] = useState("Ready");
   const [raceState, setRaceState] = useState<RaceState | null>(null);
   const [walletState, setWalletState] = useState<WalletRaceState | null>(null);
+  const [eligibleNfts, setEligibleNfts] = useState<EligibleNft[]>([]);
+  const [inventoryStatus, setInventoryStatus] = useState("Connect wallet to load eligible Genesis NFTs.");
   const [localPick, setLocalPick] = useState<StoredPick | null>(null);
   const [busy, setBusy] = useState(false);
 
   const race = HOF_CONTRACTS.raceVoting;
   const communitySeason = HOF_CONTRACTS.communitySeason;
+  const genesis = HOF_CONTRACTS.genesis;
 
   async function loadRaceState() {
     if (!race) return;
@@ -73,8 +82,8 @@ export default function RacePage() {
     }
   }
 
-  async function loadWalletState(wallet: string) {
-    if (!race || !/^0x[0-9a-fA-F]{40}$/.test(wallet)) return;
+  async function loadWalletState(wallet: string): Promise<WalletRaceState | null> {
+    if (!race || !/^0x[0-9a-fA-F]{40}$/.test(wallet)) return null;
     const address = wallet as `0x${string}`;
     try {
       const [commitment, committedVP, revealed, revealedHorse] = await Promise.all([
@@ -83,16 +92,67 @@ export default function RacePage() {
         publicClient.readContract({ address: race, abi: RACE_VOTING_ABI, functionName: "revealed", args: [address] }),
         publicClient.readContract({ address: race, abi: RACE_VOTING_ABI, functionName: "revealedHorse", args: [address] }),
       ]);
-      setWalletState({
+      const nextState = {
         committed: commitment !== ZERO_BYTES32,
         committedVP,
         revealed,
         revealedHorse: Number(revealedHorse),
-      });
+      };
+      setWalletState(nextState);
       const raw = localStorage.getItem(storageKey(race, wallet));
       setLocalPick(raw ? JSON.parse(raw) as StoredPick : null);
+      return nextState;
     } catch (error) {
       console.error("Could not load wallet race state:", error);
+      return null;
+    }
+  }
+
+  async function loadEligibleNfts(wallet: string, hasCommitted?: boolean) {
+    if (!race || !genesis || !/^0x[0-9a-fA-F]{40}$/.test(wallet)) {
+      setInventoryStatus("Genesis/race contract configuration is incomplete.");
+      return;
+    }
+    const address = wallet as `0x${string}`;
+    try {
+      setInventoryStatus("Loading wallet Genesis NFTs and current-race usage...");
+      const balance = await publicClient.readContract({
+        address: genesis,
+        abi: GENESIS_VOTING_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      });
+      const ids = await Promise.all(
+        Array.from({ length: Number(balance) }, (_, index) =>
+          publicClient.readContract({
+            address: genesis,
+            abi: GENESIS_VOTING_ABI,
+            functionName: "tokenOfOwnerByIndex",
+            args: [address, BigInt(index)],
+          }),
+        ),
+      );
+      const details = await Promise.all(
+        ids.map(async (tokenId) => {
+          const [vp, used] = await Promise.all([
+            publicClient.readContract({ address: genesis, abi: GENESIS_VOTING_ABI, functionName: "votingPowerOf", args: [tokenId] }),
+            publicClient.readContract({ address: race, abi: RACE_VOTING_ABI, functionName: "tokenUsed", args: [tokenId] }),
+          ]);
+          return { tokenId, vp, used };
+        }),
+      );
+      const eligible = details.filter((item) => item.vp > BigInt(0) && !item.used).map(({ tokenId, vp }) => ({ tokenId, vp }));
+      setEligibleNfts(eligible);
+      const totalVp = eligible.reduce((sum, nft) => sum + nft.vp, BigInt(0));
+      setInventoryStatus(`${eligible.length} unused voting-eligible NFT(s) available now · ${totalVp.toString()} VP.`);
+
+      if (eligible.length > 0) {
+        if (hasCommitted) setTopUpIds(nftListValue(eligible));
+        else setTokenIds(nftListValue(eligible));
+      }
+    } catch (error) {
+      console.error(error);
+      setInventoryStatus("Could not enumerate this wallet's Genesis voting NFTs.");
     }
   }
 
@@ -110,12 +170,22 @@ export default function RacePage() {
       const nextAccount = await requestAccount(ethereum);
       setAccount(nextAccount);
       await loadRaceState();
-      await loadWalletState(nextAccount);
+      const nextWalletState = await loadWalletState(nextAccount);
+      await loadEligibleNfts(nextAccount, nextWalletState?.committed ?? false);
       setStatus("Wallet connected to Robinhood Chain Testnet.");
     } catch (error) {
       console.error(error);
       setStatus("Wallet connection failed or was cancelled.");
     }
+  }
+
+  async function refreshInventory() {
+    if (!account) {
+      await connect();
+      return;
+    }
+    const nextWalletState = await loadWalletState(account);
+    await loadEligibleNfts(account, nextWalletState?.committed ?? false);
   }
 
   async function commitPick() {
@@ -161,6 +231,7 @@ export default function RacePage() {
       setStatus(`Secret pick submitted. Keep the local secret backup until reveal. Tx: ${String(hash)}`);
       await loadWalletState(from);
       await loadRaceState();
+      await loadEligibleNfts(from, true);
     } catch (error) {
       console.error(error);
       setStatus(error instanceof Error ? error.message : "Vote failed or was cancelled.");
@@ -192,6 +263,7 @@ export default function RacePage() {
       });
       setStatus(`Additional unused NFT VP submitted to the SAME pick. Tx: ${String(hash)}`);
       await loadWalletState(from);
+      await loadEligibleNfts(from, true);
     } catch (error) {
       console.error(error);
       setStatus(error instanceof Error ? error.message : "VP top-up failed or was cancelled.");
@@ -264,6 +336,8 @@ export default function RacePage() {
     }
   }
 
+  const availableVp = eligibleNfts.reduce((sum, nft) => sum + nft.vp, BigInt(0));
+
   return (
     <main style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -293,8 +367,15 @@ export default function RacePage() {
               {walletState.revealed && <p><strong>Revealed HOF horse:</strong> #{walletState.revealedHorse}</p>}
             </>
           )}
+          <p><strong>Unused eligible inventory:</strong> {inventoryStatus}</p>
+          {eligibleNfts.length > 0 && (
+            <p><strong>Available now:</strong> {eligibleNfts.map((nft) => `#${nft.tokenId} (${nft.vp} VP)`).join(" · ")} · Total {availableVp.toString()} VP</p>
+          )}
           <p><strong>Status:</strong> {status}</p>
-          <button type="button" onClick={connect} style={{ padding: "12px 18px", cursor: "pointer" }}>CONNECT / REFRESH WALLET</button>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button type="button" onClick={connect} style={{ padding: "12px 18px", cursor: "pointer" }}>CONNECT / REFRESH WALLET</button>
+            <button type="button" onClick={refreshInventory} disabled={!race || !genesis || busy} style={{ padding: "12px 18px", cursor: "pointer" }}>REFRESH ELIGIBLE NFTS</button>
+          </div>
         </div>
 
         <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
@@ -307,6 +388,12 @@ export default function RacePage() {
             Eligible NFT token IDs, comma separated
             <input value={tokenIds} onChange={(e) => setTokenIds(e.target.value)} placeholder="23, 451, 1253" style={{ display: "block", width: "100%", padding: 12, marginTop: 8 }} />
           </label>
+          {eligibleNfts.length > 0 && !walletState?.committed && (
+            <button type="button" onClick={() => setTokenIds(nftListValue(eligibleNfts))} style={{ marginTop: 10, padding: "8px 12px" }}>
+              USE ALL CURRENT UNUSED ELIGIBLE NFTS
+            </button>
+          )}
+          <br />
           <button type="button" onClick={commitPick} disabled={!race || busy || Boolean(walletState?.committed)} style={{ marginTop: 16, padding: "12px 18px" }}>
             COMMIT SECRET PICK
           </button>
@@ -321,9 +408,15 @@ export default function RacePage() {
         </section>
 
         <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
-          <h2>2. Add VP from a newly acquired unused NFT</h2>
-          <p>This cannot change your horse. It only adds VP to the pick already committed by this wallet.</p>
+          <h2>2. Add VP from newly acquired unused NFT(s)</h2>
+          <p>This cannot change your horse. It only adds currently owned, unused voting power to the pick already committed by this wallet.</p>
           <input value={topUpIds} onChange={(e) => setTopUpIds(e.target.value)} placeholder="New token IDs, e.g. 777" style={{ display: "block", width: "100%", padding: 12, marginTop: 8 }} />
+          {eligibleNfts.length > 0 && walletState?.committed && !walletState.revealed && (
+            <button type="button" onClick={() => setTopUpIds(nftListValue(eligibleNfts))} style={{ marginTop: 10, padding: "8px 12px" }}>
+              USE ALL CURRENT UNUSED ELIGIBLE NFTS
+            </button>
+          )}
+          <br />
           <button type="button" onClick={addVotingPower} disabled={!race || busy || !walletState?.committed || Boolean(walletState?.revealed)} style={{ marginTop: 16, padding: "12px 18px" }}>
             ADD VP TO SAME PICK
           </button>
