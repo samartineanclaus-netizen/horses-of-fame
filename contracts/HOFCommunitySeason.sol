@@ -176,8 +176,10 @@ contract HOFCommunitySeason is Ownable {
 
         // Approved rule: only on equal points, a wallet with no NFT loses the
         // tie-break against a wallet that still holds at least one Genesis NFT.
+        // V7 does not define a fallback when both tied wallets own zero NFTs,
+        // so stop instead of silently inventing an ordering rule.
         if (aBalance == 0 || bBalance == 0) {
-            if (aBalance == 0 && bBalance == 0) return false;
+            require(aBalance > 0 || bBalance > 0, "unresolved no-NFT tie");
             return aBalance > 0;
         }
 
