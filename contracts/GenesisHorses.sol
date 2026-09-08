@@ -13,6 +13,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant HALL_OF_FAME_SUPPLY = 22;
     uint256 public constant VOTING_SUPPLY = 2200;
     uint256 public constant PUBLIC_MINT_SUPPLY = 2000;
+    uint256 public constant COMMUNITY_ALLOCATION_SUPPLY = 111;
+    uint256 public constant TEAM_RESERVE_SUPPLY = 111;
     uint256 public constant NON_PUBLIC_ALLOCATION_SUPPLY = 222;
     uint256 public constant LEGENDARY_SUPPLY = 190;
     uint256 public constant EPIC_SUPPLY = 240;
@@ -21,6 +23,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant COMMON_SUPPLY = 970;
 
     uint256 public nextTokenId = 1;
+    uint256 public communityAllocationMinted;
+    uint256 public teamReserveMinted;
     uint256 public nonPublicAllocationMinted;
     address public saleContract;
     address public teamWallet;
@@ -32,7 +36,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
 
     enum Rarity { Unassigned, Common, Uncommon, Rare, Epic, Legendary, HallOfFame }
 
-    event AllocationMint(address indexed recipient, uint256 quantity);
+    event AllocationMint(address indexed recipient, uint256 quantity, bool indexed teamReserve);
     event CollectionRevealed(string baseURI);
     event PlaceholderURIUpdated(string placeholderURI);
     event SaleContractSet(address indexed saleContract);
@@ -45,20 +49,34 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         placeholderURI = initialPlaceholderURI;
     }
 
-    /// @notice Owner-only mint for V7's fixed non-public allocation:
-    /// 111 Community + 111 Team Reserve = 222 total. Public paid mint is
-    /// deliberately not exposed here and must use the configured 30-USDC sale.
-    /// The exact Community-use split and delayed-reveal distribution mechanics
-    /// remain separate V7 finalization/operational items.
+    /// @notice Owner-only mint for V7's fixed non-public allocation.
+    /// Mints to the designated Team Reserve Wallet count against the locked
+    /// 111 Team Reserve bucket. Mints to every other address count against the
+    /// locked 111 Community bucket. The paid Public Mint remains isolated in
+    /// the configured sale contract.
     function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused {
         require(quantity > 0, "Quantity must be greater than zero");
-        require(
-            nonPublicAllocationMinted + quantity <= NON_PUBLIC_ALLOCATION_SUPPLY,
-            "Non-public allocation exceeded"
-        );
+
+        bool isTeamReserve = teamWallet != address(0) && to == teamWallet;
+        if (isTeamReserve) {
+            require(
+                teamReserveMinted + quantity <= TEAM_RESERVE_SUPPLY,
+                "Team Reserve allocation exceeded"
+            );
+            teamReserveMinted += quantity;
+        } else {
+            require(
+                communityAllocationMinted + quantity <= COMMUNITY_ALLOCATION_SUPPLY,
+                "Community allocation exceeded"
+            );
+            communityAllocationMinted += quantity;
+        }
+
         nonPublicAllocationMinted += quantity;
+        require(nonPublicAllocationMinted <= NON_PUBLIC_ALLOCATION_SUPPLY, "Non-public allocation exceeded");
+
         _mintSequential(to, quantity, false);
-        emit AllocationMint(to, quantity);
+        emit AllocationMint(to, quantity, isTeamReserve);
     }
 
     function setSaleContract(address saleContract_) external onlyOwner {

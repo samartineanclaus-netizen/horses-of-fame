@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 interface IGenesisHorsesSaleMint {
@@ -36,11 +37,23 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     event Refunded(address indexed buyer, uint256 amount, uint256 quantity);
     event ProceedsDistributed(address prizePool, address audit, address founder);
 
-    constructor(address paymentToken_, address genesis_, uint256 deadline_, address prizePoolTreasury_, address auditWallet_, address founderWallet_) Ownable(msg.sender) {
+    constructor(
+        address paymentToken_,
+        address genesis_,
+        uint256 deadline_,
+        address prizePoolTreasury_,
+        address auditWallet_,
+        address founderWallet_
+    ) Ownable(msg.sender) {
         require(paymentToken_ != address(0) && genesis_ != address(0), "zero contract");
+        require(IERC20Metadata(paymentToken_).decimals() == 6, "payment token must use 6 decimals");
         require(deadline_ > block.timestamp, "bad deadline");
-        require(prizePoolTreasury_ != address(0) && auditWallet_ != address(0) && founderWallet_ != address(0), "zero wallet");
+        require(
+            prizePoolTreasury_ != address(0) && auditWallet_ != address(0) && founderWallet_ != address(0),
+            "zero wallet"
+        );
         require(prizePoolTreasury_ != founderWallet_, "prize pool cannot be founder");
+
         paymentToken = IERC20(paymentToken_);
         genesis = IGenesisHorsesSaleMint(genesis_);
         deadline = deadline_;
@@ -53,20 +66,28 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
         require(block.timestamp < deadline, "sale ended");
         require(quantity > 0, "zero quantity");
         require(sold + quantity <= PUBLIC_SUPPLY, "public supply exceeded");
+
         uint256 cost = quantity * MINT_PRICE;
         sold += quantity;
         paidBy[msg.sender] += cost;
         paymentToken.safeTransferFrom(msg.sender, address(this), cost);
         genesis.saleMint(msg.sender, quantity);
+
         emit Minted(msg.sender, quantity, cost);
     }
 
-    function saleSuccessful() public view returns (bool) { return sold == PUBLIC_SUPPLY; }
-    function refundsEnabled() public view returns (bool) { return block.timestamp >= deadline && !saleSuccessful(); }
+    function saleSuccessful() public view returns (bool) {
+        return sold == PUBLIC_SUPPLY;
+    }
+
+    function refundsEnabled() public view returns (bool) {
+        return block.timestamp >= deadline && !saleSuccessful();
+    }
 
     function refund(uint256[] calldata tokenIds) external nonReentrant {
         require(refundsEnabled(), "refunds not enabled");
         require(tokenIds.length > 0, "no tokens");
+
         uint256 amount = tokenIds.length * MINT_PRICE;
         require(paidBy[msg.sender] >= amount, "refund exceeds paid amount");
 
@@ -81,10 +102,12 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     function distributeProceeds() external nonReentrant {
         require(saleSuccessful(), "sale not successful");
         require(!distributed, "already distributed");
+
         distributed = true;
         paymentToken.safeTransfer(prizePoolTreasury, PRIZE_POOL_AMOUNT);
         paymentToken.safeTransfer(auditWallet, AUDIT_AMOUNT);
         paymentToken.safeTransfer(founderWallet, FOUNDER_AMOUNT);
+
         emit ProceedsDistributed(prizePoolTreasury, auditWallet, founderWallet);
     }
 

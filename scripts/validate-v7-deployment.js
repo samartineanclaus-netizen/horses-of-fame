@@ -66,13 +66,30 @@ async function main() {
   equalValue(await genesis.HALL_OF_FAME_SUPPLY(), 22, "Genesis HALL_OF_FAME_SUPPLY");
   equalValue(await genesis.VOTING_SUPPLY(), 2200, "Genesis VOTING_SUPPLY");
   equalValue(await genesis.PUBLIC_MINT_SUPPLY(), 2000, "Genesis PUBLIC_MINT_SUPPLY");
+  equalValue(await genesis.COMMUNITY_ALLOCATION_SUPPLY(), 111, "Genesis COMMUNITY_ALLOCATION_SUPPLY");
+  equalValue(await genesis.TEAM_RESERVE_SUPPLY(), 111, "Genesis TEAM_RESERVE_SUPPLY");
   equalValue(await genesis.NON_PUBLIC_ALLOCATION_SUPPLY(), 222, "Genesis NON_PUBLIC_ALLOCATION_SUPPLY");
+  equalValue(
+    (await genesis.COMMUNITY_ALLOCATION_SUPPLY()) + (await genesis.TEAM_RESERVE_SUPPLY()),
+    await genesis.NON_PUBLIC_ALLOCATION_SUPPLY(),
+    "Genesis non-public allocation split",
+  );
   equalValue(await genesis.COMMON_SUPPLY(), 970, "Genesis COMMON_SUPPLY");
   equalValue(await genesis.UNCOMMON_SUPPLY(), 480, "Genesis UNCOMMON_SUPPLY");
   equalValue(await genesis.RARE_SUPPLY(), 320, "Genesis RARE_SUPPLY");
   equalValue(await genesis.EPIC_SUPPLY(), 240, "Genesis EPIC_SUPPLY");
   equalValue(await genesis.LEGENDARY_SUPPLY(), 190, "Genesis LEGENDARY_SUPPLY");
   equalAddress(await genesis.saleContract(), saleAddress, "Genesis sale contract");
+
+  const teamWallet = await genesis.teamWallet();
+  if (teamWallet === ethers.ZeroAddress) throw new Error("Genesis Team Reserve Wallet is not configured");
+
+  const communityMinted = await genesis.communityAllocationMinted();
+  const teamMinted = await genesis.teamReserveMinted();
+  const nonPublicMinted = await genesis.nonPublicAllocationMinted();
+  equalValue(communityMinted + teamMinted, nonPublicMinted, "Genesis non-public minted accounting");
+  if (communityMinted > BigInt(111)) throw new Error("Community allocation exceeds locked V7 111-NFT cap");
+  if (teamMinted > BigInt(111)) throw new Error("Team Reserve exceeds locked V7 111-NFT cap");
 
   equalValue(await sale.PUBLIC_SUPPLY(), 2000, "Public Mint supply");
   equalValue(await sale.MINT_PRICE(), BigInt(30) * USDC, "Public Mint price");
@@ -82,6 +99,14 @@ async function main() {
   equalAddress(await sale.genesis(), genesisAddress, "Sale Genesis reference");
 
   const paymentToken = await sale.paymentToken();
+  await assertCode(paymentToken, "Sale payment token");
+  const paymentMetadata = new ethers.Contract(
+    paymentToken,
+    ["function decimals() view returns (uint8)"],
+    ethers.provider,
+  );
+  equalValue(await paymentMetadata.decimals(), 6, "Sale payment token decimals");
+
   equalAddress(await rewards.usdc(), paymentToken, "Rewards/Sale USDC reference");
   equalAddress(await rewards.communitySeason(), communityAddress, "Rewards Community reference");
 
@@ -129,14 +154,17 @@ async function main() {
     hofLeaderboard: hofAddress,
     seasonRewards: rewardsAddress,
     paymentToken,
-    teamReserveWallet: await genesis.teamWallet(),
-    nonPublicAllocationMinted: (await genesis.nonPublicAllocationMinted()).toString(),
+    paymentTokenDecimals: 6,
+    teamReserveWallet: teamWallet,
+    communityAllocationMinted: communityMinted.toString(),
+    teamReserveMinted: teamMinted.toString(),
+    nonPublicAllocationMinted: nonPublicMinted.toString(),
     prizePoolDestination,
     auditWallet: await sale.auditWallet(),
     projectWallet,
     currentSeason: communitySeason.toString(),
     seasonsFinalized: communityFinalized.toString(),
-    note: "Locked V7 constants and deployed cross-contract references match. Open V7 decisions are not validated or invented here.",
+    note: "Locked V7 constants, allocation buckets, USDC decimals and deployed cross-contract references match. Open V7 decisions are not validated or invented here.",
   }, null, 2));
 }
 
