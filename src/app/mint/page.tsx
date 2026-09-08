@@ -14,11 +14,13 @@ import {
 
 const ONE_NFT_PRICE = BigInt(30_000_000); // V7: 30 USDC, 6 decimals.
 const PUBLIC_SUPPLY = BigInt(2000);
+const TEN_DAYS = BigInt(10 * 24 * 60 * 60);
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
 
 type SaleState = {
   sold: bigint;
   deadline: bigint;
+  soldOutAt: bigint;
   successful: boolean;
   refundsEnabled: boolean;
 };
@@ -39,7 +41,7 @@ function parseQuantity(value: string): bigint {
   return quantity;
 }
 
-function formatDeadline(timestamp: bigint) {
+function formatTimestamp(timestamp: bigint) {
   const milliseconds = Number(timestamp) * 1000;
   if (!Number.isSafeInteger(milliseconds)) return timestamp.toString();
   return new Date(milliseconds).toLocaleString();
@@ -71,13 +73,14 @@ export default function MintPage() {
     const sale = HOF_CONTRACTS.sale;
     if (!sale) return;
     try {
-      const [sold, deadline, successful, refundsEnabled] = await Promise.all([
+      const [sold, deadline, soldOutAt, successful, refundsEnabled] = await Promise.all([
         publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "sold" }),
         publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "deadline" }),
+        publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "soldOutAt" }),
         publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "saleSuccessful" }),
         publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "refundsEnabled" }),
       ]);
-      setSaleState({ sold, deadline, successful, refundsEnabled });
+      setSaleState({ sold, deadline, soldOutAt, successful, refundsEnabled });
     } catch (error) {
       console.error("Could not load V7 sale state:", error);
     }
@@ -217,8 +220,14 @@ export default function MintPage() {
           {saleState && (
             <>
               <p><strong>Public Mint sold:</strong> {saleState.sold.toString()} / 2,000</p>
-              <p><strong>Final deadline:</strong> {formatDeadline(saleState.deadline)}</p>
+              <p><strong>Final deadline:</strong> {formatTimestamp(saleState.deadline)}</p>
               <p><strong>Sale successful:</strong> {saleState.successful ? "Yes" : "No"}</p>
+              {saleState.soldOutAt > BigInt(0) && (
+                <>
+                  <p><strong>Sold out:</strong> {formatTimestamp(saleState.soldOutAt)}</p>
+                  <p><strong>V7 first-race target:</strong> by {formatTimestamp(saleState.soldOutAt + TEN_DAYS)}</p>
+                </>
+              )}
               <p><strong>Refunds enabled:</strong> {saleState.refundsEnabled ? "Yes" : "No"}</p>
             </>
           )}
