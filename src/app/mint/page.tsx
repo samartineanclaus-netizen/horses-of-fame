@@ -11,7 +11,7 @@ import {
   requestAccount,
 } from "@/lib/hofClient";
 
-const ONE_NFT_PRICE = 30_000_000n; // V7: 30 USDC, 6 decimals.
+const ONE_NFT_PRICE = BigInt(30_000_000); // V7: 30 USDC, 6 decimals.
 
 export default function MintPage() {
   const [account, setAccount] = useState("");
@@ -68,7 +68,7 @@ export default function MintPage() {
       const mintData = encodeFunctionData({
         abi: GENESIS_SALE_ABI,
         functionName: "mint",
-        args: [1n],
+        args: [BigInt(1)],
       });
       const hash = await ethereum.request({
         method: "eth_sendTransaction",
