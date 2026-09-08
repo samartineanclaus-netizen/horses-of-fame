@@ -29,8 +29,6 @@ contract HOFCommunitySeason is Ownable {
     mapping(uint8 => mapping(address => uint256)) public seasonHistory;
     mapping(address => mapping(address => bool)) public raceClaimed;
 
-    // Tracks wallets that earned/claimed a result in the active season so their
-    // scores can be archived and reset without enumerating arbitrary addresses.
     address[] private activeWallets;
     mapping(address => bool) private activeWalletSeen;
 
@@ -119,5 +117,26 @@ contract HOFCommunitySeason is Ownable {
 
     function chapterComplete() external view returns (bool) {
         return seasonsFinalized == CHAPTER_SEASONS;
+    }
+
+    /// @notice Final All-Time Community Champion after all six Chapter I seasons.
+    /// Tie-break: lower wallet address sorts first, giving deterministic on-chain resolution.
+    /// This function intentionally exposes the winning wallet only; Community Points
+    /// remain attached to wallets and are never transferred with NFTs.
+    function genesisCommunityChampion(address[] calldata candidates) external view returns (address) {
+        require(seasonsFinalized == CHAPTER_SEASONS, "chapter not complete");
+        require(candidates.length > 0, "no candidates");
+
+        address champion = candidates[0];
+        for (uint256 i = 1; i < candidates.length; i++) {
+            address candidate = candidates[i];
+            uint256 candidatePoints = allTimePoints[candidate];
+            uint256 championPoints = allTimePoints[champion];
+            if (candidatePoints > championPoints ||
+                (candidatePoints == championPoints && uint160(candidate) < uint160(champion))) {
+                champion = candidate;
+            }
+        }
+        return champion;
     }
 }
