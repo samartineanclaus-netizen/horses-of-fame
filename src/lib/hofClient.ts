@@ -22,6 +22,7 @@ export const HOF_CONTRACTS = {
   raceVoting: envAddress(process.env.NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT),
   communitySeason: envAddress(process.env.NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT),
   hofLeaderboard: envAddress(process.env.NEXT_PUBLIC_HOF_LEADERBOARD_CONTRACT),
+  seasonRewards: envAddress(process.env.NEXT_PUBLIC_HOF_SEASON_REWARDS_CONTRACT),
 } as const;
 
 export const ERC20_APPROVE_ABI = [
@@ -34,6 +35,16 @@ export const ERC20_APPROVE_ABI = [
       { name: "amount", type: "uint256" },
     ],
     outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
+export const ERC20_BALANCE_ABI = [
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
   },
 ] as const;
 
@@ -128,6 +139,18 @@ export const HOF_LEADERBOARD_ABI = [
   { type: "function", name: "allTimeRanking", stateMutability: "view", inputs: [], outputs: [{ type: "uint8[22]" }] },
   { type: "function", name: "allTimePoints", stateMutability: "view", inputs: [{ name: "horse", type: "uint8" }], outputs: [{ type: "uint256" }] },
   { type: "function", name: "genesisGrandChampion", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+] as const;
+
+export const SEASON_REWARDS_ABI = [
+  { type: "function", name: "communityPaid", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "communityRemaining", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "hofReserved", stateMutability: "pure", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "hofSeasonAllocation", stateMutability: "pure", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "communitySeasonPaid", stateMutability: "view", inputs: [{ name: "season", type: "uint8" }], outputs: [{ type: "bool" }] },
+  { type: "function", name: "COMMUNITY_FIRST", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "COMMUNITY_SECOND", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "COMMUNITY_THIRD", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "CHAPTER_PRIZE_POOL", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
 ] as const;
 
 export function getEthereum(): EthereumProvider | undefined {
