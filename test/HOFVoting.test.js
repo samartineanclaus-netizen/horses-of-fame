@@ -110,6 +110,10 @@ describe("HOFVoting - gas scalable batching", function () {
 
     await genesis.waitForDeployment();
 
+    // Keep this legacy batching fixture inside V7's allocation caps: the
+    // owner's 22 setup NFTs use the Team bucket, while Alice/Bob use Community.
+    await genesis.setTeamWallet(owner.address);
+
     const Voting =
       await ethers.getContractFactory(
         "HOFVoting"
