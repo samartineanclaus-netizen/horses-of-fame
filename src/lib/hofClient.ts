@@ -21,6 +21,7 @@ export const HOF_CONTRACTS = {
   usdc: envAddress(process.env.NEXT_PUBLIC_HOF_USDC_CONTRACT),
   raceVoting: envAddress(process.env.NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT),
   communitySeason: envAddress(process.env.NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT),
+  hofLeaderboard: envAddress(process.env.NEXT_PUBLIC_HOF_LEADERBOARD_CONTRACT),
 } as const;
 
 export const ERC20_APPROVE_ABI = [
@@ -84,6 +85,19 @@ export const COMMUNITY_SEASON_ABI = [
     inputs: [{ name: "race", type: "address" }],
     outputs: [],
   },
+  { type: "function", name: "currentSeason", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "racesRegistered", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "seasonsFinalized", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "seasonPoints", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "allTimePoints", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "uint256" }] },
+] as const;
+
+export const HOF_LEADERBOARD_ABI = [
+  { type: "function", name: "currentSeason", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "racesRecorded", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "seasonsFinalized", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "allTimeRanking", stateMutability: "view", inputs: [], outputs: [{ type: "uint8[22]" }] },
+  { type: "function", name: "allTimePoints", stateMutability: "view", inputs: [{ name: "horse", type: "uint8" }], outputs: [{ type: "uint256" }] },
 ] as const;
 
 export function getEthereum(): EthereumProvider | undefined {
