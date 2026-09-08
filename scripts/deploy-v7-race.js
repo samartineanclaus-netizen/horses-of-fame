@@ -2,6 +2,7 @@ const hre = require("hardhat");
 
 const { ethers } = hre;
 const ROBINHOOD_TESTNET_CHAIN_ID = BigInt(46630);
+const TEN_DAYS = BigInt(10 * 24 * 60 * 60);
 
 function required(name) {
   const value = process.env[name];
@@ -77,6 +78,13 @@ async function main() {
     );
   }
 
+  const soldOutAt = await sale.soldOutAt();
+  if (soldOutAt === BigInt(0)) {
+    throw new Error("Sale reports success but has no sell-out timestamp");
+  }
+  const firstRaceTargetBy = soldOutAt + TEN_DAYS;
+  const firstRaceWithinTarget = opensAt <= firstRaceTargetBy;
+
   const Voting = await ethers.getContractFactory("HOFRaceVoting");
   const race = await Voting.deploy(genesisAddress, opensAt, teamReserveWallet);
   await race.waitForDeployment();
@@ -91,12 +99,18 @@ async function main() {
     genesis: genesisAddress,
     genesisSale: saleAddress,
     publicMintSoldOut: true,
+    soldOutAt: soldOutAt.toString(),
+    firstRaceTargetBy: firstRaceTargetBy.toString(),
+    firstRaceWithinTarget,
     teamReserveWallet,
     opensAt: opensAt.toString(),
     closesAt: closesAt.toString(),
   }, null, 2));
   console.log(`\nNEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=${address}`);
   console.log("Race registration in the Community/HOF leaderboards must occur only after this race closes.");
+  if (!firstRaceWithinTarget) {
+    console.warn("WARNING: RACE_OPENS_AT_UNIX is later than V7's 10-day post-sell-out target. V7 states this is a target subject to audit, Team Reserve distribution and final technical checks, so deployment is not blocked.");
+  }
   console.log("Team Reserve secondary-distribution, audit and reveal prerequisites remain governed by the unresolved V7 launch items; this script does not invent them.");
 }
 
