@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 async function deployFixture() {
-  const [owner, voter1, voter2, voter3] = await ethers.getSigners();
+  const [owner, voter1, voter2, voter3, team] = await ethers.getSigners();
   const Genesis = await ethers.getContractFactory("GenesisHorses");
   const genesis = await Genesis.deploy("placeholder");
   await genesis.waitForDeployment();
@@ -16,7 +16,7 @@ async function deployFixture() {
   const latest = await ethers.provider.getBlock("latest");
   const opensAt = latest.timestamp + 10;
   const Voting = await ethers.getContractFactory("HOFRaceVoting");
-  const voting = await Voting.deploy(await genesis.getAddress(), opensAt);
+  const voting = await Voting.deploy(await genesis.getAddress(), opensAt, team.address);
   await voting.waitForDeployment();
 
   return { voter1, voter2, voter3, voting, opensAt, closesAt: opensAt + 24 * 60 * 60 };
@@ -53,8 +53,8 @@ describe("V7 deterministic race ranking", function () {
     await voting.connect(voter3).revealVote(3, s3);
 
     const ranked = await voting.ranking();
-    expect(ranked[0]).to.equal(7n); // 10 VP
-    expect(ranked[1]).to.equal(3n); // 5 VP
+    expect(ranked[0]).to.equal(7n);
+    expect(ranked[1]).to.equal(3n);
   });
 
   it("uses lower HOF competitor number as the tie-break", async function () {
@@ -65,7 +65,6 @@ describe("V7 deterministic race ranking", function () {
     await setTime(closesAt);
     await voting.connect(voter1).revealVote(12, s1);
     await voting.connect(voter2).revealVote(4, s2);
-
     const ranked = await voting.ranking();
     expect(ranked[0]).to.equal(4n);
     expect(ranked[1]).to.equal(12n);
@@ -75,9 +74,7 @@ describe("V7 deterministic race ranking", function () {
     const { voting, closesAt } = await deployFixture();
     await setTime(closesAt);
     const ranked = await voting.ranking();
-    for (let i = 0; i < 22; i++) {
-      expect(ranked[i]).to.equal(BigInt(i + 1));
-    }
+    for (let i = 0; i < 22; i++) expect(ranked[i]).to.equal(BigInt(i + 1));
   });
 
   it("produces a complete unique ranking of competitors 1 through 22", async function () {
@@ -88,13 +85,10 @@ describe("V7 deterministic race ranking", function () {
     await setTime(closesAt);
     await voting.connect(voter1).revealVote(22, s1);
     await voting.connect(voter2).revealVote(1, s2);
-
     const ranked = await voting.ranking();
     expect(ranked.length).to.equal(22);
     const numbers = ranked.map(Number);
     expect(new Set(numbers).size).to.equal(22);
-    expect([...numbers].sort((a, b) => a - b)).to.deep.equal(
-      Array.from({ length: 22 }, (_, i) => i + 1)
-    );
+    expect([...numbers].sort((a, b) => a - b)).to.deep.equal(Array.from({ length: 22 }, (_, i) => i + 1));
   });
 });
