@@ -30,6 +30,8 @@ contract HOFCommunitySeason is Ownable {
     address public genesisContract;
 
     mapping(address => bool) public registeredRace;
+    // Retained after finalization so an old race cannot score in a new season.
+    mapping(address => uint8) public raceSeason;
     mapping(address => uint256) public seasonPoints;
     mapping(address => uint256) public allTimePoints;
     mapping(uint8 => mapping(address => uint256)) public seasonHistory;
@@ -63,12 +65,15 @@ contract HOFCommunitySeason is Ownable {
 
         races[racesRegistered] = race;
         registeredRace[race] = true;
+        raceSeason[race] = currentSeason;
         racesRegistered += 1;
         emit RaceRegistered(race, currentSeason, racesRegistered);
     }
 
     function claimRacePoints(address race) external {
+        require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
         require(registeredRace[race], "race not registered");
+        require(raceSeason[race] == currentSeason, "race not in current season");
         require(!raceClaimed[race][msg.sender], "already claimed");
 
         ICommunityRaceResult result = ICommunityRaceResult(race);
