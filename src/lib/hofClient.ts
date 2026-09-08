@@ -45,6 +45,20 @@ export const GENESIS_SALE_ABI = [
     inputs: [{ name: "quantity", type: "uint256" }],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "refund",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "tokenIds", type: "uint256[]" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "refundsEnabled",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "bool" }],
+  },
 ] as const;
 
 export const RACE_VOTING_ABI = [
