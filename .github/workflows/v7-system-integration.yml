@@ -3,6 +3,7 @@ name: V7 System Integration
 on:
   push:
     branches:
+      - main
       - v7-system-integration
   pull_request:
     branches:
