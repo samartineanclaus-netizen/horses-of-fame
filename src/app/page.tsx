@@ -39,22 +39,17 @@ function getEthereum() {
 
 async function ensureRobinhoodTestnet(ethereum: EthereumProvider) {
   try {
-    await ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: ROBINHOOD_TESTNET_CHAIN_ID }],
-    });
+    await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ROBINHOOD_TESTNET_CHAIN_ID }] });
   } catch {
     await ethereum.request({
       method: "wallet_addEthereumChain",
-      params: [
-        {
-          chainId: ROBINHOOD_TESTNET_CHAIN_ID,
-          chainName: "Robinhood Chain Testnet",
-          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-          rpcUrls: ["https://rpc.testnet.chain.robinhood.com"],
-          blockExplorerUrls: ["https://explorer.testnet.chain.robinhood.com"],
-        },
-      ],
+      params: [{
+        chainId: ROBINHOOD_TESTNET_CHAIN_ID,
+        chainName: "Robinhood Chain Testnet",
+        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+        rpcUrls: ["https://rpc.testnet.chain.robinhood.com"],
+        blockExplorerUrls: ["https://explorer.testnet.chain.robinhood.com"],
+      }],
     });
   }
 }
@@ -99,9 +94,10 @@ function Header() {
         <div className="navLinks">
           <a href="#collection">Collection</a>
           <a href="#racing">Racing</a>
-          <a href="#roadmap">Roadmap</a>
-          <a href="#tokenomics">Tokenomics</a>
-          <a href="#faq">FAQ</a>
+          <a href="/race">Race</a>
+          <a href="/standings">Standings</a>
+          <a href="/rewards">Rewards</a>
+          <a href="/status">Status</a>
         </div>
         <WalletButton />
       </nav>
