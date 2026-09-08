@@ -16,15 +16,16 @@ This file is **not** a replacement for `docs/tokenomics/HOF_TOKENOMICS_V7_MASTER
 5. **Maximum one-week break between seasons — timing anchor.** V7 requires the break between seasons to be no longer than one week, but it does not specify whether that week is measured from Race 10 opening, Race 10 voting close, race finalization, season finalization, or another event. The current code does not invent an anchor.
 6. **Chapter-transition one-month maximum — timing anchor.** V7 requires no more than one month between HOF chapters but does not define the exact start/end events for that interval. This is not enforced in Chapter I code until the chapter-transition mechanism is defined.
 7. **Community season with fewer than three scoring wallets.** V7 defines Community Top 3 rewards of 2,500 / 1,000 / 500 USDC but does not state how an unfilled 2nd or 3rd place is treated if fewer than three wallets score in a season. Season finalization intentionally has no invented minimum-participant rule; the current rewards contract therefore refuses a payout with an incomplete Top 3 rather than redirecting or reallocating money.
+8. **Failed-sale refund after a Public Mint NFT is transferred.** V7 states that purchasers must be able to claim an on-chain refund of eligible mint payment if the 2,000 Public Mint NFTs do not sell by the deadline, but it does not define entitlement after a refundable NFT changes wallets. The current implementation requires the refund caller both to own the Public Mint NFT and to have sufficient original mint payment recorded in that same wallet. No rule has been invented for whether refund rights should instead stay with the original purchaser, follow the NFT, or require another treatment.
 
 ## V7 section 16 items still to finalize
 
 - Exact identities/breeds and numbering of the 22 HOF race horses.
 - Final mint deadline triggering refund condition.
-- Final escrow/refund/treasury architecture and non-custodial Prize Pool controls.
-- Exact split of 111 Community NFTs among approved community uses.
-- Operational terms for the 111 Team Reserve secondary-sale window before Race 1.
-- Independent audit provider, scope and payment mechanics for the $2,000 allocation.
+- Final escrow/refund/treasury smart-contract architecture and non-custodial Prize Pool controls.
+- Exact split of 111 Community NFTs among giveaways, collabs, partnerships and other approved uses.
+- Operational terms for 111 Team Reserve secondary-sale window before Race 1.
+- Independent audit provider, scope and payment mechanics for the $2,000 audit allocation.
 - Final delayed-reveal/randomization design.
 - Final season-end beneficiary mechanism for HOF race-horse prizes.
 - Final creator-fee enforcement available on OpenSea/Robinhood Chain.
