@@ -112,6 +112,7 @@ Set:
 
 ```text
 GENESIS_ADDRESS=
+GENESIS_SALE_ADDRESS=
 TEAM_RESERVE_WALLET=
 RACE_OPENS_AT_UNIX=
 ```
@@ -122,6 +123,8 @@ Then:
 npm run deploy:v7:race:testnet
 ```
 
+The standard V7 race deployment operation refuses to deploy while the Public Mint is not sold out. It also verifies that the supplied sale contract points to the same Genesis contract and that the Team Reserve wallet matches the Genesis configuration. This enforces the locked **Public Mint → Sold Out** prerequisite without inventing the still-open Team Reserve secondary-distribution, audit or reveal-completion mechanics.
+
 The race contract fixes the V7 24-hour voting window. For races 2–10 of a season, the leaderboard contracts enforce opening exactly three days after the previous race opening.
 
 Copy the printed race address into:
@@ -130,6 +133,14 @@ Copy the printed race address into:
 NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=
 RACE_ADDRESS=
 ```
+
+Read a race without exposing live totals or wallet choices:
+
+```bash
+npm run ops:v7:race-status:testnet
+```
+
+The read-only race status reports the configured Genesis/Team Reserve references, opening/closing timestamps, current phase and whether voting is open. It intentionally does not read or print live horse VP totals during voting.
 
 ## 7. Voting lifecycle
 
@@ -168,6 +179,8 @@ npm run ops:v7:finalize-season:testnet
 ```
 
 This archives Season History, updates All-Time points, resets season scores and advances both leaderboards together.
+
+If equal Community points require a tie-break and all tied wallets involved own zero Genesis NFTs, finalization stops rather than using insertion order or another invented fallback. That case remains explicitly open in `V7_OPEN_QUESTIONS.md`.
 
 ## 11. Pay the Community season rewards
 

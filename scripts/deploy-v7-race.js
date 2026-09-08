@@ -23,6 +23,11 @@ function requiredUnix(name) {
   return BigInt(value);
 }
 
+async function assertCode(address, label) {
+  const code = await ethers.provider.getCode(address);
+  if (code === "0x") throw new Error(`${label} has no contract bytecode at ${address}`);
+}
+
 async function main() {
   const network = await ethers.provider.getNetwork();
   if (network.chainId !== ROBINHOOD_TESTNET_CHAIN_ID) {
@@ -33,11 +38,12 @@ async function main() {
   if (!deployer) throw new Error("No deployer signer. Set DEPLOYER_PRIVATE_KEY.");
 
   const genesisAddress = requiredAddress("GENESIS_ADDRESS");
+  const saleAddress = requiredAddress("GENESIS_SALE_ADDRESS");
   const teamReserveWallet = requiredAddress("TEAM_RESERVE_WALLET");
   const opensAt = requiredUnix("RACE_OPENS_AT_UNIX");
 
-  const code = await ethers.provider.getCode(genesisAddress);
-  if (code === "0x") throw new Error(`GENESIS_ADDRESS has no contract bytecode at ${genesisAddress}`);
+  await assertCode(genesisAddress, "GENESIS_ADDRESS");
+  await assertCode(saleAddress, "GENESIS_SALE_ADDRESS");
 
   const latest = await ethers.provider.getBlock("latest");
   if (!latest || opensAt < BigInt(latest.timestamp)) {
@@ -45,10 +51,29 @@ async function main() {
   }
 
   const genesis = await ethers.getContractAt("GenesisHorses", genesisAddress);
+  const sale = await ethers.getContractAt("HOFGenesisSale", saleAddress);
+
   const configuredTeamWallet = await genesis.teamWallet();
   if (configuredTeamWallet.toLowerCase() !== teamReserveWallet.toLowerCase()) {
     throw new Error(
       `TEAM_RESERVE_WALLET does not match Genesis configuration (${configuredTeamWallet})`,
+    );
+  }
+
+  const saleGenesis = await sale.genesis();
+  if (saleGenesis.toLowerCase() !== genesisAddress.toLowerCase()) {
+    throw new Error(`GENESIS_SALE_ADDRESS points to a different Genesis contract (${saleGenesis})`);
+  }
+
+  // V7 section 9 locks the launch sequence Public Mint -> Sold Out -> Team
+  // Reserve secondary distribution -> First Race. This deploy operation can
+  // safely enforce the sold-out prerequisite. It intentionally does not invent
+  // the still-open Team Reserve distribution/reveal/audit completion mechanics.
+  if (!(await sale.saleSuccessful())) {
+    const sold = await sale.sold();
+    const publicSupply = await sale.PUBLIC_SUPPLY();
+    throw new Error(
+      `V7 race deployment blocked before Public Mint sell-out (${sold}/${publicSupply} sold)`,
     );
   }
 
@@ -64,12 +89,15 @@ async function main() {
     deployer: deployer.address,
     raceVoting: address,
     genesis: genesisAddress,
+    genesisSale: saleAddress,
+    publicMintSoldOut: true,
     teamReserveWallet,
     opensAt: opensAt.toString(),
     closesAt: closesAt.toString(),
   }, null, 2));
   console.log(`\nNEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=${address}`);
   console.log("Race registration in the Community/HOF leaderboards must occur only after this race closes.");
+  console.log("Team Reserve secondary-distribution, audit and reveal prerequisites remain governed by the unresolved V7 launch items; this script does not invent them.");
 }
 
 main().catch((error) => {
