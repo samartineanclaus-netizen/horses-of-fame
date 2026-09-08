@@ -45,6 +45,15 @@ function formatDeadline(timestamp: bigint) {
   return new Date(milliseconds).toLocaleString();
 }
 
+async function waitForSuccess(hash: unknown) {
+  if (typeof hash !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(hash)) {
+    throw new Error("Wallet did not return a valid transaction hash");
+  }
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
+  if (receipt.status !== "success") throw new Error("Transaction reverted on-chain");
+  return hash;
+}
+
 export default function MintPage() {
   const [account, setAccount] = useState("");
   const [status, setStatus] = useState("Ready");
@@ -119,10 +128,12 @@ export default function MintPage() {
         functionName: "approve",
         args: [sale, cost],
       });
-      await ethereum.request({
+      const approveHash = await ethereum.request({
         method: "eth_sendTransaction",
         params: [{ from, to: usdc, data: approveData }],
       });
+      setStatus("Waiting for USDC approval confirmation...");
+      await waitForSuccess(approveHash);
 
       setStatus(`2/2 — Submit mint for ${mintQuantity.toString()} Genesis NFT(s).`);
       const mintData = encodeFunctionData({
@@ -130,11 +141,13 @@ export default function MintPage() {
         functionName: "mint",
         args: [mintQuantity],
       });
-      const hash = await ethereum.request({
+      const mintHash = await ethereum.request({
         method: "eth_sendTransaction",
         params: [{ from, to: sale, data: mintData }],
       });
-      setStatus(`Mint submitted: ${String(hash)}`);
+      setStatus("Waiting for Genesis mint confirmation...");
+      await waitForSuccess(mintHash);
+      setStatus(`Mint confirmed: ${String(mintHash)}`);
       await loadSaleState();
     } catch (error) {
       console.error(error);
@@ -176,7 +189,9 @@ export default function MintPage() {
         method: "eth_sendTransaction",
         params: [{ from, to: sale, data }],
       });
-      setStatus(`Refund submitted for ${tokenIds.length} Public Mint NFT(s). Tx: ${String(hash)}`);
+      setStatus("Waiting for refund confirmation...");
+      await waitForSuccess(hash);
+      setStatus(`Refund confirmed for ${tokenIds.length} Public Mint NFT(s). Tx: ${String(hash)}`);
       await loadSaleState();
     } catch (error) {
       console.error(error);
