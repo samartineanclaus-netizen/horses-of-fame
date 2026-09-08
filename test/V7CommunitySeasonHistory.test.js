@@ -101,4 +101,18 @@ describe("V7 Community season history, reset and All-Time", function () {
     ], "incomplete");
     await expect(community.finalizeSeason()).to.be.revertedWith("season not complete");
   });
+
+  it("does not add a participant-count requirement that is absent from V7", async function () {
+    const { voter, team, genesis, community } = await deployFixture();
+    const voters = [{ signer: voter, tokenId: 23, horse: 1 }];
+    for (let i = 0; i < 10; i++) {
+      await makeClaimedRace(genesis, community, team, voters, `single-wallet-${i}`);
+    }
+
+    expect(await community.racesRegistered()).to.equal(10n);
+    expect(await community.activeWalletCount()).to.equal(1n);
+    await expect(community.finalizeSeason()).to.emit(community, "SeasonFinalized").withArgs(1n);
+    expect(await community.currentSeason()).to.equal(2n);
+    expect(await community.seasonHistory(1, voter.address)).to.equal(250n);
+  });
 });
