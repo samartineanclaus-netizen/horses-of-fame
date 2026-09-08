@@ -12,6 +12,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant MAX_SUPPLY = 2222;
     uint256 public constant HALL_OF_FAME_SUPPLY = 22;
     uint256 public constant VOTING_SUPPLY = 2200;
+    uint256 public constant PUBLIC_MINT_SUPPLY = 2000;
+    uint256 public constant NON_PUBLIC_ALLOCATION_SUPPLY = 222;
     uint256 public constant LEGENDARY_SUPPLY = 190;
     uint256 public constant EPIC_SUPPLY = 240;
     uint256 public constant RARE_SUPPLY = 320;
@@ -19,6 +21,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant COMMON_SUPPLY = 970;
 
     uint256 public nextTokenId = 1;
+    uint256 public nonPublicAllocationMinted;
     address public saleContract;
     address public teamWallet;
     mapping(uint256 => bool) public publicSaleToken;
@@ -29,6 +32,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
 
     enum Rarity { Unassigned, Common, Uncommon, Rare, Epic, Legendary, HallOfFame }
 
+    event AllocationMint(address indexed recipient, uint256 quantity);
     event CollectionRevealed(string baseURI);
     event PlaceholderURIUpdated(string placeholderURI);
     event SaleContractSet(address indexed saleContract);
@@ -41,11 +45,20 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         placeholderURI = initialPlaceholderURI;
     }
 
-    /// @notice Owner-only allocation mint. Public paid mint is deliberately not
-    /// exposed here: V7 public mint goes through the configured 30-USDC sale
-    /// contract so escrow/refund accounting cannot be bypassed.
+    /// @notice Owner-only mint for V7's fixed non-public allocation:
+    /// 111 Community + 111 Team Reserve = 222 total. Public paid mint is
+    /// deliberately not exposed here and must use the configured 30-USDC sale.
+    /// The exact Community-use split and delayed-reveal distribution mechanics
+    /// remain separate V7 finalization/operational items.
     function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused {
+        require(quantity > 0, "Quantity must be greater than zero");
+        require(
+            nonPublicAllocationMinted + quantity <= NON_PUBLIC_ALLOCATION_SUPPLY,
+            "Non-public allocation exceeded"
+        );
+        nonPublicAllocationMinted += quantity;
         _mintSequential(to, quantity, false);
+        emit AllocationMint(to, quantity);
     }
 
     function setSaleContract(address saleContract_) external onlyOwner {
