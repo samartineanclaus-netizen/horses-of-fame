@@ -20,6 +20,7 @@ export const HOF_CONTRACTS = {
   sale: envAddress(process.env.NEXT_PUBLIC_HOF_GENESIS_SALE_CONTRACT),
   usdc: envAddress(process.env.NEXT_PUBLIC_HOF_USDC_CONTRACT),
   raceVoting: envAddress(process.env.NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT),
+  communitySeason: envAddress(process.env.NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT),
 } as const;
 
 export const ERC20_APPROVE_ABI = [
@@ -71,6 +72,16 @@ export const RACE_VOTING_ABI = [
       { name: "horseNumber", type: "uint8" },
       { name: "salt", type: "bytes32" },
     ],
+    outputs: [],
+  },
+] as const;
+
+export const COMMUNITY_SEASON_ABI = [
+  {
+    type: "function",
+    name: "claimRacePoints",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "race", type: "address" }],
     outputs: [],
   },
 ] as const;
