@@ -2,7 +2,9 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 async function setTime(timestamp) {
-  await ethers.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+  const latest = await ethers.provider.getBlock("latest");
+  const target = Math.max(timestamp, latest.timestamp + 1);
+  await ethers.provider.send("evm_setNextBlockTimestamp", [target]);
   await ethers.provider.send("evm_mine", []);
 }
 
