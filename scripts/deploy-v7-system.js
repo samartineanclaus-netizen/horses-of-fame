@@ -117,6 +117,7 @@ async function main() {
   console.log(`NEXT_PUBLIC_HOF_GENESIS_SALE_CONTRACT=${result.genesisSale}`);
   console.log(`NEXT_PUBLIC_HOF_USDC_CONTRACT=${result.usdc}`);
   console.log(`NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT=${result.communitySeason}`);
+  console.log(`NEXT_PUBLIC_HOF_LEADERBOARD_CONTRACT=${result.hofSeasonLeaderboard}`);
   console.log("NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=");
   console.log("\nNo Community/Team allocation NFTs were minted and no reveal/randomization action was taken.");
 }
