@@ -15,6 +15,8 @@ const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC)
 
 const GENESIS_STATUS_ABI = [
   { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "communityAllocationMinted", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "teamReserveMinted", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "revealed", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
   { type: "function", name: "teamWallet", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
   { type: "function", name: "saleContract", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
@@ -32,6 +34,8 @@ const SALE_STATUS_ABI = [
 type StatusState = {
   genesis?: {
     totalSupply: string;
+    communityMinted: string;
+    teamMinted: string;
     revealed: boolean;
     teamWallet: string;
     saleContract: string;
@@ -83,13 +87,22 @@ export default function StatusPage() {
       if (HOF_CONTRACTS.genesis) {
         try {
           const address = HOF_CONTRACTS.genesis;
-          const [totalSupply, revealed, teamWallet, saleContract] = await Promise.all([
+          const [totalSupply, communityMinted, teamMinted, revealed, teamWallet, saleContract] = await Promise.all([
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "totalSupply" }),
+            publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "communityAllocationMinted" }),
+            publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "teamReserveMinted" }),
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "revealed" }),
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "teamWallet" }),
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "saleContract" }),
           ]);
-          next.genesis = { totalSupply: String(totalSupply), revealed, teamWallet, saleContract };
+          next.genesis = {
+            totalSupply: String(totalSupply),
+            communityMinted: String(communityMinted),
+            teamMinted: String(teamMinted),
+            revealed,
+            teamWallet,
+            saleContract,
+          };
         } catch (error) {
           console.error(error);
           errors.push("Genesis");
@@ -183,10 +196,11 @@ export default function StatusPage() {
           <Card title="Genesis 2,222">
             {state.genesis ? <>
               <p>Current total supply: <strong>{state.genesis.totalSupply}</strong> / 2,222</p>
+              <p>Community allocation minted: <strong>{state.genesis.communityMinted}</strong> / 111</p>
+              <p>Team Reserve minted: <strong>{state.genesis.teamMinted}</strong> / 111</p>
               <p>Metadata revealed: <strong>{state.genesis.revealed ? "Yes" : "No"}</strong></p>
               <p style={{ overflowWrap: "anywhere" }}>Team wallet: {state.genesis.teamWallet}</p>
               <p style={{ overflowWrap: "anywhere" }}>Sale contract: {state.genesis.saleContract}</p>
-              <p style={{ lineHeight: 1.5 }}>The 111 Community / 111 Team Reserve distribution mechanics remain separate from this status card until the unresolved V7 allocation/reveal design is finalized.</p>
             </> : <p>Genesis address not configured or could not be read.</p>}
           </Card>
 
