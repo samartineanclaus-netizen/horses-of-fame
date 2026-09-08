@@ -54,15 +54,23 @@ The isolated testnet routes are:
 
 Community All-Time is loaded on demand from the persistent Chapter I wallet registry. Equal points use the approved casting tie-break: a tied wallet with no Genesis NFT loses to a tied wallet that still holds one; if both hold NFTs, the lower-numbered held NFT wins. If equal-point wallets all hold zero Genesis NFTs, the page marks that tie as unresolved instead of inventing a fallback.
 
-## 4. Read current system state
+## 4. Validate and read current system state
 
-After deployment addresses are placed in `.env`:
+After deployment addresses are placed in `.env`, first validate the locked V7 constants and cross-contract references:
+
+```bash
+npm run ops:v7:validate-deployment:testnet
+```
+
+This is read-only. It verifies the deployed Genesis supply/rarity constants, 2,000 × 30 USDC Public Mint, 48k/2k/10k sale split, 10-race/6-season/3-day leaderboard constants, 48k reward accounting and the Genesis/Sale/Community/Rewards contract references. It does not validate or invent any item that V7 still leaves open.
+
+Then read the live operational state:
 
 ```bash
 npm run ops:v7:status:testnet
 ```
 
-This command is read-only. It reports Genesis supply/reveal state, public-sale progress/refund state, current Community/HOF seasons and Prize Pool accounting.
+This command is also read-only. It reports Genesis supply/reveal state, public-sale progress/refund state, current Community/HOF seasons and Prize Pool accounting.
 
 ## 5. Public Mint success and proceeds distribution
 
