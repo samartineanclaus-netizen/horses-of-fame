@@ -50,6 +50,11 @@ async function main() {
   const rewards = await ethers.getContractAt("HOFSeasonRewards", rewardsAddress);
   const usdcAddress = await rewards.usdc();
   const usdc = await ethers.getContractAt("IERC20", usdcAddress);
+  const usdcMetadata = new ethers.Contract(
+    usdcAddress,
+    ["function decimals() view returns (uint8)"],
+    ethers.provider,
+  );
 
   const status = {
     chainId: Number(network.chainId),
@@ -57,6 +62,12 @@ async function main() {
       address: genesisAddress,
       totalSupply: (await genesis.totalSupply()).toString(),
       nextTokenId: (await genesis.nextTokenId()).toString(),
+      publicMintSupply: (await genesis.PUBLIC_MINT_SUPPLY()).toString(),
+      communityAllocationSupply: (await genesis.COMMUNITY_ALLOCATION_SUPPLY()).toString(),
+      teamReserveSupply: (await genesis.TEAM_RESERVE_SUPPLY()).toString(),
+      communityAllocationMinted: (await genesis.communityAllocationMinted()).toString(),
+      teamReserveMinted: (await genesis.teamReserveMinted()).toString(),
+      nonPublicAllocationMinted: (await genesis.nonPublicAllocationMinted()).toString(),
       revealed: await genesis.revealed(),
       saleContract: await genesis.saleContract(),
       teamWallet: await genesis.teamWallet(),
@@ -70,6 +81,8 @@ async function main() {
       successful: await sale.saleSuccessful(),
       refundsEnabled: await sale.refundsEnabled(),
       proceedsDistributed: await sale.distributed(),
+      paymentToken: await sale.paymentToken(),
+      paymentTokenDecimals: (await usdcMetadata.decimals()).toString(),
       escrowUSDC6: (await usdc.balanceOf(saleAddress)).toString(),
     },
     community: {
