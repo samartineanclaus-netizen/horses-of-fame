@@ -4,6 +4,7 @@ pragma solidity ^0.8.25;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface ICommunityRaceResult {
+    function opensAt() external view returns (uint256);
     function closesAt() external view returns (uint256);
     function revealed(address voter) external view returns (bool);
     function revealedHorse(address voter) external view returns (uint8);
@@ -22,10 +23,12 @@ interface IGenesisEnumerable {
 contract HOFCommunitySeason is Ownable {
     uint8 public constant RACES_PER_SEASON = 10;
     uint8 public constant CHAPTER_SEASONS = 6;
+    uint256 public constant RACE_INTERVAL = 3 days;
 
     uint8 public currentSeason = 1;
     uint8 public racesRegistered;
     uint8 public seasonsFinalized;
+    uint256 public lastRaceOpensAt;
     address[10] public races;
     address public genesisContract;
 
@@ -61,11 +64,19 @@ contract HOFCommunitySeason is Ownable {
         require(race != address(0), "zero race");
         require(racesRegistered < RACES_PER_SEASON, "season complete");
         require(!registeredRace[race], "race already registered");
-        require(block.timestamp >= ICommunityRaceResult(race).closesAt(), "race not closed");
+
+        ICommunityRaceResult result = ICommunityRaceResult(race);
+        require(block.timestamp >= result.closesAt(), "race not closed");
+        uint256 raceOpensAt = result.opensAt();
+        // V7 section 7: compare scheduled openings, not registration timestamps.
+        if (racesRegistered > 0) {
+            require(raceOpensAt == lastRaceOpensAt + RACE_INTERVAL, "race cadence must be 3 days");
+        }
 
         races[racesRegistered] = race;
         registeredRace[race] = true;
         raceSeason[race] = currentSeason;
+        lastRaceOpensAt = raceOpensAt;
         racesRegistered += 1;
         emit RaceRegistered(race, currentSeason, racesRegistered);
     }
@@ -121,6 +132,7 @@ contract HOFCommunitySeason is Ownable {
 
         for (uint8 i = 0; i < RACES_PER_SEASON; i++) races[i] = address(0);
         racesRegistered = 0;
+        lastRaceOpensAt = 0;
         seasonsFinalized += 1;
         currentSeason += 1;
         emit CommunityTop3Finalized(seasonNumber, top3[0], top3[1], top3[2]);

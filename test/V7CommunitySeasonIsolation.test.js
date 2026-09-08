@@ -31,7 +31,9 @@ async function deployFixture() {
 async function createRace(fixture, { includeLate = false, claimLate = false } = {}) {
   const { first, second, third, team, late, genesis, community } = fixture;
   const latest = await ethers.provider.getBlock("latest");
-  const opensAt = latest.timestamp + 10;
+  const opensAt = (await community.racesRegistered()) === 0n
+    ? latest.timestamp + 10
+    : Number(await community.lastRaceOpensAt()) + 3 * DAY;
   const Voting = await ethers.getContractFactory("HOFRaceVoting");
   const race = await Voting.deploy(await genesis.getAddress(), opensAt, team.address);
   await race.waitForDeployment();

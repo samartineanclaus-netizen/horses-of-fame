@@ -22,9 +22,11 @@ async function deployFixture() {
   return { owner, voter1, voter2, team, genesis, community };
 }
 
-async function deployRace(genesis, team) {
+async function deployRace(genesis, team, community) {
   const latest = await ethers.provider.getBlock("latest");
-  const opensAt = latest.timestamp + 10;
+  const opensAt = (await community.racesRegistered()) === 0n
+    ? latest.timestamp + 10
+    : Number(await community.lastRaceOpensAt()) + 3 * 24 * 60 * 60;
   const Voting = await ethers.getContractFactory("HOFRaceVoting");
   const race = await Voting.deploy(await genesis.getAddress(), opensAt, team.address);
   await race.waitForDeployment();
@@ -40,7 +42,7 @@ async function commit(race, voter, horse, tokenIds, label) {
 describe("V7 Community/Holder Season", function () {
   it("awards the wallet the points of its chosen horse's final position", async function () {
     const { voter1, voter2, team, genesis, community } = await deployFixture();
-    const { race, opensAt, closesAt } = await deployRace(genesis, team);
+    const { race, opensAt, closesAt } = await deployRace(genesis, team, community);
     await setTime(opensAt);
     const s1 = await commit(race, voter1, 7, [23, 24], "winner");
     const s2 = await commit(race, voter2, 3, [25], "second");
@@ -56,7 +58,7 @@ describe("V7 Community/Holder Season", function () {
 
   it("allows only one Community scoring result per wallet per race", async function () {
     const { voter1, team, genesis, community } = await deployFixture();
-    const { race, opensAt, closesAt } = await deployRace(genesis, team);
+    const { race, opensAt, closesAt } = await deployRace(genesis, team, community);
     await setTime(opensAt);
     const salt = await commit(race, voter1, 1, [23], "once");
     await setTime(closesAt);
@@ -69,7 +71,7 @@ describe("V7 Community/Holder Season", function () {
 
   it("does not multiply Community points when a wallet uses more NFTs", async function () {
     const { voter1, voter2, team, genesis, community } = await deployFixture();
-    const { race, opensAt, closesAt } = await deployRace(genesis, team);
+    const { race, opensAt, closesAt } = await deployRace(genesis, team, community);
     await setTime(opensAt);
     const s1 = await commit(race, voter1, 5, [23, 24], "two-nfts");
     const s2 = await commit(race, voter2, 5, [25], "one-nft");
@@ -86,14 +88,14 @@ describe("V7 Community/Holder Season", function () {
 
   it("accumulates points for the same wallet across different races", async function () {
     const { voter1, team, genesis, community } = await deployFixture();
-    const first = await deployRace(genesis, team);
+    const first = await deployRace(genesis, team, community);
     await setTime(first.opensAt);
     const s1 = await commit(first.race, voter1, 1, [23], "race-1");
     await setTime(first.closesAt);
     await first.race.connect(voter1).revealVote(1, s1);
     await community.registerRace(await first.race.getAddress());
     await community.connect(voter1).claimRacePoints(await first.race.getAddress());
-    const second = await deployRace(genesis, team);
+    const second = await deployRace(genesis, team, community);
     await setTime(second.opensAt);
     const s2 = await commit(second.race, voter1, 1, [23], "race-2");
     await setTime(second.closesAt);
@@ -105,7 +107,7 @@ describe("V7 Community/Holder Season", function () {
 
   it("keeps separate wallet scores", async function () {
     const { voter1, voter2, team, genesis, community } = await deployFixture();
-    const { race, opensAt, closesAt } = await deployRace(genesis, team);
+    const { race, opensAt, closesAt } = await deployRace(genesis, team, community);
     await setTime(opensAt);
     const s1 = await commit(race, voter1, 2, [23], "wallet-a");
     const s2 = await commit(race, voter2, 8, [25], "wallet-b");
@@ -122,7 +124,7 @@ describe("V7 Community/Holder Season", function () {
 
   it("requires a revealed vote before Community points can be claimed", async function () {
     const { voter1, team, genesis, community } = await deployFixture();
-    const { race, closesAt } = await deployRace(genesis, team);
+    const { race, closesAt } = await deployRace(genesis, team, community);
     await setTime(closesAt);
     const raceAddress = await race.getAddress();
     await community.registerRace(raceAddress);
