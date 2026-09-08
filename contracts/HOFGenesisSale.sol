@@ -9,10 +9,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 interface IGenesisHorsesSaleMint {
     function saleMint(address to, uint256 quantity) external;
+    function refundBurn(address holder, uint256[] calldata tokenIds) external;
 }
 
-/// @notice V7 public mint escrow. NFT IDs are allocated by GenesisHorses;
-///         reveal metadata must not expose HOF identities before reveal.
 contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -34,17 +33,10 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     mapping(address => uint256) public paidBy;
 
     event Minted(address indexed buyer, uint256 quantity, uint256 paid);
-    event Refunded(address indexed buyer, uint256 amount);
+    event Refunded(address indexed buyer, uint256 amount, uint256 quantity);
     event ProceedsDistributed(address prizePool, address audit, address founder);
 
-    constructor(
-        address paymentToken_,
-        address genesis_,
-        uint256 deadline_,
-        address prizePoolTreasury_,
-        address auditWallet_,
-        address founderWallet_
-    ) Ownable(msg.sender) {
+    constructor(address paymentToken_, address genesis_, uint256 deadline_, address prizePoolTreasury_, address auditWallet_, address founderWallet_) Ownable(msg.sender) {
         require(paymentToken_ != address(0) && genesis_ != address(0), "zero contract");
         require(deadline_ > block.timestamp, "bad deadline");
         require(prizePoolTreasury_ != address(0) && auditWallet_ != address(0) && founderWallet_ != address(0), "zero wallet");
@@ -69,19 +61,21 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
         emit Minted(msg.sender, quantity, cost);
     }
 
-    function saleSuccessful() public view returns (bool) {
-        return sold == PUBLIC_SUPPLY;
-    }
+    function saleSuccessful() public view returns (bool) { return sold == PUBLIC_SUPPLY; }
+    function refundsEnabled() public view returns (bool) { return block.timestamp >= deadline && !saleSuccessful(); }
 
-    function refundsEnabled() public view returns (bool) {
-        return block.timestamp >= deadline && !saleSuccessful();
-    }
+    function refund(uint256[] calldata tokenIds) external nonReentrant {
+        require(refundsEnabled(), "refunds not enabled");
+        require(tokenIds.length > 0, "no tokens");
+        uint256 amount = tokenIds.length * MINT_PRICE;
+        require(paidBy[msg.sender] >= amount, "refund exceeds paid amount");
 
-    /// @dev Refund is paired with burning the buyer's public-mint NFTs off-chain/in a later
-    ///      claim design before mainnet. Until that burn/claim path is finalized this function
-    ///      intentionally remains disabled to prevent free NFT + refund economics.
-    function refund() external pure {
-        revert("refund claim integration pending");
+        // Effects first. Any failure in burn or transfer reverts the whole transaction.
+        paidBy[msg.sender] -= amount;
+        genesis.refundBurn(msg.sender, tokenIds);
+        paymentToken.safeTransfer(msg.sender, amount);
+
+        emit Refunded(msg.sender, amount, tokenIds.length);
     }
 
     function distributeProceeds() external nonReentrant {
