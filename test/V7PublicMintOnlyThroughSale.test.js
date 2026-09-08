@@ -7,9 +7,10 @@ describe("V7 public mint entrypoint", function () {
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
 
-    expect(() => genesis.interface.getFunction("publicTestMint")).to.throw();
-    expect(() => genesis.interface.getFunction("setTestMintPrice")).to.throw();
-    expect(() => genesis.interface.getFunction("withdrawTestFunds")).to.throw();
+    // ethers v6 Interface#getFunction returns null when the function is absent.
+    expect(genesis.interface.getFunction("publicTestMint")).to.equal(null);
+    expect(genesis.interface.getFunction("setTestMintPrice")).to.equal(null);
+    expect(genesis.interface.getFunction("withdrawTestFunds")).to.equal(null);
   });
 
   it("rejects direct public saleMint calls from ordinary wallets", async function () {
