@@ -19,6 +19,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public nextTokenId = 1;
     uint256 public testMintPrice = 0.001 ether;
     address public saleContract;
+    mapping(uint256 => bool) public publicSaleToken;
     string private _baseTokenURI;
     string public placeholderURI;
     bool public revealed;
@@ -31,7 +32,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
 
     constructor(string memory initialPlaceholderURI) ERC721("Horses of Fame - Genesis", "HOFGEN") Ownable(msg.sender) { placeholderURI = initialPlaceholderURI; }
 
-    function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused { _mintSequential(to, quantity); }
+    function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused { _mintSequential(to, quantity, false); }
 
     function setSaleContract(address saleContract_) external onlyOwner {
         require(saleContract == address(0), "Sale contract already set");
@@ -42,18 +43,33 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
 
     function saleMint(address to, uint256 quantity) external whenNotPaused {
         require(msg.sender == saleContract, "Only sale contract");
-        _mintSequential(to, quantity);
+        _mintSequential(to, quantity, true);
     }
 
-    function _mintSequential(address to, uint256 quantity) internal {
+    function refundBurn(address holder, uint256[] calldata tokenIds) external {
+        require(msg.sender == saleContract, "Only sale contract");
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            uint256 tokenId = tokenIds[i];
+            require(publicSaleToken[tokenId], "Not public sale token");
+            require(ownerOf(tokenId) == holder, "Refund holder not owner");
+            publicSaleToken[tokenId] = false;
+            _burn(tokenId);
+        }
+    }
+
+    function _mintSequential(address to, uint256 quantity, bool markPublicSale) internal {
         require(quantity > 0, "Quantity must be greater than zero");
-        require(totalSupply() + quantity <= MAX_SUPPLY, "Genesis supply exceeded");
-        for (uint256 i = 0; i < quantity; i++) { uint256 tokenId = nextTokenId++; _safeMint(to, tokenId); }
+        require(nextTokenId + quantity - 1 <= MAX_SUPPLY, "Genesis supply exceeded");
+        for (uint256 i = 0; i < quantity; i++) {
+            uint256 tokenId = nextTokenId++;
+            if (markPublicSale) publicSaleToken[tokenId] = true;
+            _safeMint(to, tokenId);
+        }
     }
 
     function publicTestMint(uint256 quantity) external payable whenNotPaused {
         require(quantity > 0, "Quantity must be greater than zero");
-        require(totalSupply() + quantity <= MAX_SUPPLY, "Genesis supply exceeded");
+        require(nextTokenId + quantity - 1 <= MAX_SUPPLY, "Genesis supply exceeded");
         require(msg.value == testMintPrice * quantity, "Incorrect test mint payment");
         for (uint256 i = 0; i < quantity; i++) { uint256 tokenId = nextTokenId++; _safeMint(msg.sender, tokenId); }
         emit TestMint(msg.sender, quantity, msg.value);
