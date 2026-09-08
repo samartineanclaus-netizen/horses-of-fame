@@ -21,9 +21,13 @@ contract HOFRaceVoting is Ownable {
 
     mapping(address => bytes32) public commitmentOf;
     mapping(address => uint256) public committedVP;
+    mapping(address => bool) public revealed;
+    mapping(address => uint8) public revealedHorse;
     mapping(uint256 => bool) public tokenUsed;
+    mapping(uint8 => uint256) public horseVP;
 
     event VoteCommitted(address indexed voter, bytes32 indexed commitment, uint256 votingPower);
+    event VoteRevealed(address indexed voter, uint8 indexed horseNumber, uint256 votingPower);
 
     constructor(address genesis_, uint256 opensAt_) Ownable(msg.sender) {
         require(genesis_ != address(0), "zero genesis");
@@ -53,6 +57,20 @@ contract HOFRaceVoting is Ownable {
         commitmentOf[msg.sender] = commitment;
         committedVP[msg.sender] = totalVP;
         emit VoteCommitted(msg.sender, commitment, totalVP);
+    }
+
+    function revealVote(uint8 horseNumber, bytes32 salt) external {
+        require(block.timestamp >= closesAt, "voting not closed");
+        require(commitmentOf[msg.sender] != bytes32(0), "no commitment");
+        require(!revealed[msg.sender], "already revealed");
+        require(horseNumber >= 1 && horseNumber <= HOF_COMPETITORS, "invalid horse");
+        require(keccak256(abi.encode(horseNumber, salt)) == commitmentOf[msg.sender], "invalid reveal");
+
+        revealed[msg.sender] = true;
+        revealedHorse[msg.sender] = horseNumber;
+        uint256 vp = committedVP[msg.sender];
+        horseVP[horseNumber] += vp;
+        emit VoteRevealed(msg.sender, horseNumber, vp);
     }
 
     /// @dev Client builds commitment from race pick + private salt.
