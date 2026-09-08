@@ -8,6 +8,11 @@ async function deployFixture() {
   await genesis.waitForDeployment();
   await genesis.setTeamWallet(team.address);
 
+  const SaleState = await ethers.getContractFactory("MockV7SaleSuccess");
+  const saleState = await SaleState.deploy();
+  await saleState.waitForDeployment();
+  await genesis.setSaleContract(await saleState.getAddress());
+
   // #1-22 HOF (0 VP), #23-24 Legendary (5 VP each)
   await genesis.ownerMint(owner.address, 22);
   await genesis.ownerMint(voter.address, 2);
@@ -18,7 +23,7 @@ async function deployFixture() {
   const voting = await Voting.deploy(await genesis.getAddress(), opensAt, team.address);
   await voting.waitForDeployment();
 
-  return { owner, voter, other, team, genesis, voting, opensAt };
+  return { owner, voter, other, team, genesis, saleState, voting, opensAt };
 }
 
 async function openVoting(opensAt) {
@@ -74,9 +79,14 @@ describe("V7 Race Voting Core", function () {
   });
 
   it("restores normal voting eligibility after a Team Reserve NFT is transferred to an independent holder", async function () {
-    const { voter, other, team, genesis, voting, opensAt } = await deployFixture();
+    const { voter, other, team, genesis, saleState, voting, opensAt } = await deployFixture();
     await genesis.connect(voter).transferFrom(voter.address, team.address, 23);
+
+    // V7 launch order requires Public Mint sell-out before Team Reserve
+    // secondary distribution. Only after that transfer does standard VP return.
+    await saleState.setSaleSuccessful(true);
     await genesis.connect(team).transferFrom(team.address, other.address, 23);
+
     await openVoting(opensAt);
     const salt = ethers.keccak256(ethers.toUtf8Bytes("independent-holder"));
     const commitment = await voting.makeCommitment(8, salt);
