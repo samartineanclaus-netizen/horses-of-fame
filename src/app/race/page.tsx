@@ -9,6 +9,7 @@ import {
   keccak256,
 } from "viem";
 import {
+  COMMUNITY_SEASON_ABI,
   HOF_CONTRACTS,
   RACE_VOTING_ABI,
   getEthereum,
@@ -39,6 +40,7 @@ export default function RacePage() {
   const [busy, setBusy] = useState(false);
 
   const race = HOF_CONTRACTS.raceVoting;
+  const communitySeason = HOF_CONTRACTS.communitySeason;
 
   async function connect() {
     const ethereum = getEthereum();
@@ -167,6 +169,35 @@ export default function RacePage() {
     }
   }
 
+  async function claimCommunityPoints() {
+    const ethereum = getEthereum();
+    if (!ethereum || !race || !communitySeason) {
+      setStatus("The active V7 race/Community contracts are not configured yet.");
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const from = await requestAccount(ethereum);
+      setAccount(from);
+      const data = encodeFunctionData({
+        abi: COMMUNITY_SEASON_ABI,
+        functionName: "claimRacePoints",
+        args: [race],
+      });
+      const hash = await ethereum.request({
+        method: "eth_sendTransaction",
+        params: [{ from, to: communitySeason, data }],
+      });
+      setStatus(`Community points claim submitted. Tx: ${String(hash)}`);
+    } catch (error) {
+      console.error(error);
+      setStatus(error instanceof Error ? error.message : "Community points claim failed or was cancelled.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -180,6 +211,7 @@ export default function RacePage() {
         <div style={{ marginTop: 28, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
           <p><strong>Wallet:</strong> {account || "Not connected"}</p>
           <p><strong>Race contract:</strong> {race || "Waiting for active V7 race address"}</p>
+          <p><strong>Community contract:</strong> {communitySeason || "Waiting for V7 Community address"}</p>
           <p><strong>Status:</strong> {status}</p>
           <button type="button" onClick={connect} style={{ padding: "12px 18px", cursor: "pointer" }}>CONNECT WALLET</button>
         </div>
@@ -213,6 +245,14 @@ export default function RacePage() {
           <p>The salt and horse number are stored locally in this browser after a successful commit submission.</p>
           <button type="button" onClick={revealPick} disabled={!race || busy} style={{ padding: "12px 18px" }}>
             REVEAL PICK
+          </button>
+        </section>
+
+        <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
+          <h2>4. Claim Community race points</h2>
+          <p>After the closed race has been registered in the current Community season, this calls the existing V7 scoring contract. The contract enforces reveal, current-season membership and one scoring result per wallet per race.</p>
+          <button type="button" onClick={claimCommunityPoints} disabled={!race || !communitySeason || busy} style={{ padding: "12px 18px" }}>
+            CLAIM COMMUNITY POINTS
           </button>
         </section>
       </div>
