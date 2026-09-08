@@ -94,6 +94,29 @@ describe("V7 Community season history, reset and All-Time", function () {
     expect(await community.currentSeason()).to.equal(3n);
   });
 
+  it("keeps a persistent Chapter I wallet registry across season resets for All-Time standings", async function () {
+    const { voter, voter2, voter3, team, genesis, community } = await deployFixture();
+
+    await completeSeason(genesis, community, team, voter, voter2, voter3, "registry-s1");
+    expect(await community.chapterWalletCount()).to.equal(3n);
+    expect(await community.chapterWalletAt(0)).to.equal(voter.address);
+    expect(await community.chapterWalletAt(1)).to.equal(voter2.address);
+    expect(await community.chapterWalletAt(2)).to.equal(voter3.address);
+
+    await community.finalizeSeason();
+    expect(await community.activeWalletCount()).to.equal(0n);
+    expect(await community.chapterWalletCount()).to.equal(3n);
+
+    await completeSeason(genesis, community, team, voter, voter2, voter3, "registry-s2");
+    expect(await community.chapterWalletCount()).to.equal(3n);
+    await community.finalizeSeason();
+
+    expect(await community.allTimePoints(voter.address)).to.equal(500n);
+    expect(await community.allTimePoints(voter2.address)).to.equal(360n);
+    expect(await community.allTimePoints(voter3.address)).to.equal(300n);
+    await expect(community.chapterWalletAt(3)).to.be.revertedWith("wallet index out of bounds");
+  });
+
   it("cannot finalize before ten races are registered", async function () {
     const { voter, voter2, voter3, team, genesis, community } = await deployFixture();
     await makeClaimedRace(genesis, community, team, [

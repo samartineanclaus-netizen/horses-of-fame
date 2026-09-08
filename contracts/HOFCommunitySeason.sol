@@ -43,6 +43,12 @@ contract HOFCommunitySeason is Ownable {
     address[] private activeWallets;
     mapping(address => bool) private activeWalletSeen;
 
+    // Persistent Chapter I participant registry for the V7 All-Time Community
+    // standings. Points remain on the wallet; this list only makes those wallets
+    // enumerable after activeWallets is reset between seasons.
+    address[] private chapterWallets;
+    mapping(address => bool) private chapterWalletSeen;
+
     event RaceRegistered(address indexed race, uint8 indexed seasonNumber, uint8 indexed raceNumber);
     event CommunityPointsClaimed(address indexed race, address indexed wallet, uint8 horseNumber, uint8 points);
     event SeasonFinalized(uint8 indexed seasonNumber);
@@ -101,10 +107,16 @@ contract HOFCommunitySeason is Ownable {
 
         uint8 points = result.pointsForPosition(position);
         raceClaimed[race][msg.sender] = true;
+
+        if (!chapterWalletSeen[msg.sender]) {
+            chapterWalletSeen[msg.sender] = true;
+            chapterWallets.push(msg.sender);
+        }
         if (!activeWalletSeen[msg.sender]) {
             activeWalletSeen[msg.sender] = true;
             activeWallets.push(msg.sender);
         }
+
         seasonPoints[msg.sender] += points;
         emit CommunityPointsClaimed(race, msg.sender, chosenHorse, points);
     }
@@ -210,6 +222,13 @@ contract HOFCommunitySeason is Ownable {
     }
 
     function activeWalletCount() external view returns (uint256) { return activeWallets.length; }
+    function chapterWalletCount() external view returns (uint256) { return chapterWallets.length; }
+
+    function chapterWalletAt(uint256 index) external view returns (address) {
+        require(index < chapterWallets.length, "wallet index out of bounds");
+        return chapterWallets[index];
+    }
+
     function seasonComplete() external view returns (bool) { return racesRegistered == RACES_PER_SEASON; }
     function chapterComplete() external view returns (bool) { return seasonsFinalized == CHAPTER_SEASONS; }
 }
