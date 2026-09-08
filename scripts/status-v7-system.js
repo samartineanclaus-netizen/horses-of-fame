@@ -62,12 +62,9 @@ async function main() {
       address: genesisAddress,
       totalSupply: (await genesis.totalSupply()).toString(),
       nextTokenId: (await genesis.nextTokenId()).toString(),
-      publicMintSupply: (await genesis.PUBLIC_MINT_SUPPLY()).toString(),
-      communityAllocationSupply: (await genesis.COMMUNITY_ALLOCATION_SUPPLY()).toString(),
-      teamReserveSupply: (await genesis.TEAM_RESERVE_SUPPLY()).toString(),
-      communityAllocationMinted: (await genesis.communityAllocationMinted()).toString(),
-      teamReserveMinted: (await genesis.teamReserveMinted()).toString(),
-      nonPublicAllocationMinted: (await genesis.nonPublicAllocationMinted()).toString(),
+      maxSupply: (await genesis.MAX_SUPPLY()).toString(),
+      hallOfFameSupply: (await genesis.HALL_OF_FAME_SUPPLY()).toString(),
+      votingSupply: (await genesis.VOTING_SUPPLY()).toString(),
       revealed: await genesis.revealed(),
       saleContract: await genesis.saleContract(),
       teamWallet: await genesis.teamWallet(),
@@ -113,6 +110,7 @@ async function main() {
   };
 
   console.log(JSON.stringify(status, null, 2));
+  console.log("\n111 Community / 111 Team Reserve distribution counters are intentionally not reported because those final allocation/reveal mechanics remain unresolved in V7.");
 }
 
 main().catch((error) => {
