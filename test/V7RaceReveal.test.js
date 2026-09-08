@@ -2,12 +2,10 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 async function deployFixture() {
-  const [owner, voter, voter2] = await ethers.getSigners();
+  const [owner, voter, voter2, team] = await ethers.getSigners();
   const Genesis = await ethers.getContractFactory("GenesisHorses");
   const genesis = await Genesis.deploy("placeholder");
   await genesis.waitForDeployment();
-
-  // #1-22 Hall of Fame; #23-24 Legendary = 5 VP each.
   await genesis.ownerMint(owner.address, 22);
   await genesis.ownerMint(voter.address, 1);
   await genesis.ownerMint(voter2.address, 1);
@@ -15,9 +13,8 @@ async function deployFixture() {
   const latest = await ethers.provider.getBlock("latest");
   const opensAt = latest.timestamp + 10;
   const Voting = await ethers.getContractFactory("HOFRaceVoting");
-  const voting = await Voting.deploy(await genesis.getAddress(), opensAt);
+  const voting = await Voting.deploy(await genesis.getAddress(), opensAt, team.address);
   await voting.waitForDeployment();
-
   return { voter, voter2, voting, opensAt, closesAt: opensAt + 24 * 60 * 60 };
 }
 
@@ -52,11 +49,7 @@ describe("V7 Race Vote Reveal", function () {
     const salt = ethers.keccak256(ethers.toUtf8Bytes("horse-7"));
     await voting.connect(voter).commitVote(await voting.makeCommitment(7, salt), [23]);
     await setTime(closesAt);
-
-    await expect(voting.connect(voter).revealVote(7, salt))
-      .to.emit(voting, "VoteRevealed")
-      .withArgs(voter.address, 7, 5n);
-
+    await expect(voting.connect(voter).revealVote(7, salt)).to.emit(voting, "VoteRevealed").withArgs(voter.address, 7, 5n);
     expect(await voting.revealed(voter.address)).to.equal(true);
     expect(await voting.revealedHorse(voter.address)).to.equal(7n);
     expect(await voting.horseVP(7)).to.equal(5n);
