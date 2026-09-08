@@ -77,7 +77,36 @@ contract HOFRaceVoting is Ownable {
     /// Ties are resolved deterministically by lower HOF competitor number.
     function ranking() external view returns (uint8[22] memory ranked) {
         require(block.timestamp >= closesAt, "voting not closed");
+        return _ranking();
+    }
 
+    /// @notice Locked V7 F1-style scoring for race positions 1-22.
+    /// Positions 11-22 score zero.
+    function pointsForPosition(uint8 position) public pure returns (uint8) {
+        require(position >= 1 && position <= HOF_COMPETITORS, "invalid position");
+        if (position == 1) return 25;
+        if (position == 2) return 18;
+        if (position == 3) return 15;
+        if (position == 4) return 12;
+        if (position == 5) return 10;
+        if (position == 6) return 8;
+        if (position == 7) return 6;
+        if (position == 8) return 4;
+        if (position == 9) return 2;
+        if (position == 10) return 1;
+        return 0;
+    }
+
+    /// @notice Returns the points earned by each HOF competitor for this race.
+    function horseRacePoints() external view returns (uint8[22] memory points) {
+        require(block.timestamp >= closesAt, "voting not closed");
+        uint8[22] memory ranked = _ranking();
+        for (uint8 i = 0; i < HOF_COMPETITORS; i++) {
+            points[ranked[i] - 1] = pointsForPosition(i + 1);
+        }
+    }
+
+    function _ranking() internal view returns (uint8[22] memory ranked) {
         for (uint8 i = 0; i < HOF_COMPETITORS; i++) {
             ranked[i] = i + 1;
         }
