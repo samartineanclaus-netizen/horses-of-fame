@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "compile:contracts": "hardhat compile",
+    "test:contracts": "hardhat test"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@openzeppelin/contracts": "^5.4.0",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -25,7 +28,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
-    "hardhat": "^2.22.0",
+    "hardhat": "^2.26.3",
     "typescript": "^5"
   }
 }
