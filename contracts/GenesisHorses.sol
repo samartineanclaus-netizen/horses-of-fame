@@ -6,6 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+interface IV7PublicSaleState {
+    function saleSuccessful() external view returns (bool);
+}
+
 contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     using Strings for uint256;
 
@@ -117,6 +121,28 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
             if (markPublicSale) publicSaleToken[tokenId] = true;
             _safeMint(to, tokenId);
         }
+    }
+
+    /// @dev V7 launch cadence is Public Mint sold out -> Team Reserve secondary
+    /// distribution -> Race 1. The Team Reserve allocation may be minted into
+    /// the designated wallet beforehand, but it cannot leave that wallet until
+    /// the configured Public Mint sale reports full sell-out. This does not
+    /// affect Community allocation transfers or tokens after they have left the
+    /// Team Reserve wallet.
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override
+        returns (address)
+    {
+        address from = _ownerOf(tokenId);
+        if (from != address(0) && from == teamWallet) {
+            require(saleContract != address(0), "Team Reserve locked until sell-out");
+            require(
+                IV7PublicSaleState(saleContract).saleSuccessful(),
+                "Team Reserve locked until sell-out"
+            );
+        }
+        return super._update(to, tokenId, auth);
     }
 
     function rarityOf(uint256 tokenId) public view returns (Rarity) {
