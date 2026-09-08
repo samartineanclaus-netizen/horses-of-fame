@@ -52,6 +52,9 @@ export const GENESIS_SALE_ABI = [
     inputs: [{ name: "tokenIds", type: "uint256[]" }],
     outputs: [],
   },
+  { type: "function", name: "sold", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "deadline", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "saleSuccessful", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
   {
     type: "function",
     name: "refundsEnabled",
