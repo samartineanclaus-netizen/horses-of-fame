@@ -3,16 +3,19 @@ const { ethers } = require("hardhat");
 
 describe("V7 Community casting tie-break", function () {
   async function deployFixture() {
-    const [owner, walletA, walletB] = await ethers.getSigners();
+    const [owner, walletA, walletB, teamFiller, communityFiller] = await ethers.getSigners();
     const Genesis = await ethers.getContractFactory("GenesisHorses");
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
+    await genesis.setTeamWallet(teamFiller.address);
 
-    // Token IDs are sequential. Give A #34 and B #121, matching the V7 example.
-    await genesis.ownerMint(owner.address, 33);
-    await genesis.ownerMint(walletA.address, 1); // #34
-    await genesis.ownerMint(owner.address, 86); // #35-#120
-    await genesis.ownerMint(walletB.address, 1); // #121
+    // Token IDs are sequential. Give A #34 and B #121, matching the V7 example,
+    // while keeping fixture mints inside the locked 111 Community / 111 Team buckets.
+    await genesis.ownerMint(teamFiller.address, 33); // #1-#33 Team
+    await genesis.ownerMint(walletA.address, 1); // #34 Community
+    await genesis.ownerMint(teamFiller.address, 78); // #35-#112, Team total = 111
+    await genesis.ownerMint(communityFiller.address, 8); // #113-#120 Community
+    await genesis.ownerMint(walletB.address, 1); // #121 Community
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");
     const community = await Community.deploy();
@@ -30,13 +33,16 @@ describe("V7 Community casting tie-break", function () {
   });
 
   it("uses the lowest NFT held when a wallet owns multiple NFTs", async function () {
-    const [owner, walletA, walletB] = await ethers.getSigners();
+    const [owner, walletA, walletB, teamFiller, communityFiller] = await ethers.getSigners();
     const Genesis = await ethers.getContractFactory("GenesisHorses");
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
-    await genesis.ownerMint(walletA.address, 2); // #1, #2
-    await genesis.ownerMint(owner.address, 118); // #3-#120
-    await genesis.ownerMint(walletB.address, 2); // #121, #122
+    await genesis.setTeamWallet(teamFiller.address);
+
+    await genesis.ownerMint(walletA.address, 2); // #1, #2 Community
+    await genesis.ownerMint(teamFiller.address, 111); // #3-#113 Team
+    await genesis.ownerMint(communityFiller.address, 7); // #114-#120 Community
+    await genesis.ownerMint(walletB.address, 2); // #121, #122 Community
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");
     const community = await Community.deploy();
@@ -49,15 +55,17 @@ describe("V7 Community casting tie-break", function () {
   });
 
   it("does not use wallet address ordering as the tie-break", async function () {
-    const [owner, walletA, walletB] = await ethers.getSigners();
+    const [owner, walletA, walletB, teamFiller, communityFiller] = await ethers.getSigners();
     const Genesis = await ethers.getContractFactory("GenesisHorses");
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
+    await genesis.setTeamWallet(teamFiller.address);
 
-    await genesis.ownerMint(owner.address, 33);
-    await genesis.ownerMint(walletB.address, 1); // #34
-    await genesis.ownerMint(owner.address, 86);
-    await genesis.ownerMint(walletA.address, 1); // #121
+    await genesis.ownerMint(teamFiller.address, 33); // #1-#33 Team
+    await genesis.ownerMint(walletB.address, 1); // #34 Community
+    await genesis.ownerMint(teamFiller.address, 78); // #35-#112, Team total = 111
+    await genesis.ownerMint(communityFiller.address, 8); // #113-#120 Community
+    await genesis.ownerMint(walletA.address, 1); // #121 Community
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");
     const community = await Community.deploy();
