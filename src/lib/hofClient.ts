@@ -37,6 +37,12 @@ export const ERC20_APPROVE_ABI = [
   },
 ] as const;
 
+export const GENESIS_VOTING_ABI = [
+  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "owner", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "tokenOfOwnerByIndex", stateMutability: "view", inputs: [{ name: "owner", type: "address" }, { name: "index", type: "uint256" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "votingPowerOf", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "uint256" }] },
+] as const;
+
 export const GENESIS_SALE_ABI = [
   {
     type: "function",
