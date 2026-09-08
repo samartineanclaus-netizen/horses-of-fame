@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPublicClient, encodeFunctionData, http } from "viem";
 import {
   ERC20_APPROVE_ABI,
@@ -13,7 +13,15 @@ import {
 } from "@/lib/hofClient";
 
 const ONE_NFT_PRICE = BigInt(30_000_000); // V7: 30 USDC, 6 decimals.
+const PUBLIC_SUPPLY = BigInt(2000);
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
+
+type SaleState = {
+  sold: bigint;
+  deadline: bigint;
+  successful: boolean;
+  refundsEnabled: boolean;
+};
 
 function parseTokenIds(value: string): bigint[] {
   const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
@@ -24,16 +32,51 @@ function parseTokenIds(value: string): bigint[] {
   });
 }
 
+function parseQuantity(value: string): bigint {
+  if (!/^\d+$/.test(value)) throw new Error("Mint quantity must be a positive whole number");
+  const quantity = BigInt(value);
+  if (quantity < BigInt(1)) throw new Error("Mint quantity must be at least 1");
+  return quantity;
+}
+
+function formatDeadline(timestamp: bigint) {
+  const milliseconds = Number(timestamp) * 1000;
+  if (!Number.isSafeInteger(milliseconds)) return timestamp.toString();
+  return new Date(milliseconds).toLocaleString();
+}
+
 export default function MintPage() {
   const [account, setAccount] = useState("");
   const [status, setStatus] = useState("Ready");
+  const [quantity, setQuantity] = useState("1");
   const [refundIds, setRefundIds] = useState("");
+  const [saleState, setSaleState] = useState<SaleState | null>(null);
   const [busy, setBusy] = useState(false);
 
   const configured = useMemo(
     () => Boolean(HOF_CONTRACTS.sale && HOF_CONTRACTS.usdc),
     [],
   );
+
+  async function loadSaleState() {
+    const sale = HOF_CONTRACTS.sale;
+    if (!sale) return;
+    try {
+      const [sold, deadline, successful, refundsEnabled] = await Promise.all([
+        publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "sold" }),
+        publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "deadline" }),
+        publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "saleSuccessful" }),
+        publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "refundsEnabled" }),
+      ]);
+      setSaleState({ sold, deadline, successful, refundsEnabled });
+    } catch (error) {
+      console.error("Could not load V7 sale state:", error);
+    }
+  }
+
+  useEffect(() => {
+    void loadSaleState();
+  }, []);
 
   async function connect() {
     const ethereum = getEthereum();
@@ -51,7 +94,7 @@ export default function MintPage() {
     }
   }
 
-  async function mintOne() {
+  async function mintGenesis() {
     const ethereum = getEthereum();
     const sale = HOF_CONTRACTS.sale;
     const usdc = HOF_CONTRACTS.usdc;
@@ -62,34 +105,40 @@ export default function MintPage() {
 
     try {
       setBusy(true);
+      const mintQuantity = parseQuantity(quantity);
+      if (saleState && saleState.sold + mintQuantity > PUBLIC_SUPPLY) {
+        throw new Error(`Only ${(PUBLIC_SUPPLY - saleState.sold).toString()} Public Mint NFT(s) remain.`);
+      }
+      const cost = ONE_NFT_PRICE * mintQuantity;
       const from = await requestAccount(ethereum);
       setAccount(from);
 
-      setStatus("1/2 — Approve exactly 30 USDC for one Genesis mint.");
+      setStatus(`1/2 — Approve ${(Number(cost) / 1_000_000).toLocaleString()} USDC.`);
       const approveData = encodeFunctionData({
         abi: ERC20_APPROVE_ABI,
         functionName: "approve",
-        args: [sale, ONE_NFT_PRICE],
+        args: [sale, cost],
       });
       await ethereum.request({
         method: "eth_sendTransaction",
         params: [{ from, to: usdc, data: approveData }],
       });
 
-      setStatus("2/2 — Submit the V7 Genesis mint transaction.");
+      setStatus(`2/2 — Submit mint for ${mintQuantity.toString()} Genesis NFT(s).`);
       const mintData = encodeFunctionData({
         abi: GENESIS_SALE_ABI,
         functionName: "mint",
-        args: [BigInt(1)],
+        args: [mintQuantity],
       });
       const hash = await ethereum.request({
         method: "eth_sendTransaction",
         params: [{ from, to: sale, data: mintData }],
       });
       setStatus(`Mint submitted: ${String(hash)}`);
+      await loadSaleState();
     } catch (error) {
       console.error(error);
-      setStatus("Mint failed or was cancelled. No V7 rule was changed.");
+      setStatus(error instanceof Error ? error.message : "Mint failed or was cancelled.");
     } finally {
       setBusy(false);
     }
@@ -128,6 +177,7 @@ export default function MintPage() {
         params: [{ from, to: sale, data }],
       });
       setStatus(`Refund submitted for ${tokenIds.length} Public Mint NFT(s). Tx: ${String(hash)}`);
+      await loadSaleState();
     } catch (error) {
       console.error(error);
       setStatus(error instanceof Error ? error.message : "Refund failed or was cancelled.");
@@ -149,21 +199,41 @@ export default function MintPage() {
         <div style={{ marginTop: 32, padding: 24, border: "1px solid #333", borderRadius: 12 }}>
           <p><strong>Wallet:</strong> {account || "Not connected"}</p>
           <p><strong>Sale config:</strong> {configured ? "Configured" : "Waiting for deployed V7 addresses"}</p>
+          {saleState && (
+            <>
+              <p><strong>Public Mint sold:</strong> {saleState.sold.toString()} / 2,000</p>
+              <p><strong>Final deadline:</strong> {formatDeadline(saleState.deadline)}</p>
+              <p><strong>Sale successful:</strong> {saleState.successful ? "Yes" : "No"}</p>
+              <p><strong>Refunds enabled:</strong> {saleState.refundsEnabled ? "Yes" : "No"}</p>
+            </>
+          )}
           <p><strong>Status:</strong> {status}</p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-            <button type="button" onClick={connect} style={{ padding: "14px 20px", cursor: "pointer" }}>
-              CONNECT WALLET
-            </button>
-            <button
-              type="button"
-              onClick={mintOne}
-              disabled={!configured || busy}
-              style={{ padding: "14px 20px", cursor: configured && !busy ? "pointer" : "not-allowed" }}
-            >
-              {busy ? "PROCESSING..." : "MINT 1 — 30 USDC"}
-            </button>
-          </div>
+          <button type="button" onClick={connect} style={{ padding: "14px 20px", cursor: "pointer" }}>
+            CONNECT WALLET
+          </button>
         </div>
+
+        <section style={{ marginTop: 24, padding: 24, border: "1px solid #333", borderRadius: 12 }}>
+          <h2>Mint Genesis</h2>
+          <label style={{ display: "block", marginTop: 14 }}>
+            Quantity
+            <input
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
+              inputMode="numeric"
+              style={{ display: "block", width: "100%", padding: 12, marginTop: 8 }}
+            />
+          </label>
+          <p>Price: 30 USDC per NFT.</p>
+          <button
+            type="button"
+            onClick={mintGenesis}
+            disabled={!configured || busy || Boolean(saleState?.successful)}
+            style={{ padding: "14px 20px", cursor: configured && !busy && !saleState?.successful ? "pointer" : "not-allowed" }}
+          >
+            {busy ? "PROCESSING..." : "MINT WITH USDC"}
+          </button>
+        </section>
 
         <section style={{ marginTop: 24, padding: 24, border: "1px solid #333", borderRadius: 12 }}>
           <h2>Failed-sale refund</h2>
@@ -182,8 +252,8 @@ export default function MintPage() {
           <button
             type="button"
             onClick={refundPublicMint}
-            disabled={!HOF_CONTRACTS.sale || busy}
-            style={{ marginTop: 16, padding: "12px 18px", cursor: HOF_CONTRACTS.sale && !busy ? "pointer" : "not-allowed" }}
+            disabled={!HOF_CONTRACTS.sale || busy || !saleState?.refundsEnabled}
+            style={{ marginTop: 16, padding: "12px 18px", cursor: HOF_CONTRACTS.sale && !busy && saleState?.refundsEnabled ? "pointer" : "not-allowed" }}
           >
             REFUND PUBLIC MINT NFT(S)
           </button>
