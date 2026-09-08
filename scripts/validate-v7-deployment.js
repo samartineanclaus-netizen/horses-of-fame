@@ -65,6 +65,8 @@ async function main() {
   equalValue(await genesis.MAX_SUPPLY(), 2222, "Genesis MAX_SUPPLY");
   equalValue(await genesis.HALL_OF_FAME_SUPPLY(), 22, "Genesis HALL_OF_FAME_SUPPLY");
   equalValue(await genesis.VOTING_SUPPLY(), 2200, "Genesis VOTING_SUPPLY");
+  equalValue(await genesis.PUBLIC_MINT_SUPPLY(), 2000, "Genesis PUBLIC_MINT_SUPPLY");
+  equalValue(await genesis.NON_PUBLIC_ALLOCATION_SUPPLY(), 222, "Genesis NON_PUBLIC_ALLOCATION_SUPPLY");
   equalValue(await genesis.COMMON_SUPPLY(), 970, "Genesis COMMON_SUPPLY");
   equalValue(await genesis.UNCOMMON_SUPPLY(), 480, "Genesis UNCOMMON_SUPPLY");
   equalValue(await genesis.RARE_SUPPLY(), 320, "Genesis RARE_SUPPLY");
@@ -128,6 +130,7 @@ async function main() {
     seasonRewards: rewardsAddress,
     paymentToken,
     teamReserveWallet: await genesis.teamWallet(),
+    nonPublicAllocationMinted: (await genesis.nonPublicAllocationMinted()).toString(),
     prizePoolDestination,
     auditWallet: await sale.auditWallet(),
     projectWallet,
