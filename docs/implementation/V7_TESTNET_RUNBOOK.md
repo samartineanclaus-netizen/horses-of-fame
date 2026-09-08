@@ -27,9 +27,15 @@ Required explicit parameters include the testnet USDC address, Team Reserve wall
 npm run deploy:v7:testnet
 ```
 
-The script refuses non-Robinhood-Testnet deployment and does not choose any unresolved V7 parameter. It prints the deployed addresses and the public website environment values.
+The sale contract requires a 6-decimal payment token, matching the V7 30 USDC accounting. The script refuses non-Robinhood-Testnet deployment and does not choose any unresolved V7 parameter. It prints the deployed addresses and the public website environment values.
 
-Do **not** use this step to invent Community/Team allocation selection or delayed-reveal/randomization mechanics. Those remain open in V7.
+The Genesis contract locks the Chapter I allocation counts at contract level:
+
+- 2,000 Public Mint
+- 111 Community Allocation
+- 111 Team Reserve
+
+Public paid minting is isolated behind the sale contract. Non-public allocation mints are capped separately at 111 Community and 111 Team Reserve. Do **not** use this step to invent the exact Community-use split, Team Reserve sale terms, HOF numbering or delayed-reveal/randomization mechanics. Those remain open in V7.
 
 ## 3. Configure the website
 
@@ -66,7 +72,7 @@ After deployment addresses are placed in `.env`, first validate the locked V7 co
 npm run ops:v7:validate-deployment:testnet
 ```
 
-This is read-only. It verifies the deployed Genesis supply/rarity constants, 2,000 × 30 USDC Public Mint, 48k/2k/10k sale split, 10-race/6-season/3-day leaderboard constants, 48k reward accounting and the Genesis/Sale/Community/Rewards contract references. It does not validate or invent any item that V7 still leaves open.
+This is read-only. It verifies the deployed Genesis supply/rarity constants, the separate 111 Community + 111 Team Reserve caps, 2,000 × 30 USDC Public Mint, 6-decimal payment-token accounting, 48k/2k/10k sale split, 10-race/6-season/3-day leaderboard constants, 48k reward accounting and the Genesis/Sale/Community/Rewards contract references. It does not validate or invent any item that V7 still leaves open.
 
 Then read the live operational state:
 
@@ -74,7 +80,7 @@ Then read the live operational state:
 npm run ops:v7:status:testnet
 ```
 
-This command is also read-only. It reports Genesis supply/reveal state, public-sale progress/refund state, current Community/HOF seasons and Prize Pool accounting.
+This command is also read-only. It reports Genesis supply/reveal state, Community/Team allocation counters, public-sale progress/refund state, payment-token decimals, current Community/HOF seasons and Prize Pool accounting.
 
 ## 5. Public Mint success and proceeds distribution
 
@@ -182,7 +188,7 @@ The operation pays exactly **2,500 / 1,000 / 500 USDC** to the archived Communit
 
 It does not expose or execute the HOF-side payout, because V7 leaves that beneficiary mechanism to finalize.
 
-## 12. Resolve the Chapter I Community Champion
+## 12. Resolve the Chapter I champions
 
 After all six Community seasons are finalized, set:
 
@@ -191,7 +197,7 @@ COMMUNITY_SEASON_ADDRESS=
 GENESIS_ADDRESS=
 ```
 
-Then run the read-only resolver:
+Then run the read-only Community resolver:
 
 ```bash
 npm run ops:v7:community-champion:testnet
@@ -204,7 +210,19 @@ The resolver follows the already approved V7/owner logic without creating a new 
 - if multiple tied wallets hold Genesis NFTs, the lower-numbered held NFT wins;
 - if every top-point tied wallet holds zero Genesis NFTs, the resolver stops with an unresolved-V7 error and points to `V7_OPEN_QUESTIONS.md`.
 
-The HOF-side **GENESIS GRAND CHAMPION** is already exposed on-chain by the HOF leaderboard after all six seasons.
+For the HOF side, set:
+
+```text
+HOF_LEADERBOARD_ADDRESS=
+```
+
+Then run:
+
+```bash
+npm run ops:v7:hof-champion:testnet
+```
+
+This read-only operation returns the **CHAPTER I — GENESIS GRAND CHAMPION** only after all six seasons are complete. Equal HOF All-Time points use the locked V7 lower-competitor-number tie-break.
 
 ## 13. Repeat for Chapter I
 
