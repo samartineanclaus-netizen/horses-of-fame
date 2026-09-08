@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "compile:contracts": "hardhat compile",
-    "test:contracts": "hardhat test"
+    "test:contracts": "hardhat test",
+    "check:deploy-scripts": "node --check scripts/deploy-v7-system.js && node --check scripts/deploy-v7-race.js",
+    "deploy:v7:testnet": "hardhat run scripts/deploy-v7-system.js --network robinhoodTestnet",
+    "deploy:v7:race:testnet": "hardhat run scripts/deploy-v7-race.js --network robinhoodTestnet"
   },
   "dependencies": {
     "next": "16.3.4",
