@@ -54,11 +54,9 @@ describe("V7 Community casting tie-break", function () {
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
 
-    // Deliberately assign the lower NFT to walletB. The result must follow
-    // token number, regardless of the lexical ordering of wallet addresses.
     await genesis.ownerMint(owner.address, 33);
     await genesis.ownerMint(walletB.address, 1); // #34
-    await genesis.ownerMint(owner.address, 86); // #35-#120
+    await genesis.ownerMint(owner.address, 86);
     await genesis.ownerMint(walletA.address, 1); // #121
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");
@@ -69,5 +67,17 @@ describe("V7 Community casting tie-break", function () {
     expect(await community.lowestOwnedTokenId(walletB.address)).to.equal(34n);
     expect(await community.lowestOwnedTokenId(walletA.address)).to.equal(121n);
     expect(await community.castingTieBreak(walletA.address, walletB.address)).to.equal(walletB.address);
+  });
+
+  it("makes a wallet with no NFT lose the tie-break against a wallet that still holds an NFT", async function () {
+    const { owner, walletA, walletB, genesis, community } = await deployFixture();
+
+    await genesis.connect(walletA).transferFrom(walletA.address, owner.address, 34);
+    expect(await genesis.balanceOf(walletA.address)).to.equal(0n);
+    expect(await genesis.balanceOf(walletB.address)).to.equal(1n);
+
+    await expect(community.lowestOwnedTokenId(walletA.address)).to.be.revertedWith("wallet owns no NFT");
+    expect(await community.castingTieBreak(walletA.address, walletB.address)).to.equal(walletB.address);
+    expect(await community.castingTieBreak(walletB.address, walletA.address)).to.equal(walletB.address);
   });
 });

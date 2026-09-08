@@ -33,7 +33,6 @@ contract HOFCommunitySeason is Ownable {
     address public genesisContract;
 
     mapping(address => bool) public registeredRace;
-    // Retained after finalization so an old race cannot score in a new season.
     mapping(address => uint8) public raceSeason;
     mapping(address => uint256) public seasonPoints;
     mapping(address => uint256) public allTimePoints;
@@ -68,7 +67,6 @@ contract HOFCommunitySeason is Ownable {
         ICommunityRaceResult result = ICommunityRaceResult(race);
         require(block.timestamp >= result.closesAt(), "race not closed");
         uint256 raceOpensAt = result.opensAt();
-        // V7 section 7: compare scheduled openings, not registration timestamps.
         if (racesRegistered > 0) {
             require(raceOpensAt == lastRaceOpensAt + RACE_INTERVAL, "race cadence must be 3 days");
         }
@@ -156,7 +154,22 @@ contract HOFCommunitySeason is Ownable {
         uint256 aPoints = seasonPoints[a];
         uint256 bPoints = seasonPoints[b];
         if (aPoints != bPoints) return aPoints > bPoints;
-        return lowestOwnedTokenId(a) < lowestOwnedTokenId(b);
+        return _winsCastingTieBreak(a, b);
+    }
+
+    function _winsCastingTieBreak(address a, address b) internal view returns (bool) {
+        IGenesisEnumerable genesis = IGenesisEnumerable(genesisContract);
+        uint256 aBalance = genesis.balanceOf(a);
+        uint256 bBalance = genesis.balanceOf(b);
+
+        // Approved rule: only on equal points, a wallet with no NFT loses the
+        // tie-break against a wallet that still holds at least one Genesis NFT.
+        if (aBalance == 0 || bBalance == 0) {
+            if (aBalance == 0 && bBalance == 0) return false;
+            return aBalance > 0;
+        }
+
+        return _lowestOwnedTokenId(a, aBalance) < _lowestOwnedTokenId(b, bBalance);
     }
 
     function getSeasonTop3(uint8 seasonNumber) external view returns (address[3] memory) {
@@ -164,16 +177,18 @@ contract HOFCommunitySeason is Ownable {
         return seasonTop3[seasonNumber];
     }
 
-    /// @notice Lowest NFT number currently held by a wallet.
-    /// V7 Casting tie-break: when Community points are tied, the wallet holding
-    /// the lower-numbered NFT wins (e.g. #0034 beats #0121).
     function lowestOwnedTokenId(address wallet) public view returns (uint256) {
         require(genesisContract != address(0), "Genesis contract not set");
         uint256 balance = IGenesisEnumerable(genesisContract).balanceOf(wallet);
         require(balance > 0, "wallet owns no NFT");
+        return _lowestOwnedTokenId(wallet, balance);
+    }
+
+    function _lowestOwnedTokenId(address wallet, uint256 balance) internal view returns (uint256) {
+        IGenesisEnumerable genesis = IGenesisEnumerable(genesisContract);
         uint256 lowest = type(uint256).max;
         for (uint256 i = 0; i < balance; i++) {
-            uint256 tokenId = IGenesisEnumerable(genesisContract).tokenOfOwnerByIndex(wallet, i);
+            uint256 tokenId = genesis.tokenOfOwnerByIndex(wallet, i);
             if (tokenId < lowest) lowest = tokenId;
         }
         return lowest;
@@ -181,8 +196,16 @@ contract HOFCommunitySeason is Ownable {
 
     function castingTieBreak(address walletA, address walletB) public view returns (address) {
         require(walletA != walletB, "same wallet");
-        uint256 a = lowestOwnedTokenId(walletA);
-        uint256 b = lowestOwnedTokenId(walletB);
+        IGenesisEnumerable genesis = IGenesisEnumerable(genesisContract);
+        uint256 aBalance = genesis.balanceOf(walletA);
+        uint256 bBalance = genesis.balanceOf(walletB);
+        require(aBalance > 0 || bBalance > 0, "no NFT tie-break winner");
+
+        if (aBalance == 0) return walletB;
+        if (bBalance == 0) return walletA;
+
+        uint256 a = _lowestOwnedTokenId(walletA, aBalance);
+        uint256 b = _lowestOwnedTokenId(walletB, bBalance);
         return a < b ? walletA : walletB;
     }
 
