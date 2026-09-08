@@ -15,6 +15,7 @@ This file is **not** a replacement for `docs/tokenomics/HOF_TOKENOMICS_V7_MASTER
 4. **111 Community + 111 Team Reserve allocation versus delayed reveal/randomization.** V7 fixes the allocation counts but leaves the final reveal/randomization design open. The exact mint/distribution mechanics must be chosen without compromising the delayed fair reveal model.
 5. **Maximum one-week break between seasons — timing anchor.** V7 requires the break between seasons to be no longer than one week, but it does not specify whether that week is measured from Race 10 opening, Race 10 voting close, race finalization, season finalization, or another event. The current code does not invent an anchor.
 6. **Chapter-transition one-month maximum — timing anchor.** V7 requires no more than one month between HOF chapters but does not define the exact start/end events for that interval. This is not enforced in Chapter I code until the chapter-transition mechanism is defined.
+7. **Community season with fewer than three scoring wallets.** V7 defines Community Top 3 rewards of 2,500 / 1,000 / 500 USDC but does not state how an unfilled 2nd or 3rd place is treated if fewer than three wallets score in a season. Season finalization intentionally has no invented minimum-participant rule; the current rewards contract therefore refuses a payout with an incomplete Top 3 rather than redirecting or reallocating money.
 
 ## V7 section 16 items still to finalize
 
