@@ -98,6 +98,17 @@ async function main() {
   equalValue(await sale.FOUNDER_AMOUNT(), BigInt(10_000) * USDC, "Development split");
   equalAddress(await sale.genesis(), genesisAddress, "Sale Genesis reference");
 
+  const sold = await sale.sold();
+  const saleSuccessful = await sale.saleSuccessful();
+  const soldOutAt = await sale.soldOutAt();
+  if (saleSuccessful && soldOutAt === BigInt(0)) {
+    throw new Error("Sale is successful but soldOutAt was not recorded");
+  }
+  if (!saleSuccessful && soldOutAt !== BigInt(0)) {
+    throw new Error("soldOutAt is set before the V7 2,000-NFT success condition");
+  }
+  if (saleSuccessful) equalValue(sold, await sale.PUBLIC_SUPPLY(), "Public Mint sell-out accounting");
+
   const paymentToken = await sale.paymentToken();
   await assertCode(paymentToken, "Sale payment token");
   const paymentMetadata = new ethers.Contract(
@@ -155,6 +166,9 @@ async function main() {
     seasonRewards: rewardsAddress,
     paymentToken,
     paymentTokenDecimals: 6,
+    publicMintSold: sold.toString(),
+    publicMintSuccessful: saleSuccessful,
+    soldOutAt: soldOutAt.toString(),
     teamReserveWallet: teamWallet,
     communityAllocationMinted: communityMinted.toString(),
     teamReserveMinted: teamMinted.toString(),
@@ -164,7 +178,7 @@ async function main() {
     projectWallet,
     currentSeason: communitySeason.toString(),
     seasonsFinalized: communityFinalized.toString(),
-    note: "Locked V7 constants, allocation caps and deployed cross-contract references match. Exact HOF numbering/ownership and delayed reveal remain outside this validator until finalized in V7.",
+    note: "Locked V7 constants, allocation caps, sell-out accounting and deployed cross-contract references match. Exact HOF numbering/ownership and delayed reveal remain outside this validator until finalized in V7.",
   }, null, 2));
 }
 
