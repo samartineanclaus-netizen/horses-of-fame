@@ -8,9 +8,11 @@ interface IGenesisVoting {
     function votingPowerOf(uint256 tokenId) external view returns (uint256);
 }
 
-/// @notice Minimal V7 voting core for one race.
-/// One wallet submits one hidden commitment. All supplied eligible Genesis NFTs
-/// combine their VP behind that one pick and cannot be reused in this race.
+/// @notice V7 voting core for one race.
+/// One wallet fixes one hidden pick. Eligible Genesis NFTs supplied by that
+/// wallet combine their VP behind the same pick and cannot be reused in this
+/// race. If the wallet acquires another unused eligible NFT while voting is
+/// still open, its VP may be added without changing or splitting the pick.
 /// The designated Team Reserve Wallet is voting-ineligible at wallet level;
 /// transferred voting NFTs immediately regain their normal eligibility.
 contract HOFRaceVoting is Ownable {
@@ -30,6 +32,7 @@ contract HOFRaceVoting is Ownable {
     mapping(uint8 => uint256) public horseVP;
 
     event VoteCommitted(address indexed voter, bytes32 indexed commitment, uint256 votingPower);
+    event VotingPowerAdded(address indexed voter, uint256 addedVotingPower, uint256 totalVotingPower);
     event VoteRevealed(address indexed voter, uint8 indexed horseNumber, uint256 votingPower);
 
     constructor(address genesis_, uint256 opensAt_, address teamReserveWallet_) Ownable(msg.sender) {
@@ -63,6 +66,30 @@ contract HOFRaceVoting is Ownable {
         commitmentOf[msg.sender] = commitment;
         committedVP[msg.sender] = totalVP;
         emit VoteCommitted(msg.sender, commitment, totalVP);
+    }
+
+    /// @notice Adds VP from NFTs acquired after the wallet already fixed its
+    /// secret pick. No new commitment is accepted, so the choice cannot change
+    /// or split. Every NFT remains single-use for this race.
+    function addVotingPower(uint256[] calldata tokenIds) external {
+        require(block.timestamp >= opensAt && block.timestamp < closesAt, "voting closed");
+        require(msg.sender != teamReserveWallet, "Team Reserve cannot vote");
+        require(commitmentOf[msg.sender] != bytes32(0), "no wallet pick");
+        require(tokenIds.length > 0, "no tokens");
+
+        uint256 addedVP;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            uint256 tokenId = tokenIds[i];
+            require(!tokenUsed[tokenId], "token already used");
+            require(genesis.ownerOf(tokenId) == msg.sender, "not token owner");
+            uint256 vp = genesis.votingPowerOf(tokenId);
+            require(vp > 0, "token not voting eligible");
+            tokenUsed[tokenId] = true;
+            addedVP += vp;
+        }
+
+        committedVP[msg.sender] += addedVP;
+        emit VotingPowerAdded(msg.sender, addedVP, committedVP[msg.sender]);
     }
 
     function revealVote(uint8 horseNumber, bytes32 salt) external {
