@@ -34,6 +34,7 @@ contract HOFCommunitySeason is Ownable {
     mapping(address => uint256) public allTimePoints;
     mapping(uint8 => mapping(address => uint256)) public seasonHistory;
     mapping(address => mapping(address => bool)) public raceClaimed;
+    mapping(uint8 => address[3]) private seasonTop3;
 
     address[] private activeWallets;
     mapping(address => bool) private activeWalletSeen;
@@ -41,6 +42,7 @@ contract HOFCommunitySeason is Ownable {
     event RaceRegistered(address indexed race, uint8 indexed seasonNumber, uint8 indexed raceNumber);
     event CommunityPointsClaimed(address indexed race, address indexed wallet, uint8 horseNumber, uint8 points);
     event SeasonFinalized(uint8 indexed seasonNumber);
+    event CommunityTop3Finalized(uint8 indexed seasonNumber, address first, address second, address third);
     event GenesisContractSet(address indexed genesisContract);
 
     constructor() Ownable(msg.sender) {}
@@ -96,8 +98,13 @@ contract HOFCommunitySeason is Ownable {
     function finalizeSeason() external onlyOwner {
         require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
         require(racesRegistered == RACES_PER_SEASON, "season not complete");
+        require(genesisContract != address(0), "Genesis contract not set");
+        require(activeWallets.length >= 3, "fewer than 3 participants");
 
         uint8 seasonNumber = currentSeason;
+        address[3] memory top3 = _calculateTop3();
+        seasonTop3[seasonNumber] = top3;
+
         for (uint256 i = 0; i < activeWallets.length; i++) {
             address wallet = activeWallets[i];
             uint256 points = seasonPoints[wallet];
@@ -108,13 +115,37 @@ contract HOFCommunitySeason is Ownable {
         }
         delete activeWallets;
 
-        for (uint8 i = 0; i < RACES_PER_SEASON; i++) {
-            races[i] = address(0);
-        }
+        for (uint8 i = 0; i < RACES_PER_SEASON; i++) races[i] = address(0);
         racesRegistered = 0;
         seasonsFinalized += 1;
         currentSeason += 1;
+        emit CommunityTop3Finalized(seasonNumber, top3[0], top3[1], top3[2]);
         emit SeasonFinalized(seasonNumber);
+    }
+
+    function _calculateTop3() internal view returns (address[3] memory top3) {
+        for (uint256 i = 0; i < activeWallets.length; i++) {
+            address candidate = activeWallets[i];
+            if (top3[0] == address(0) || _ranksAhead(candidate, top3[0])) {
+                top3[2] = top3[1]; top3[1] = top3[0]; top3[0] = candidate;
+            } else if (top3[1] == address(0) || _ranksAhead(candidate, top3[1])) {
+                top3[2] = top3[1]; top3[1] = candidate;
+            } else if (top3[2] == address(0) || _ranksAhead(candidate, top3[2])) {
+                top3[2] = candidate;
+            }
+        }
+    }
+
+    function _ranksAhead(address a, address b) internal view returns (bool) {
+        uint256 aPoints = seasonPoints[a];
+        uint256 bPoints = seasonPoints[b];
+        if (aPoints != bPoints) return aPoints > bPoints;
+        return lowestOwnedTokenId(a) < lowestOwnedTokenId(b);
+    }
+
+    function getSeasonTop3(uint8 seasonNumber) external view returns (address[3] memory) {
+        require(seasonNumber >= 1 && seasonNumber <= seasonsFinalized, "season not finalized");
+        return seasonTop3[seasonNumber];
     }
 
     /// @notice Lowest NFT number currently held by a wallet.
@@ -124,7 +155,6 @@ contract HOFCommunitySeason is Ownable {
         require(genesisContract != address(0), "Genesis contract not set");
         uint256 balance = IGenesisEnumerable(genesisContract).balanceOf(wallet);
         require(balance > 0, "wallet owns no NFT");
-
         uint256 lowest = type(uint256).max;
         for (uint256 i = 0; i < balance; i++) {
             uint256 tokenId = IGenesisEnumerable(genesisContract).tokenOfOwnerByIndex(wallet, i);
@@ -133,7 +163,6 @@ contract HOFCommunitySeason is Ownable {
         return lowest;
     }
 
-    /// @notice Resolves a two-wallet Community casting tie using the V7 NFT-number rule.
     function castingTieBreak(address walletA, address walletB) public view returns (address) {
         require(walletA != walletB, "same wallet");
         uint256 a = lowestOwnedTokenId(walletA);
