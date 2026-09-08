@@ -11,6 +11,8 @@ interface IGenesisVoting {
 /// @notice Minimal V7 voting core for one race.
 /// One wallet submits one hidden commitment. All supplied eligible Genesis NFTs
 /// combine their VP behind that one pick and cannot be reused in this race.
+/// The designated Team Reserve Wallet is voting-ineligible at wallet level;
+/// transferred voting NFTs immediately regain their normal eligibility.
 contract HOFRaceVoting is Ownable {
     uint256 public constant HOF_COMPETITORS = 22;
     uint256 public constant VOTING_WINDOW = 24 hours;
@@ -18,6 +20,7 @@ contract HOFRaceVoting is Ownable {
     IGenesisVoting public immutable genesis;
     uint256 public immutable opensAt;
     uint256 public immutable closesAt;
+    address public immutable teamReserveWallet;
 
     mapping(address => bytes32) public commitmentOf;
     mapping(address => uint256) public committedVP;
@@ -29,16 +32,19 @@ contract HOFRaceVoting is Ownable {
     event VoteCommitted(address indexed voter, bytes32 indexed commitment, uint256 votingPower);
     event VoteRevealed(address indexed voter, uint8 indexed horseNumber, uint256 votingPower);
 
-    constructor(address genesis_, uint256 opensAt_) Ownable(msg.sender) {
+    constructor(address genesis_, uint256 opensAt_, address teamReserveWallet_) Ownable(msg.sender) {
         require(genesis_ != address(0), "zero genesis");
         require(opensAt_ >= block.timestamp, "bad opening");
+        require(teamReserveWallet_ != address(0), "zero Team Reserve");
         genesis = IGenesisVoting(genesis_);
         opensAt = opensAt_;
         closesAt = opensAt_ + VOTING_WINDOW;
+        teamReserveWallet = teamReserveWallet_;
     }
 
     function commitVote(bytes32 commitment, uint256[] calldata tokenIds) external {
         require(block.timestamp >= opensAt && block.timestamp < closesAt, "voting closed");
+        require(msg.sender != teamReserveWallet, "Team Reserve cannot vote");
         require(commitment != bytes32(0), "empty commitment");
         require(commitmentOf[msg.sender] == bytes32(0), "wallet already voted");
         require(tokenIds.length > 0, "no tokens");
@@ -73,15 +79,11 @@ contract HOFRaceVoting is Ownable {
         emit VoteRevealed(msg.sender, horseNumber, vp);
     }
 
-    /// @notice Returns all 22 competitors ranked by revealed VP descending.
-    /// Ties are resolved deterministically by lower HOF competitor number.
     function ranking() external view returns (uint8[22] memory ranked) {
         require(block.timestamp >= closesAt, "voting not closed");
         return _ranking();
     }
 
-    /// @notice Locked V7 F1-style scoring for race positions 1-22.
-    /// Positions 11-22 score zero.
     function pointsForPosition(uint8 position) public pure returns (uint8) {
         require(position >= 1 && position <= HOF_COMPETITORS, "invalid position");
         if (position == 1) return 25;
@@ -97,7 +99,6 @@ contract HOFRaceVoting is Ownable {
         return 0;
     }
 
-    /// @notice Returns the points earned by each HOF competitor for this race.
     function horseRacePoints() external view returns (uint8[22] memory points) {
         require(block.timestamp >= closesAt, "voting not closed");
         uint8[22] memory ranked = _ranking();
@@ -107,11 +108,7 @@ contract HOFRaceVoting is Ownable {
     }
 
     function _ranking() internal view returns (uint8[22] memory ranked) {
-        for (uint8 i = 0; i < HOF_COMPETITORS; i++) {
-            ranked[i] = i + 1;
-        }
-
-        // 22 fixed competitors: insertion sort is bounded and deterministic.
+        for (uint8 i = 0; i < HOF_COMPETITORS; i++) ranked[i] = i + 1;
         for (uint256 i = 1; i < HOF_COMPETITORS; i++) {
             uint8 current = ranked[i];
             uint256 j = i;
@@ -130,7 +127,6 @@ contract HOFRaceVoting is Ownable {
         return a < b;
     }
 
-    /// @dev Client builds commitment from race pick + private salt.
     function makeCommitment(uint8 horseNumber, bytes32 salt) external pure returns (bytes32) {
         require(horseNumber >= 1 && horseNumber <= HOF_COMPETITORS, "invalid horse");
         return keccak256(abi.encode(horseNumber, salt));
