@@ -10,11 +10,11 @@ interface ICommunitySeasonTop3 {
     function getSeasonTop3(uint8 seasonNumber) external view returns (address[3] memory);
 }
 
-/// @notice Chapter I V7 season-reward treasury.
-/// V7 fixes $8,000 USDC per season: $4,000 Community + $4,000 HOF.
+/// @notice Chapter I V7 prize-pool treasury.
+/// Exactly $48,000 USDC funds six seasons: $4,000 Community + $4,000 HOF each.
 /// Community rewards are 2,500 / 1,000 / 500 USDC.
-/// HOF beneficiary mechanics are intentionally NOT implemented here because
-/// V7 explicitly leaves the final HOF beneficiary/ownership mechanism to finalize.
+/// HOF beneficiary mechanics are intentionally NOT implemented because V7
+/// leaves the final HOF beneficiary/ownership mechanism to finalize.
 contract HOFSeasonRewards is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -25,12 +25,15 @@ contract HOFSeasonRewards is Ownable, ReentrancyGuard {
     uint256 public constant COMMUNITY_PER_SEASON = 4_000 * 1e6;
     uint256 public constant HOF_PER_SEASON = 4_000 * 1e6;
     uint256 public constant TOTAL_PER_SEASON = 8_000 * 1e6;
+    uint256 public constant COMMUNITY_CHAPTER_ALLOCATION = 24_000 * 1e6;
+    uint256 public constant HOF_CHAPTER_ALLOCATION = 24_000 * 1e6;
     uint256 public constant CHAPTER_PRIZE_POOL = 48_000 * 1e6;
 
     IERC20 public immutable usdc;
     ICommunitySeasonTop3 public immutable communitySeason;
 
     mapping(uint8 => bool) public communitySeasonPaid;
+    uint256 public communityPaid;
 
     event CommunitySeasonRewardsPaid(
         uint8 indexed season,
@@ -46,11 +49,13 @@ contract HOFSeasonRewards is Ownable, ReentrancyGuard {
         communitySeason = ICommunitySeasonTop3(communitySeason_);
     }
 
-    /// @notice Pays the V7-locked Community Top 3 amounts only to the
-    /// deterministic winners archived by HOFCommunitySeason.
+    /// @notice Pays only V7 Community allocation. The cumulative cap ensures
+    /// Community can never consume the $24,000 Chapter I HOF allocation.
     function payCommunitySeason(uint8 season) external onlyOwner nonReentrant {
         require(season >= 1 && season <= CHAPTER_SEASONS, "bad season");
         require(!communitySeasonPaid[season], "community season paid");
+        require(communityPaid + COMMUNITY_PER_SEASON <= COMMUNITY_CHAPTER_ALLOCATION, "Community allocation exhausted");
+
         address[3] memory winners = communitySeason.getSeasonTop3(season);
         require(
             winners[0] != address(0) && winners[1] != address(0) && winners[2] != address(0),
@@ -59,6 +64,7 @@ contract HOFSeasonRewards is Ownable, ReentrancyGuard {
         require(usdc.balanceOf(address(this)) >= COMMUNITY_PER_SEASON, "insufficient rewards");
 
         communitySeasonPaid[season] = true;
+        communityPaid += COMMUNITY_PER_SEASON;
         usdc.safeTransfer(winners[0], COMMUNITY_FIRST);
         usdc.safeTransfer(winners[1], COMMUNITY_SECOND);
         usdc.safeTransfer(winners[2], COMMUNITY_THIRD);
@@ -66,9 +72,16 @@ contract HOFSeasonRewards is Ownable, ReentrancyGuard {
         emit CommunitySeasonRewardsPaid(season, winners[0], winners[1], winners[2]);
     }
 
-    /// @notice V7 reserves a second $4,000 prize set for the HOF side.
-    /// No payout function is provided until the V7 HOF beneficiary mechanism
-    /// is finalized; this prevents inventing a beneficiary rule.
+    function communityRemaining() external view returns (uint256) {
+        return COMMUNITY_CHAPTER_ALLOCATION - communityPaid;
+    }
+
+    /// @notice Accounting reservation for the HOF half of the V7 prize pool.
+    /// There is deliberately no HOF transfer function and no generic withdrawal.
+    function hofReserved() public pure returns (uint256) {
+        return HOF_CHAPTER_ALLOCATION;
+    }
+
     function hofSeasonAllocation() external pure returns (uint256) {
         return HOF_PER_SEASON;
     }
