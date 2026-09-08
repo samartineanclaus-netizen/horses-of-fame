@@ -30,10 +30,12 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     address public immutable founderWallet;
 
     uint256 public sold;
+    uint256 public soldOutAt;
     bool public distributed;
     mapping(address => uint256) public paidBy;
 
     event Minted(address indexed buyer, uint256 quantity, uint256 paid);
+    event SaleSoldOut(uint256 indexed timestamp);
     event Refunded(address indexed buyer, uint256 amount, uint256 quantity);
     event ProceedsDistributed(address prizePool, address audit, address founder);
 
@@ -73,6 +75,10 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
         paymentToken.safeTransferFrom(msg.sender, address(this), cost);
         genesis.saleMint(msg.sender, quantity);
 
+        if (sold == PUBLIC_SUPPLY && soldOutAt == 0) {
+            soldOutAt = block.timestamp;
+            emit SaleSoldOut(block.timestamp);
+        }
         emit Minted(msg.sender, quantity, cost);
     }
 
