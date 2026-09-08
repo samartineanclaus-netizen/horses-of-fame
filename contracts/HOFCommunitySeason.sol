@@ -11,24 +11,37 @@ interface ICommunityRaceResult {
     function pointsForPosition(uint8 position) external pure returns (uint8);
 }
 
-/// @notice V7 Community/Holder season scoring.
-/// One wallet earns one scoring result per race. NFT quantity/rarity affects VP,
-/// but never multiplies the wallet's Community points.
+/// @notice V7 Community/Holder scoring across Chapter I.
+/// One wallet earns one scoring result per race. Wallet points never transfer
+/// with NFTs. Season scores reset after ten races; All-Time points persist.
 contract HOFCommunitySeason is Ownable {
     uint8 public constant RACES_PER_SEASON = 10;
+    uint8 public constant CHAPTER_SEASONS = 6;
 
+    uint8 public currentSeason = 1;
     uint8 public racesRegistered;
+    uint8 public seasonsFinalized;
     address[10] public races;
+
     mapping(address => bool) public registeredRace;
     mapping(address => uint256) public seasonPoints;
+    mapping(address => uint256) public allTimePoints;
+    mapping(uint8 => mapping(address => uint256)) public seasonHistory;
     mapping(address => mapping(address => bool)) public raceClaimed;
 
-    event RaceRegistered(address indexed race, uint8 indexed raceNumber);
+    // Tracks wallets that earned/claimed a result in the active season so their
+    // scores can be archived and reset without enumerating arbitrary addresses.
+    address[] private activeWallets;
+    mapping(address => bool) private activeWalletSeen;
+
+    event RaceRegistered(address indexed race, uint8 indexed seasonNumber, uint8 indexed raceNumber);
     event CommunityPointsClaimed(address indexed race, address indexed wallet, uint8 horseNumber, uint8 points);
+    event SeasonFinalized(uint8 indexed seasonNumber);
 
     constructor() Ownable(msg.sender) {}
 
     function registerRace(address race) external onlyOwner {
+        require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
         require(race != address(0), "zero race");
         require(racesRegistered < RACES_PER_SEASON, "season complete");
         require(!registeredRace[race], "race already registered");
@@ -37,12 +50,11 @@ contract HOFCommunitySeason is Ownable {
         races[racesRegistered] = race;
         registeredRace[race] = true;
         racesRegistered += 1;
-        emit RaceRegistered(race, racesRegistered);
+        emit RaceRegistered(race, currentSeason, racesRegistered);
     }
 
     /// @notice Claims exactly one Community scoring result for msg.sender in a race.
-    /// The wallet receives the F1 points corresponding to the final position of
-    /// the HOF horse it revealed: 25/18/15/12/10/8/6/4/2/1, then zero.
+    /// NFT quantity/rarity affects VP only and never multiplies Community points.
     function claimRacePoints(address race) external {
         require(registeredRace[race], "race not registered");
         require(!raceClaimed[race][msg.sender], "already claimed");
@@ -63,11 +75,49 @@ contract HOFCommunitySeason is Ownable {
 
         uint8 points = result.pointsForPosition(position);
         raceClaimed[race][msg.sender] = true;
+        if (!activeWalletSeen[msg.sender]) {
+            activeWalletSeen[msg.sender] = true;
+            activeWallets.push(msg.sender);
+        }
         seasonPoints[msg.sender] += points;
         emit CommunityPointsClaimed(race, msg.sender, chosenHorse, points);
     }
 
+    /// @notice Archives wallet scores after exactly ten registered races,
+    /// updates All-Time points and resets active Community scores.
+    function finalizeSeason() external onlyOwner {
+        require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
+        require(racesRegistered == RACES_PER_SEASON, "season not complete");
+
+        uint8 seasonNumber = currentSeason;
+        for (uint256 i = 0; i < activeWallets.length; i++) {
+            address wallet = activeWallets[i];
+            uint256 points = seasonPoints[wallet];
+            seasonHistory[seasonNumber][wallet] = points;
+            allTimePoints[wallet] += points;
+            seasonPoints[wallet] = 0;
+            activeWalletSeen[wallet] = false;
+        }
+        delete activeWallets;
+
+        for (uint8 i = 0; i < RACES_PER_SEASON; i++) {
+            races[i] = address(0);
+        }
+        racesRegistered = 0;
+        seasonsFinalized += 1;
+        currentSeason += 1;
+        emit SeasonFinalized(seasonNumber);
+    }
+
+    function activeWalletCount() external view returns (uint256) {
+        return activeWallets.length;
+    }
+
     function seasonComplete() external view returns (bool) {
         return racesRegistered == RACES_PER_SEASON;
+    }
+
+    function chapterComplete() external view returns (bool) {
+        return seasonsFinalized == CHAPTER_SEASONS;
     }
 }
