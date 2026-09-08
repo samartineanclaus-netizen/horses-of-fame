@@ -41,6 +41,7 @@ NEXT_PUBLIC_HOF_GENESIS_SALE_CONTRACT=
 NEXT_PUBLIC_HOF_USDC_CONTRACT=
 NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT=
 NEXT_PUBLIC_HOF_LEADERBOARD_CONTRACT=
+NEXT_PUBLIC_HOF_SEASON_REWARDS_CONTRACT=
 NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=
 ```
 
@@ -51,8 +52,11 @@ The isolated testnet routes are:
 - `/mint` — V7 30 USDC public mint, live sale state and failed-sale on-chain refund flow.
 - `/race` — secret pick, wallet NFT/VP discovery, same-pick VP top-up, reveal and current Community point claim flow.
 - `/standings` — current-season and All-Time HOF standings, Community All-Time standings, finalized Community podiums and connected-wallet Community points.
+- `/rewards` — read-only Chapter I reward accounting, Community payout history and HOF reserved allocation.
 
 Community All-Time is loaded on demand from the persistent Chapter I wallet registry. Equal points use the approved casting tie-break: a tied wallet with no Genesis NFT loses to a tied wallet that still holds one; if both hold NFTs, the lower-numbered held NFT wins. If equal-point wallets all hold zero Genesis NFTs, the page marks that tie as unresolved instead of inventing a fallback.
+
+The rewards page deliberately does **not** expose an HOF payout action. V7 still leaves the final HOF season-end beneficiary/ownership mechanism to finalize.
 
 ## 4. Validate and read current system state
 
@@ -174,7 +178,9 @@ Then run:
 npm run ops:v7:pay-community-season:testnet
 ```
 
-The operation pays exactly **2,500 / 1,000 / 500 USDC** to the archived Community Top 3, exactly once for that season. It does not expose or execute the HOF-side payout, because V7 leaves that beneficiary mechanism to finalize.
+The operation pays exactly **2,500 / 1,000 / 500 USDC** to the archived Community Top 3, exactly once for that season. The `/rewards` page can be used to verify the on-chain payment history and remaining Community/HOF accounting.
+
+It does not expose or execute the HOF-side payout, because V7 leaves that beneficiary mechanism to finalize.
 
 ## 12. Resolve the Chapter I Community Champion
 
