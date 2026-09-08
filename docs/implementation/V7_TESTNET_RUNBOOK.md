@@ -55,11 +55,15 @@ Never place private keys in `NEXT_PUBLIC_*` variables.
 
 The isolated testnet routes are:
 
-- `/mint` — V7 30 USDC public mint flow.
+- `/mint` — V7 30 USDC public mint flow, sale progress, sell-out timestamp and first-race target tracking.
 - `/refund` — read-only sale/refund status plus the V7 failed-sale on-chain refund transaction. It is disabled unless the sale contract reports refunds enabled.
 - `/race` — secret pick, wallet NFT/VP discovery, same-pick VP top-up, reveal and current Community point claim flow.
+- `/wallet` — read-only connected-wallet Genesis inventory, current VP, current-race token usage, committed VP and Community season/All-Time points.
 - `/standings` — current-season and All-Time HOF standings, Community All-Time standings, finalized Community podiums and connected-wallet Community points.
 - `/rewards` — read-only Chapter I reward accounting, Community payout history and HOF reserved allocation.
+- `/status` — read-only system status.
+- `/history` — finalized season history.
+- `/allocations` — locked 2,000 / 111 / 111 allocation counters without deciding the unresolved distribution mechanics.
 
 Community All-Time is loaded on demand from the persistent Chapter I wallet registry. Equal points use the approved casting tie-break: a tied wallet with no Genesis NFT loses to a tied wallet that still holds one; if both hold NFTs, the lower-numbered held NFT wins. If equal-point wallets all hold zero Genesis NFTs, the page marks that tie as unresolved instead of inventing a fallback.
 
@@ -81,11 +85,21 @@ Then read the live operational state:
 npm run ops:v7:status:testnet
 ```
 
-This command is also read-only. It reports Genesis supply/reveal state, Community/Team allocation counters, public-sale progress/refund state, payment-token decimals, current Community/HOF seasons and Prize Pool accounting.
+This command is also read-only. It reports Genesis supply/reveal state, Community/Team allocation counters, public-sale progress/refund state, the recorded sell-out timestamp, payment-token decimals, current Community/HOF seasons and Prize Pool accounting.
+
+For one consolidated launch-readiness view, run:
+
+```bash
+npm run ops:v7:launch-readiness:testnet
+```
+
+The readiness checker classifies defined conditions as `READY`, `WAITING`, `ACTION AVAILABLE` or `BLOCKED`, while every unresolved V7 launch decision is shown explicitly as `UNRESOLVED V7`. It does not convert an unresolved item into code policy.
 
 ## 5. Public Mint success and proceeds distribution
 
 The public sale succeeds only at exactly **2,000 Public Mint NFTs sold**. Until then, collected USDC remains inside the sale escrow and is subject to the V7 failed-sale refund condition.
+
+The sale contract records the actual on-chain `soldOutAt` timestamp when NFT #2,000 of the Public Mint is sold. This timestamp does not create a new launch rule; it allows the implementation to measure V7's stated first-race target of sell-out + 10 days.
 
 If the deadline passes without sell-out, holders use `/refund` with eligible Public Mint token IDs. The sale contract burns those NFTs and returns exactly **30 USDC per eligible NFT** atomically. Community/Team allocation NFTs cannot be used for a Public Mint refund.
 
@@ -127,6 +141,8 @@ npm run deploy:v7:race:testnet
 ```
 
 The standard V7 race deployment operation refuses to deploy while the Public Mint is not sold out. It also verifies that the supplied sale contract points to the same Genesis contract and that the Team Reserve wallet matches the Genesis configuration. This enforces the locked **Public Mint → Sold Out** prerequisite without inventing the still-open Team Reserve secondary-distribution, audit or reveal-completion mechanics.
+
+The operation reports the actual sell-out timestamp and V7's **sell-out + 10 days** first-race target. Because V7 explicitly makes this target subject to audit, Team Reserve distribution and final technical checks, a later opening produces a warning rather than silently creating a new hard rejection rule.
 
 The race contract fixes the V7 24-hour voting window. For races 2–10 of a season, the leaderboard contracts enforce opening exactly three days after the previous race opening.
 
