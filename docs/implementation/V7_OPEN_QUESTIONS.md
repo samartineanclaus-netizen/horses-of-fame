@@ -13,6 +13,8 @@ This file is **not** a replacement for `docs/tokenomics/HOF_TOKENOMICS_V7_MASTER
 2. **Secret-vote reveal/finalization timing.** V7 fixes a 24-hour secret-voting window and says results become public after finalization, but it does not define a separate reveal deadline/finalization procedure. The current commit/reveal implementation allows reveal after voting closes. A final rule is needed before mainnet so a race cannot be permanently settled while valid reveals are still possible.
 3. **Community points settlement.** The current contract lets a wallet claim its race points after reveal. V7 says each wallet earns one scoring result per race but does not state whether claiming is user-driven, operator-settled, or automatic. A mainnet rule is needed to guarantee standings are complete before season finalization.
 4. **111 Community + 111 Team Reserve allocation versus delayed reveal/randomization.** V7 fixes the allocation counts but leaves the final reveal/randomization design open. The exact mint/distribution mechanics must be chosen without compromising the delayed fair reveal model.
+5. **Maximum one-week break between seasons — timing anchor.** V7 requires the break between seasons to be no longer than one week, but it does not specify whether that week is measured from Race 10 opening, Race 10 voting close, race finalization, season finalization, or another event. The current code does not invent an anchor.
+6. **Chapter-transition one-month maximum — timing anchor.** V7 requires no more than one month between HOF chapters but does not define the exact start/end events for that interval. This is not enforced in Chapter I code until the chapter-transition mechanism is defined.
 
 ## V7 section 16 items still to finalize
 
