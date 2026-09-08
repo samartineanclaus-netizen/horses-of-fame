@@ -40,6 +40,7 @@ NEXT_PUBLIC_HOF_GENESIS_CONTRACT=
 NEXT_PUBLIC_HOF_GENESIS_SALE_CONTRACT=
 NEXT_PUBLIC_HOF_USDC_CONTRACT=
 NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT=
+NEXT_PUBLIC_HOF_LEADERBOARD_CONTRACT=
 NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=
 ```
 
@@ -49,6 +50,7 @@ The isolated testnet routes are:
 
 - `/mint` — V7 30 USDC public mint flow.
 - `/race` — secret pick, same-pick VP top-up, reveal and current Community point claim flow.
+- `/standings` — on-chain HOF All-Time ranking plus the connected wallet's current/All-Time Community points.
 
 ## 4. Read current system state
 
