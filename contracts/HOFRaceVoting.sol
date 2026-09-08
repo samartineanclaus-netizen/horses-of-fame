@@ -73,6 +73,34 @@ contract HOFRaceVoting is Ownable {
         emit VoteRevealed(msg.sender, horseNumber, vp);
     }
 
+    /// @notice Returns all 22 competitors ranked by revealed VP descending.
+    /// Ties are resolved deterministically by lower HOF competitor number.
+    function ranking() external view returns (uint8[22] memory ranked) {
+        require(block.timestamp >= closesAt, "voting not closed");
+
+        for (uint8 i = 0; i < HOF_COMPETITORS; i++) {
+            ranked[i] = i + 1;
+        }
+
+        // 22 fixed competitors: insertion sort is bounded and deterministic.
+        for (uint256 i = 1; i < HOF_COMPETITORS; i++) {
+            uint8 current = ranked[i];
+            uint256 j = i;
+            while (j > 0 && _ranksAhead(current, ranked[j - 1])) {
+                ranked[j] = ranked[j - 1];
+                j--;
+            }
+            ranked[j] = current;
+        }
+    }
+
+    function _ranksAhead(uint8 a, uint8 b) internal view returns (bool) {
+        uint256 aVP = horseVP[a];
+        uint256 bVP = horseVP[b];
+        if (aVP != bVP) return aVP > bVP;
+        return a < b;
+    }
+
     /// @dev Client builds commitment from race pick + private salt.
     function makeCommitment(uint8 horseNumber, bytes32 salt) external pure returns (bytes32) {
         require(horseNumber >= 1 && horseNumber <= HOF_COMPETITORS, "invalid horse");
