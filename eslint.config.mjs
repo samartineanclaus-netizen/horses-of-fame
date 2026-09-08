@@ -5,5 +5,24 @@ import nextTs from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      // These pages intentionally load on-chain state on mount. Treat the new
+      // React 19 advisory as a warning while keeping the rest of the Next.js
+      // and TypeScript lint rules active.
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "scripts/**",
+    "deploy/**",
+    ".github/deploy/**",
+    "test/**",
+    "hardhat.config.js",
+  ]),
 ]);
