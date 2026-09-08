@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { encodeFunctionData, parseEther } from "viem";
 
 const scoring = [
   ["1st", 25], ["2nd", 18], ["3rd", 15], ["4th", 12], ["5th", 10],
@@ -25,18 +24,7 @@ const gallery = [
   ["/assets/hof-science.png", "Music · Culture · Legacy"],
 ];
 
-const GENESIS_CONTRACT = "00x4689053DbF9C7E63A6Ef3eeec83C59B3cB4C94fD";
 const ROBINHOOD_TESTNET_CHAIN_ID = "0xb626";
-
-const TEST_MINT_ABI = [
-  {
-    type: "function",
-    name: "publicTestMint",
-    stateMutability: "payable",
-    inputs: [{ name: "quantity", type: "uint256" }],
-    outputs: [],
-  },
-] as const;
 
 type EthereumProvider = {
   request: (args: {
@@ -91,7 +79,6 @@ function WalletButton() {
 
     try {
       setConnecting(true);
-
       await ensureRobinhoodTestnet(ethereum);
 
       const accounts = await ethereum.request({
@@ -122,66 +109,10 @@ function WalletButton() {
 }
 
 function MintButton() {
-  const [minting, setMinting] = useState(false);
-
-  async function mintGenesis() {
-    const ethereum = getEthereum();
-
-    if (!ethereum) {
-      alert("Please install an EVM wallet such as MetaMask.");
-      return;
-    }
-
-    try {
-      setMinting(true);
-
-      await ensureRobinhoodTestnet(ethereum);
-
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-
-      if (!Array.isArray(accounts) || typeof accounts[0] !== "string") {
-        throw new Error("No wallet account connected");
-      }
-
-      const data = encodeFunctionData({
-        abi: TEST_MINT_ABI,
-        functionName: "publicTestMint",
-        args: [BigInt(1)],
-      });
-
-      const txHash = await ethereum.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: accounts[0],
-            to: GENESIS_CONTRACT,
-            data,
-            value: `0x${parseEther("0.001").toString(16)}`,
-          },
-        ],
-      });
-
-      console.log("Mint transaction:", txHash);
-      alert("Test mint transaction submitted.");
-    } catch (error) {
-      console.error("Mint failed:", error);
-      alert("Mint failed or was cancelled.");
-    } finally {
-      setMinting(false);
-    }
-  }
-
   return (
-    <button
-      className="primary"
-      type="button"
-      onClick={mintGenesis}
-      disabled={minting}
-    >
-      {minting ? "MINTING..." : "TEST MINT — 0.001 ETH"}
-    </button>
+    <a className="primary" href="/mint">
+      MINT GENESIS — 30 USDC
+    </a>
   );
 }
 
@@ -440,11 +371,11 @@ export default function Home() {
         <div className="shell narrow">
           <SectionTitle kicker="FAQ" title="THE ESSENTIALS" />
           {[
-            ["How much is the Genesis mint?", "$30 per NFT. All 2,222 Genesis NFTs must sell before the game activates."],
-            ["How does a wallet vote?", "One wallet makes one secret pick per race. All eligible Voting Power available in that wallet at submission backs that single Hall of Fame horse."],
+            ["How much is the Genesis mint?", "$30 per NFT. All 2,000 Public Mint NFTs must sell by the final mint deadline for the public sale to succeed."],
+            ["How does a wallet vote?", "One wallet makes one secret pick per race. Eligible Genesis VP used by that wallet backs that single Hall of Fame horse; an eligible unused NFT acquired during voting may add VP only to the same pick."],
             ["Can Voting Power be split?", "No. A wallet cannot split its VP across multiple horses in the same race."],
             ["Does rarity increase Championship points?", "No. Rarity affects Voting Power only. Every wallet receives one Community score per race."],
-            ["How long is voting open?", "24 hours. Once submitted, the pick and committed Voting Power are final for that race."],
+            ["How long is voting open?", "24 hours. The wallet's horse pick is fixed; a newly acquired eligible NFT that has not already been used that race may add VP to the same pick during the open window."],
             ["What happens after Season 6?", "The #1 Hall of Fame horse becomes the Genesis Grand Champion and the #1 Community wallet becomes the Genesis Community Champion. Chapters II–IV remain undisclosed."],
           ].map(([q, a]) => (
             <details key={q}>

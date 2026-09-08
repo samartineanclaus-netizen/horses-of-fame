@@ -1,0 +1,30 @@
+name: V7 System Integration
+
+on:
+  push:
+    branches:
+      - v7-system-integration
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Compile contracts
+        run: npm run compile:contracts
+      - name: Check deployment scripts
+        run: npm run check:deploy-scripts
+      - name: Run V7 contract tests
+        run: npm run test:contracts
+      - name: Build website
+        run: npm run build

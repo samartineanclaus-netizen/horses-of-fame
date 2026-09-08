@@ -6,7 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "compile:contracts": "hardhat compile",
+    "test:contracts": "hardhat test",
+    "check:deploy-scripts": "node --check scripts/deploy-v7-system.js && node --check scripts/deploy-v7-race.js && node --check scripts/register-v7-race.js && node --check scripts/finalize-v7-season.js && node --check scripts/pay-v7-community-season.js && node --check scripts/status-v7-system.js && node --check scripts/distribute-v7-proceeds.js",
+    "deploy:v7:testnet": "hardhat run scripts/deploy-v7-system.js --network robinhoodTestnet",
+    "deploy:v7:race:testnet": "hardhat run scripts/deploy-v7-race.js --network robinhoodTestnet",
+    "ops:v7:register-race:testnet": "hardhat run scripts/register-v7-race.js --network robinhoodTestnet",
+    "ops:v7:finalize-season:testnet": "hardhat run scripts/finalize-v7-season.js --network robinhoodTestnet",
+    "ops:v7:pay-community-season:testnet": "hardhat run scripts/pay-v7-community-season.js --network robinhoodTestnet",
+    "ops:v7:status:testnet": "hardhat run scripts/status-v7-system.js --network robinhoodTestnet",
+    "ops:v7:distribute-proceeds:testnet": "hardhat run scripts/distribute-v7-proceeds.js --network robinhoodTestnet"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -17,6 +27,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@openzeppelin/contracts": "^5.4.0",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -25,7 +36,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
-    "hardhat": "^2.22.0",
+    "hardhat": "^2.26.3",
     "typescript": "^5"
   }
 }
