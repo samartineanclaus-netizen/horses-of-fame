@@ -48,9 +48,9 @@ Never place private keys in `NEXT_PUBLIC_*` variables.
 
 The isolated testnet routes are:
 
-- `/mint` — V7 30 USDC public mint flow.
-- `/race` — secret pick, same-pick VP top-up, reveal and current Community point claim flow.
-- `/standings` — on-chain HOF All-Time ranking plus the connected wallet's current/All-Time Community points.
+- `/mint` — V7 30 USDC public mint, live sale state and failed-sale on-chain refund flow.
+- `/race` — secret pick, wallet NFT/VP discovery, same-pick VP top-up, reveal and current Community point claim flow.
+- `/standings` — current-season and All-Time HOF standings, finalized Community podiums and connected-wallet Community points.
 
 ## 4. Read current system state
 
@@ -62,7 +62,31 @@ npm run ops:v7:status:testnet
 
 This command is read-only. It reports Genesis supply/reveal state, public-sale progress/refund state, current Community/HOF seasons and Prize Pool accounting.
 
-## 5. Deploy one race
+## 5. Public Mint success and proceeds distribution
+
+The public sale succeeds only at exactly **2,000 Public Mint NFTs sold**. Until then, collected USDC remains inside the sale escrow and is subject to the V7 failed-sale refund condition.
+
+After confirmed sell-out, set:
+
+```text
+GENESIS_SALE_ADDRESS=
+```
+
+Then run:
+
+```bash
+npm run ops:v7:distribute-proceeds:testnet
+```
+
+The operation refuses to run before sell-out and reads the immutable destination addresses from the deployed sale contract. It then executes the locked V7 split exactly once:
+
+- **48,000 USDC** → configured Prize Pool destination
+- **2,000 USDC** → configured independent-audit destination
+- **10,000 USDC** → configured development/project destination
+
+The operation does not decide the unresolved final Prize Pool custody architecture, audit provider or wallet identities; those values must already have been explicitly supplied at deployment.
+
+## 6. Deploy one race
 
 Set:
 
@@ -87,7 +111,7 @@ NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=
 RACE_ADDRESS=
 ```
 
-## 6. Voting lifecycle
+## 7. Voting lifecycle
 
 During the 24-hour voting window:
 
@@ -99,7 +123,7 @@ During the 24-hour voting window:
 
 After the voting window closes, use the current reveal flow. The final reveal/finalization timing rule is still listed in `V7_OPEN_QUESTIONS.md`; do not invent a mainnet rule around it.
 
-## 7. Register a closed race
+## 8. Register a closed race
 
 Set the race and both leaderboard addresses, then run:
 
@@ -109,13 +133,13 @@ npm run ops:v7:register-race:testnet
 
 The operation validates the chain, race closure, current season alignment and registration state before writing to both Community and HOF leaderboards.
 
-## 8. Community race points
+## 9. Community race points
 
 The current contract exposes one Community scoring claim per wallet per registered race. The `/race` page exposes that existing function after reveal and race registration.
 
 The long-term settlement model (user claim vs operator/automatic settlement) remains an open implementation question and must be finalized before mainnet.
 
-## 9. Finalize a season
+## 10. Finalize a season
 
 After both leaderboards contain exactly 10 races:
 
@@ -125,7 +149,7 @@ npm run ops:v7:finalize-season:testnet
 
 This archives Season History, updates All-Time points, resets season scores and advances both leaderboards together.
 
-## 10. Pay the Community season rewards
+## 11. Pay the Community season rewards
 
 After Community Top 3 is finalized and the rewards contract is funded, set:
 
@@ -142,7 +166,7 @@ npm run ops:v7:pay-community-season:testnet
 
 The operation pays exactly **2,500 / 1,000 / 500 USDC** to the archived Community Top 3, exactly once for that season. It does not expose or execute the HOF-side payout, because V7 leaves that beneficiary mechanism to finalize.
 
-## 11. Repeat for Chapter I
+## 12. Repeat for Chapter I
 
 Chapter I remains:
 
