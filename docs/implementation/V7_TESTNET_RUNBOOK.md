@@ -50,7 +50,9 @@ The isolated testnet routes are:
 
 - `/mint` — V7 30 USDC public mint, live sale state and failed-sale on-chain refund flow.
 - `/race` — secret pick, wallet NFT/VP discovery, same-pick VP top-up, reveal and current Community point claim flow.
-- `/standings` — current-season and All-Time HOF standings, finalized Community podiums and connected-wallet Community points.
+- `/standings` — current-season and All-Time HOF standings, Community All-Time standings, finalized Community podiums and connected-wallet Community points.
+
+Community All-Time is loaded on demand from the persistent Chapter I wallet registry. Equal points use the approved casting tie-break: a tied wallet with no Genesis NFT loses to a tied wallet that still holds one; if both hold NFTs, the lower-numbered held NFT wins. If equal-point wallets all hold zero Genesis NFTs, the page marks that tie as unresolved instead of inventing a fallback.
 
 ## 4. Read current system state
 
@@ -166,7 +168,31 @@ npm run ops:v7:pay-community-season:testnet
 
 The operation pays exactly **2,500 / 1,000 / 500 USDC** to the archived Community Top 3, exactly once for that season. It does not expose or execute the HOF-side payout, because V7 leaves that beneficiary mechanism to finalize.
 
-## 12. Repeat for Chapter I
+## 12. Resolve the Chapter I Community Champion
+
+After all six Community seasons are finalized, set:
+
+```text
+COMMUNITY_SEASON_ADDRESS=
+GENESIS_ADDRESS=
+```
+
+Then run the read-only resolver:
+
+```bash
+npm run ops:v7:community-champion:testnet
+```
+
+The resolver follows the already approved V7/owner logic without creating a new rule:
+
+- a unique All-Time points leader is the **CHAPTER I — GENESIS COMMUNITY CHAMPION**;
+- if top points are tied, a tied wallet with no Genesis NFT loses to a tied wallet that holds one;
+- if multiple tied wallets hold Genesis NFTs, the lower-numbered held NFT wins;
+- if every top-point tied wallet holds zero Genesis NFTs, the resolver stops with an unresolved-V7 error and points to `V7_OPEN_QUESTIONS.md`.
+
+The HOF-side **GENESIS GRAND CHAMPION** is already exposed on-chain by the HOF leaderboard after all six seasons.
+
+## 13. Repeat for Chapter I
 
 Chapter I remains:
 
