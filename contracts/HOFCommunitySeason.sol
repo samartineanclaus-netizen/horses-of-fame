@@ -104,7 +104,6 @@ contract HOFCommunitySeason is Ownable {
         require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
         require(racesRegistered == RACES_PER_SEASON, "season not complete");
         require(genesisContract != address(0), "Genesis contract not set");
-        require(activeWallets.length >= 3, "fewer than 3 participants");
 
         uint8 seasonNumber = currentSeason;
         address[3] memory top3 = _calculateTop3();
