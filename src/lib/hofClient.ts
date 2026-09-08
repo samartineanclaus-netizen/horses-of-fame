@@ -55,13 +55,7 @@ export const GENESIS_SALE_ABI = [
   { type: "function", name: "sold", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "deadline", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "saleSuccessful", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
-  {
-    type: "function",
-    name: "refundsEnabled",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ type: "bool" }],
-  },
+  { type: "function", name: "refundsEnabled", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
 ] as const;
 
 export const RACE_VOTING_ABI = [
@@ -92,6 +86,14 @@ export const RACE_VOTING_ABI = [
     ],
     outputs: [],
   },
+  { type: "function", name: "opensAt", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "closesAt", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "votingOpen", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
+  { type: "function", name: "commitmentOf", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "bytes32" }] },
+  { type: "function", name: "committedVP", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "revealed", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "bool" }] },
+  { type: "function", name: "revealedHorse", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "uint8" }] },
+  { type: "function", name: "tokenUsed", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "bool" }] },
 ] as const;
 
 export const COMMUNITY_SEASON_ABI = [
