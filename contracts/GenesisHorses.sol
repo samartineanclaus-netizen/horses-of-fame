@@ -19,6 +19,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public nextTokenId = 1;
     uint256 public testMintPrice = 0.001 ether;
     address public saleContract;
+    address public teamWallet;
     mapping(uint256 => bool) public publicSaleToken;
     string private _baseTokenURI;
     string public placeholderURI;
@@ -29,6 +30,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     event PlaceholderURIUpdated(string placeholderURI);
     event TestMintPriceUpdated(uint256 newPrice);
     event SaleContractSet(address indexed saleContract);
+    event TeamWalletSet(address indexed teamWallet);
 
     constructor(string memory initialPlaceholderURI) ERC721("Horses of Fame - Genesis", "HOFGEN") Ownable(msg.sender) { placeholderURI = initialPlaceholderURI; }
 
@@ -39,6 +41,13 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         require(saleContract_ != address(0), "Zero sale contract");
         saleContract = saleContract_;
         emit SaleContractSet(saleContract_);
+    }
+
+    function setTeamWallet(address teamWallet_) external onlyOwner {
+        require(teamWallet == address(0), "Team wallet already set");
+        require(teamWallet_ != address(0), "Zero team wallet");
+        teamWallet = teamWallet_;
+        emit TeamWalletSet(teamWallet_);
     }
 
     function saleMint(address to, uint256 quantity) external whenNotPaused {
@@ -87,6 +96,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         return Rarity.Common;
     }
     function votingPowerOf(uint256 tokenId) public view returns (uint256) {
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
+        if (teamWallet != address(0) && ownerOf(tokenId) == teamWallet) return 0;
         Rarity r = rarityOf(tokenId);
         if (r == Rarity.Legendary) return 5;
         if (r == Rarity.Epic) return 4;
