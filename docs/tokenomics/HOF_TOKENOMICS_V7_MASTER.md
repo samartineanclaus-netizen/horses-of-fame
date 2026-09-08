@@ -49,14 +49,18 @@ The public sale consists of **2,000 NFTs × $30 = $60,000 maximum primary-sale r
 |---|---:|---:|
 | Prize Pool | **$48,000** | **80.00%** |
 | Independent smart-contract security audit | **$2,000** | **3.33%** |
-| Development / project | **$10,000** | **16.67%** |
+| Founder / Project Allocation | **$10,000** | **16.67%** |
 | **TOTAL** | **$60,000** | **100%** |
+
+The **$10,000 Founder / Project Allocation is the founder/project allocation and is payable to the designated founder/project wallet after a successful public sell-out.** It is not restricted solely to programmer or software-development expenses.
 
 Primary-sale funds are intended to be handled through an on-chain escrow/treasury architecture rather than a founder-controlled prize wallet. Until the public mint satisfies the success condition, collected mint funds remain subject to the refund mechanism.
 
-**Success condition:** all 2,000 Public Mint NFTs must sell by the final mint deadline. If the deadline expires without full public sell-out, purchasers must be able to claim an **on-chain refund** of their eligible mint payment. The exact deadline and final refund implementation are launch parameters to be fixed before mainnet.
+**Success condition:** all 2,000 Public Mint NFTs must sell by the final mint deadline. If the deadline expires without full public sell-out, purchasers must be able to claim an **on-chain refund** of their eligible mint payment. The exact deadline is a launch parameter to be fixed before mainnet.
 
-After successful public sell-out, $48,000 is committed to the six-season prize program, up to $2,000 is allocated for an independent smart-contract security audit, and $10,000 is allocated to development/project costs.
+The V7 implementation target uses a configurable ERC-20 payment token (intended to be the final verified USDC/stablecoin deployment on Robinhood Chain). The payment-token address is a deployment parameter and must not be assumed or hard-coded before final mainnet verification.
+
+After successful public sell-out, $48,000 is committed to the six-season prize program, up to $2,000 is allocated for an independent smart-contract security audit, and $10,000 is allocated to the Founder / Project wallet.
 
 ## 5. Prize Pool custody
 
@@ -65,6 +69,7 @@ The **$48,000 Prize Pool must not be held in a wallet whose private key is contr
 ## 6. Flagship HOF race
 
 - 22 Hall of Fame competitors, each representing a different horse breed.
+- The 22 HOF race horses remain **hidden among the 2,222 Genesis NFTs until reveal**.
 - Genesis holders vote for one of the 22 race horses.
 - **1 wallet = 1 secret pick per race.**
 - All eligible Genesis NFTs in a wallet combine their VP behind one race horse. VP cannot be split.
@@ -170,11 +175,11 @@ Exactly **2,200 Genesis NFTs carry Voting Power**. The 22 Hall of Fame Genesis r
 3. V6 rarity distribution and **4,800 total VP remain unchanged**.
 4. Allocation: **2,000 Public + 111 Community + 111 Team Reserve**.
 5. Public mint: **$30**, maximum primary revenue **$60,000**.
-6. Revenue at sell-out: **$48,000 Prize Pool + $2,000 independent audit + $10,000 development**.
+6. Revenue at sell-out: **$48,000 Prize Pool + $2,000 independent audit + $10,000 Founder / Project Allocation**.
 7. Primary mint on HOF website; OpenSea targeted for secondary.
 8. On-chain refund if 2,000 Public Mint NFTs do not fully sell by final deadline.
 9. Prize Pool not under unilateral founder-key control.
-10. 22 HOF horses represent 22 different breeds, remain inside Genesis supply and have 0 VP.
+10. 22 HOF horses represent 22 different breeds, remain hidden among the 2,222 Genesis NFTs until reveal, and have 0 VP.
 11. Voting Genesis characters follow internal rule: historical/public figures deceased for at least 100 years.
 12. Team Reserve Wallet cannot vote; sold/transferred voting NFTs immediately regain normal eligibility.
 13. Team Reserve secondary distribution occurs after Public Mint sell-out and before Race 1.
@@ -188,8 +193,9 @@ Exactly **2,200 Genesis NFTs carry Voting Power**. The 22 Hall of Fame Genesis r
 ## 16. Items still to finalize
 
 - Exact identities/breeds and numbering of the 22 HOF race horses.
-- Final mint deadline triggering refund condition.
-- Final escrow/refund/treasury smart-contract architecture and non-custodial Prize Pool controls.
+- Final mint deadline value triggering refund condition (implemented as a deployment parameter).
+- Final verified mainnet payment-token/USDC contract address.
+- Final non-custodial Prize Pool treasury controls and address.
 - Exact split of 111 Community NFTs among giveaways, collabs, partnerships and other approved uses.
 - Operational terms for 111 Team Reserve secondary-sale window before Race 1.
 - Independent audit provider, scope and payment mechanics for $2,000 audit allocation.
