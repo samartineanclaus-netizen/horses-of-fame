@@ -11,6 +11,11 @@ interface ICommunityRaceResult {
     function pointsForPosition(uint8 position) external pure returns (uint8);
 }
 
+interface IGenesisEnumerable {
+    function balanceOf(address owner) external view returns (uint256);
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
+}
+
 /// @notice V7 Community/Holder scoring across Chapter I.
 /// One wallet earns one scoring result per race. Wallet points never transfer
 /// with NFTs. Season scores reset after ten races; All-Time points persist.
@@ -22,6 +27,7 @@ contract HOFCommunitySeason is Ownable {
     uint8 public racesRegistered;
     uint8 public seasonsFinalized;
     address[10] public races;
+    address public genesisContract;
 
     mapping(address => bool) public registeredRace;
     mapping(address => uint256) public seasonPoints;
@@ -35,8 +41,16 @@ contract HOFCommunitySeason is Ownable {
     event RaceRegistered(address indexed race, uint8 indexed seasonNumber, uint8 indexed raceNumber);
     event CommunityPointsClaimed(address indexed race, address indexed wallet, uint8 horseNumber, uint8 points);
     event SeasonFinalized(uint8 indexed seasonNumber);
+    event GenesisContractSet(address indexed genesisContract);
 
     constructor() Ownable(msg.sender) {}
+
+    function setGenesisContract(address genesisContract_) external onlyOwner {
+        require(genesisContract == address(0), "Genesis contract already set");
+        require(genesisContract_ != address(0), "Zero genesis contract");
+        genesisContract = genesisContract_;
+        emit GenesisContractSet(genesisContract_);
+    }
 
     function registerRace(address race) external onlyOwner {
         require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
@@ -51,8 +65,6 @@ contract HOFCommunitySeason is Ownable {
         emit RaceRegistered(race, currentSeason, racesRegistered);
     }
 
-    /// @notice Claims exactly one Community scoring result for msg.sender in a race.
-    /// NFT quantity/rarity affects VP only and never multiplies Community points.
     function claimRacePoints(address race) external {
         require(registeredRace[race], "race not registered");
         require(!raceClaimed[race][msg.sender], "already claimed");
@@ -81,8 +93,6 @@ contract HOFCommunitySeason is Ownable {
         emit CommunityPointsClaimed(race, msg.sender, chosenHorse, points);
     }
 
-    /// @notice Archives wallet scores after exactly ten registered races,
-    /// updates All-Time points and resets active Community scores.
     function finalizeSeason() external onlyOwner {
         require(currentSeason <= CHAPTER_SEASONS, "chapter complete");
         require(racesRegistered == RACES_PER_SEASON, "season not complete");
@@ -107,36 +117,31 @@ contract HOFCommunitySeason is Ownable {
         emit SeasonFinalized(seasonNumber);
     }
 
-    function activeWalletCount() external view returns (uint256) {
-        return activeWallets.length;
-    }
+    /// @notice Lowest NFT number currently held by a wallet.
+    /// V7 Casting tie-break: when Community points are tied, the wallet holding
+    /// the lower-numbered NFT wins (e.g. #0034 beats #0121).
+    function lowestOwnedTokenId(address wallet) public view returns (uint256) {
+        require(genesisContract != address(0), "Genesis contract not set");
+        uint256 balance = IGenesisEnumerable(genesisContract).balanceOf(wallet);
+        require(balance > 0, "wallet owns no NFT");
 
-    function seasonComplete() external view returns (bool) {
-        return racesRegistered == RACES_PER_SEASON;
-    }
-
-    function chapterComplete() external view returns (bool) {
-        return seasonsFinalized == CHAPTER_SEASONS;
-    }
-
-    /// @notice Final All-Time Community Champion after all six Chapter I seasons.
-    /// Tie-break: lower wallet address sorts first, giving deterministic on-chain resolution.
-    /// This function intentionally exposes the winning wallet only; Community Points
-    /// remain attached to wallets and are never transferred with NFTs.
-    function genesisCommunityChampion(address[] calldata candidates) external view returns (address) {
-        require(seasonsFinalized == CHAPTER_SEASONS, "chapter not complete");
-        require(candidates.length > 0, "no candidates");
-
-        address champion = candidates[0];
-        for (uint256 i = 1; i < candidates.length; i++) {
-            address candidate = candidates[i];
-            uint256 candidatePoints = allTimePoints[candidate];
-            uint256 championPoints = allTimePoints[champion];
-            if (candidatePoints > championPoints ||
-                (candidatePoints == championPoints && uint160(candidate) < uint160(champion))) {
-                champion = candidate;
-            }
+        uint256 lowest = type(uint256).max;
+        for (uint256 i = 0; i < balance; i++) {
+            uint256 tokenId = IGenesisEnumerable(genesisContract).tokenOfOwnerByIndex(wallet, i);
+            if (tokenId < lowest) lowest = tokenId;
         }
-        return champion;
+        return lowest;
     }
+
+    /// @notice Resolves a two-wallet Community casting tie using the V7 NFT-number rule.
+    function castingTieBreak(address walletA, address walletB) public view returns (address) {
+        require(walletA != walletB, "same wallet");
+        uint256 a = lowestOwnedTokenId(walletA);
+        uint256 b = lowestOwnedTokenId(walletB);
+        return a < b ? walletA : walletB;
+    }
+
+    function activeWalletCount() external view returns (uint256) { return activeWallets.length; }
+    function seasonComplete() external view returns (bool) { return racesRegistered == RACES_PER_SEASON; }
+    function chapterComplete() external view returns (bool) { return seasonsFinalized == CHAPTER_SEASONS; }
 }
