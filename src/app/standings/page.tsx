@@ -22,6 +22,23 @@ type CommunityWalletState = {
   seasonPoints: string;
   allTimePoints: string;
 };
+type CommunityAllTimeRow = {
+  wallet: `0x${string}`;
+  points: bigint;
+  lowestTokenId: bigint | null;
+  unresolvedTie: boolean;
+};
+
+const COMMUNITY_ALL_TIME_ABI = [
+  { type: "function", name: "chapterWalletCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "chapterWalletAt", stateMutability: "view", inputs: [{ name: "index", type: "uint256" }], outputs: [{ type: "address" }] },
+  { type: "function", name: "allTimePoints", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "lowestOwnedTokenId", stateMutability: "view", inputs: [{ name: "wallet", type: "address" }], outputs: [{ type: "uint256" }] },
+] as const;
+
+const GENESIS_BALANCE_ABI = [
+  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "owner", type: "address" }], outputs: [{ type: "uint256" }] },
+] as const;
 
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
 
@@ -62,6 +79,9 @@ export default function StandingsPage() {
   const [hofStatus, setHofStatus] = useState("Loading HOF standings...");
   const [communityPodiums, setCommunityPodiums] = useState<CommunityPodium[]>([]);
   const [podiumStatus, setPodiumStatus] = useState("Loading finalized Community podiums...");
+  const [communityAllTimeRows, setCommunityAllTimeRows] = useState<CommunityAllTimeRow[]>([]);
+  const [communityAllTimeStatus, setCommunityAllTimeStatus] = useState("Load the V7 Community All-Time standings on demand.");
+  const [communityAllTimeBusy, setCommunityAllTimeBusy] = useState(false);
   const [community, setCommunity] = useState<CommunityWalletState | null>(null);
   const [communityStatus, setCommunityStatus] = useState("Connect a wallet to read its V7 Community points.");
 
@@ -178,6 +198,102 @@ export default function StandingsPage() {
     return () => { cancelled = true; };
   }, []);
 
+  async function loadCommunityAllTime() {
+    const communityAddress = HOF_CONTRACTS.communitySeason;
+    const genesisAddress = HOF_CONTRACTS.genesis;
+    if (!communityAddress || !genesisAddress) {
+      setCommunityAllTimeStatus("V7 Community/Genesis contract addresses are not configured yet.");
+      return;
+    }
+
+    try {
+      setCommunityAllTimeBusy(true);
+      setCommunityAllTimeStatus("Loading Community All-Time wallets and tie-break state...");
+      const count = await publicClient.readContract({
+        address: communityAddress,
+        abi: COMMUNITY_ALL_TIME_ABI,
+        functionName: "chapterWalletCount",
+      });
+
+      if (count === BigInt(0)) {
+        setCommunityAllTimeRows([]);
+        setCommunityAllTimeStatus("No Community wallets have recorded Chapter I race points yet.");
+        return;
+      }
+
+      const wallets = await Promise.all(
+        Array.from({ length: Number(count) }, (_, index) =>
+          publicClient.readContract({
+            address: communityAddress,
+            abi: COMMUNITY_ALL_TIME_ABI,
+            functionName: "chapterWalletAt",
+            args: [BigInt(index)],
+          }),
+        ),
+      );
+
+      const rows = await Promise.all(
+        wallets.map(async (wallet) => {
+          const [points, balance] = await Promise.all([
+            publicClient.readContract({
+              address: communityAddress,
+              abi: COMMUNITY_ALL_TIME_ABI,
+              functionName: "allTimePoints",
+              args: [wallet],
+            }),
+            publicClient.readContract({
+              address: genesisAddress,
+              abi: GENESIS_BALANCE_ABI,
+              functionName: "balanceOf",
+              args: [wallet],
+            }),
+          ]);
+
+          const lowestTokenId = balance > BigInt(0)
+            ? await publicClient.readContract({
+                address: communityAddress,
+                abi: COMMUNITY_ALL_TIME_ABI,
+                functionName: "lowestOwnedTokenId",
+                args: [wallet],
+              })
+            : null;
+
+          return { wallet, points, lowestTokenId, unresolvedTie: false } satisfies CommunityAllTimeRow;
+        }),
+      );
+
+      rows.sort((a, b) => {
+        if (a.points !== b.points) return a.points > b.points ? -1 : 1;
+        if (a.lowestTokenId !== null && b.lowestTokenId === null) return -1;
+        if (a.lowestTokenId === null && b.lowestTokenId !== null) return 1;
+        if (a.lowestTokenId !== null && b.lowestTokenId !== null) {
+          if (a.lowestTokenId === b.lowestTokenId) return 0;
+          return a.lowestTokenId < b.lowestTokenId ? -1 : 1;
+        }
+        return 0;
+      });
+
+      const marked = rows.map((row, index, all) => ({
+        ...row,
+        unresolvedTie: row.lowestTokenId === null && all.some((other, otherIndex) =>
+          otherIndex !== index && other.lowestTokenId === null && other.points === row.points,
+        ),
+      }));
+
+      setCommunityAllTimeRows(marked);
+      setCommunityAllTimeStatus(
+        marked.some((row) => row.unresolvedTie)
+          ? "All-Time points loaded. At least one equal-point tie between wallets holding zero Genesis NFTs remains unresolved by V7 and is marked below."
+          : "V7 Community All-Time standings loaded with the approved casting tie-break.",
+      );
+    } catch (error) {
+      console.error(error);
+      setCommunityAllTimeStatus("Could not load the configured Community All-Time standings.");
+    } finally {
+      setCommunityAllTimeBusy(false);
+    }
+  }
+
   async function loadCommunityWallet() {
     const ethereum = getEthereum();
     const address = HOF_CONTRACTS.communitySeason;
@@ -240,6 +356,44 @@ export default function StandingsPage() {
           <h2>Hall of Fame — All-Time</h2>
           <p>All-Time points accumulate across all six seasons and carry prestige only.</p>
           <HofTable rows={hofAllTimeRows} pointsLabel="All-Time PTS" />
+        </section>
+
+        <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
+          <h2>Community — All-Time</h2>
+          <p style={{ lineHeight: 1.6 }}>
+            Equal points use the approved casting tie-break: a tied wallet with no Genesis NFT loses to a tied wallet that still holds one; if both hold NFTs, the lower-numbered NFT wins. If every tied wallet holds zero NFTs, V7 does not yet define a fallback, so that tie is shown as unresolved rather than invented here.
+          </p>
+          <p>{communityAllTimeStatus}</p>
+          <button type="button" onClick={loadCommunityAllTime} disabled={communityAllTimeBusy} style={{ padding: "12px 18px", cursor: communityAllTimeBusy ? "not-allowed" : "pointer" }}>
+            {communityAllTimeBusy ? "LOADING..." : "LOAD COMMUNITY ALL-TIME"}
+          </button>
+          {communityAllTimeRows.length > 0 && (
+            <div style={{ overflowX: "auto", marginTop: 18 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: 10 }}>Rank</th>
+                    <th style={{ textAlign: "left", padding: 10 }}>Wallet</th>
+                    <th style={{ textAlign: "right", padding: 10 }}>All-Time PTS</th>
+                    <th style={{ textAlign: "right", padding: 10 }}>Lowest held NFT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {communityAllTimeRows.map((row, index) => (
+                    <tr key={row.wallet} style={{ borderTop: "1px solid #222" }}>
+                      <td style={{ padding: 10 }}>{row.unresolvedTie ? "TIE*" : index + 1}</td>
+                      <td style={{ padding: 10 }}>{shortWallet(row.wallet)}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{row.points.toString()}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{row.lowestTokenId === null ? "None" : `#${row.lowestTokenId.toString()}`}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {communityAllTimeRows.some((row) => row.unresolvedTie) && (
+                <p style={{ fontSize: 13, opacity: 0.75 }}>* Equal-point wallets with no Genesis NFT have no V7 fallback tie-break yet.</p>
+              )}
+            </div>
+          )}
         </section>
 
         <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
