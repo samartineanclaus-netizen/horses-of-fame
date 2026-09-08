@@ -70,17 +70,20 @@ describe("V7 primary-sale proceeds and Prize Pool custody invariants", function 
 
     expect(await sale.sold()).to.equal(1n);
     expect(await sale.saleSuccessful()).to.equal(false);
+    expect(await sale.soldOutAt()).to.equal(0n);
     await expect(sale.distributeProceeds()).to.be.revertedWith("sale not successful");
     expect(await usdc.balanceOf(await sale.getAddress())).to.equal(30n * 10n ** 6n);
   });
 
-  it("at sell-out distributes exactly 48,000 / 2,000 / 10,000 USDC and only once", async function () {
+  it("at sell-out records the sell-out time and distributes exactly 48,000 / 2,000 / 10,000 USDC only once", async function () {
     const { buyer, prize, audit, founder, usdc, sale } = await deployFixture();
     await sellOut(sale, usdc, buyer);
 
     const fullRevenue = 60_000n * 10n ** 6n;
     expect(await sale.sold()).to.equal(2000n);
     expect(await sale.saleSuccessful()).to.equal(true);
+    const latest = await ethers.provider.getBlock("latest");
+    expect(await sale.soldOutAt()).to.equal(BigInt(latest.timestamp));
     expect(await usdc.balanceOf(await sale.getAddress())).to.equal(fullRevenue);
 
     await sale.distributeProceeds();
