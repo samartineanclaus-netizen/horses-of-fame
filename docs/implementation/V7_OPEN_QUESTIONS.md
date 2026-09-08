@@ -1,0 +1,30 @@
+# Horses of Fame — V7 implementation questions
+
+This file is **not** a replacement for `docs/tokenomics/HOF_TOKENOMICS_V7_MASTER.md` and does not modify Tokenomics V7. It only records decisions that must not be invented during implementation.
+
+## Resolved by owner clarification
+
+- Same-pick VP top-up: after a wallet fixes its one secret pick, an eligible Genesis NFT acquired during the open voting window may add its unused VP to that same pick. It cannot change or split the pick, and a token already used in that race cannot be reused after transfer.
+- Community season tie-break when only one tied wallet still owns a Genesis NFT: the wallet with no NFT loses the tie-break. If both tied wallets own NFTs, the lower-numbered NFT held at the time of the tie-break wins. This rule applies only when points are equal.
+
+## Open implementation questions
+
+1. **Community tie where both tied wallets own zero Genesis NFTs.** V7 says “LOWEST NUMBER WINS,” but neither wallet has an NFT number to compare. No fallback tie-break has been invented.
+2. **Secret-vote reveal/finalization timing.** V7 fixes a 24-hour secret-voting window and says results become public after finalization, but it does not define a separate reveal deadline/finalization procedure. The current commit/reveal implementation allows reveal after voting closes. A final rule is needed before mainnet so a race cannot be permanently settled while valid reveals are still possible.
+3. **Community points settlement.** The current contract lets a wallet claim its race points after reveal. V7 says each wallet earns one scoring result per race but does not state whether claiming is user-driven, operator-settled, or automatic. A mainnet rule is needed to guarantee standings are complete before season finalization.
+4. **111 Community + 111 Team Reserve allocation versus delayed reveal/randomization.** V7 fixes the allocation counts but leaves the final reveal/randomization design open. The exact mint/distribution mechanics must be chosen without compromising the delayed fair reveal model.
+
+## V7 section 16 items still to finalize
+
+- Exact identities/breeds and numbering of the 22 HOF race horses.
+- Final mint deadline triggering refund condition.
+- Final escrow/refund/treasury architecture and non-custodial Prize Pool controls.
+- Exact split of 111 Community NFTs among approved community uses.
+- Operational terms for the 111 Team Reserve secondary-sale window before Race 1.
+- Independent audit provider, scope and payment mechanics for the $2,000 allocation.
+- Final delayed-reveal/randomization design.
+- Final season-end beneficiary mechanism for HOF race-horse prizes.
+- Final creator-fee enforcement available on OpenSea/Robinhood Chain.
+- Final legal terms, eligibility/geofencing, historical-personality/IP review and prize mechanics for target jurisdictions.
+
+Implementation work should continue around these questions. None of them should be silently resolved in code.
