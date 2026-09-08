@@ -15,8 +15,6 @@ const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC)
 
 const GENESIS_STATUS_ABI = [
   { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "communityAllocationMinted", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "teamReserveMinted", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "revealed", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
   { type: "function", name: "teamWallet", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
   { type: "function", name: "saleContract", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
@@ -34,8 +32,6 @@ const SALE_STATUS_ABI = [
 type StatusState = {
   genesis?: {
     totalSupply: string;
-    communityMinted: string;
-    teamMinted: string;
     revealed: boolean;
     teamWallet: string;
     saleContract: string;
@@ -81,30 +77,27 @@ export default function StatusPage() {
     let cancelled = false;
 
     async function load() {
-      try {
-        const next: StatusState = {};
+      const next: StatusState = {};
+      const errors: string[] = [];
 
-        if (HOF_CONTRACTS.genesis) {
+      if (HOF_CONTRACTS.genesis) {
+        try {
           const address = HOF_CONTRACTS.genesis;
-          const [totalSupply, communityMinted, teamMinted, revealed, teamWallet, saleContract] = await Promise.all([
+          const [totalSupply, revealed, teamWallet, saleContract] = await Promise.all([
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "totalSupply" }),
-            publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "communityAllocationMinted" }),
-            publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "teamReserveMinted" }),
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "revealed" }),
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "teamWallet" }),
             publicClient.readContract({ address, abi: GENESIS_STATUS_ABI, functionName: "saleContract" }),
           ]);
-          next.genesis = {
-            totalSupply: String(totalSupply),
-            communityMinted: String(communityMinted),
-            teamMinted: String(teamMinted),
-            revealed,
-            teamWallet,
-            saleContract,
-          };
+          next.genesis = { totalSupply: String(totalSupply), revealed, teamWallet, saleContract };
+        } catch (error) {
+          console.error(error);
+          errors.push("Genesis");
         }
+      }
 
-        if (HOF_CONTRACTS.sale) {
+      if (HOF_CONTRACTS.sale) {
+        try {
           const address = HOF_CONTRACTS.sale;
           const [sold, deadline, successful, refundsEnabled, distributed, prizePoolTreasury] = await Promise.all([
             publicClient.readContract({ address, abi: SALE_STATUS_ABI, functionName: "sold" }),
@@ -114,17 +107,15 @@ export default function StatusPage() {
             publicClient.readContract({ address, abi: SALE_STATUS_ABI, functionName: "distributed" }),
             publicClient.readContract({ address, abi: SALE_STATUS_ABI, functionName: "prizePoolTreasury" }),
           ]);
-          next.sale = {
-            sold: String(sold),
-            deadline: String(deadline),
-            successful,
-            refundsEnabled,
-            distributed,
-            prizePoolTreasury,
-          };
+          next.sale = { sold: String(sold), deadline: String(deadline), successful, refundsEnabled, distributed, prizePoolTreasury };
+        } catch (error) {
+          console.error(error);
+          errors.push("Public Mint sale");
         }
+      }
 
-        if (HOF_CONTRACTS.communitySeason) {
+      if (HOF_CONTRACTS.communitySeason) {
+        try {
           const address = HOF_CONTRACTS.communitySeason;
           const [currentSeason, races, finalized] = await Promise.all([
             publicClient.readContract({ address, abi: COMMUNITY_SEASON_ABI, functionName: "currentSeason" }),
@@ -132,9 +123,14 @@ export default function StatusPage() {
             publicClient.readContract({ address, abi: COMMUNITY_SEASON_ABI, functionName: "seasonsFinalized" }),
           ]);
           next.community = { currentSeason: String(currentSeason), races: String(races), finalized: String(finalized) };
+        } catch (error) {
+          console.error(error);
+          errors.push("Community leaderboard");
         }
+      }
 
-        if (HOF_CONTRACTS.hofLeaderboard) {
+      if (HOF_CONTRACTS.hofLeaderboard) {
+        try {
           const address = HOF_CONTRACTS.hofLeaderboard;
           const [currentSeason, races, finalized] = await Promise.all([
             publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "currentSeason" }),
@@ -142,29 +138,32 @@ export default function StatusPage() {
             publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "seasonsFinalized" }),
           ]);
           next.hof = { currentSeason: String(currentSeason), races: String(races), finalized: String(finalized) };
+        } catch (error) {
+          console.error(error);
+          errors.push("HOF leaderboard");
         }
+      }
 
-        if (HOF_CONTRACTS.seasonRewards) {
+      if (HOF_CONTRACTS.seasonRewards) {
+        try {
           const address = HOF_CONTRACTS.seasonRewards;
           const [communityPaid, communityRemaining, hofReserved] = await Promise.all([
             publicClient.readContract({ address, abi: SEASON_REWARDS_ABI, functionName: "communityPaid" }),
             publicClient.readContract({ address, abi: SEASON_REWARDS_ABI, functionName: "communityRemaining" }),
             publicClient.readContract({ address, abi: SEASON_REWARDS_ABI, functionName: "hofReserved" }),
           ]);
-          next.rewards = {
-            communityPaid: String(communityPaid),
-            communityRemaining: String(communityRemaining),
-            hofReserved: String(hofReserved),
-          };
+          next.rewards = { communityPaid: String(communityPaid), communityRemaining: String(communityRemaining), hofReserved: String(hofReserved) };
+        } catch (error) {
+          console.error(error);
+          errors.push("Season Rewards");
         }
+      }
 
-        if (!cancelled) {
-          setState(next);
-          setStatus("On-chain V7 state loaded. This page is read-only.");
-        }
-      } catch (error) {
-        console.error(error);
-        if (!cancelled) setStatus("Could not read one or more configured V7 contracts. No transaction was sent.");
+      if (!cancelled) {
+        setState(next);
+        setStatus(errors.length === 0
+          ? "On-chain V7 state loaded. This page is read-only."
+          : `Loaded available V7 state. Could not read: ${errors.join(", ")}. No transaction was sent.`);
       }
     }
 
@@ -184,12 +183,11 @@ export default function StatusPage() {
           <Card title="Genesis 2,222">
             {state.genesis ? <>
               <p>Current total supply: <strong>{state.genesis.totalSupply}</strong> / 2,222</p>
-              <p>Community allocation minted: <strong>{state.genesis.communityMinted}</strong> / 111</p>
-              <p>Team Reserve minted: <strong>{state.genesis.teamMinted}</strong> / 111</p>
               <p>Metadata revealed: <strong>{state.genesis.revealed ? "Yes" : "No"}</strong></p>
               <p style={{ overflowWrap: "anywhere" }}>Team wallet: {state.genesis.teamWallet}</p>
               <p style={{ overflowWrap: "anywhere" }}>Sale contract: {state.genesis.saleContract}</p>
-            </> : <p>Genesis address not configured.</p>}
+              <p style={{ lineHeight: 1.5 }}>The 111 Community / 111 Team Reserve distribution mechanics remain separate from this status card until the unresolved V7 allocation/reveal design is finalized.</p>
+            </> : <p>Genesis address not configured or could not be read.</p>}
           </Card>
 
           <Card title="Public Mint 2,000 × 30 USDC">
@@ -200,7 +198,7 @@ export default function StatusPage() {
               <p>Failed-sale refunds enabled: <strong>{state.sale.refundsEnabled ? "Yes" : "No"}</strong></p>
               <p>60k proceeds distributed: <strong>{state.sale.distributed ? "Yes" : "No"}</strong></p>
               <p style={{ overflowWrap: "anywhere" }}>Prize Pool destination: {state.sale.prizePoolTreasury}</p>
-            </> : <p>Sale address not configured.</p>}
+            </> : <p>Sale address not configured or could not be read.</p>}
           </Card>
 
           <Card title="Community Championship">
@@ -209,7 +207,7 @@ export default function StatusPage() {
               <p>Races registered this season: <strong>{state.community.races}</strong> / 10</p>
               <p>Seasons finalized: <strong>{state.community.finalized}</strong> / 6</p>
               <p><Link href="/standings" style={{ color: "#7cff6b" }}>Open Community standings →</Link></p>
-            </> : <p>Community leaderboard address not configured.</p>}
+            </> : <p>Community leaderboard address not configured or could not be read.</p>}
           </Card>
 
           <Card title="Hall of Fame Championship">
@@ -218,7 +216,7 @@ export default function StatusPage() {
               <p>Races recorded this season: <strong>{state.hof.races}</strong> / 10</p>
               <p>Seasons finalized: <strong>{state.hof.finalized}</strong> / 6</p>
               <p><Link href="/standings" style={{ color: "#7cff6b" }}>Open HOF standings →</Link></p>
-            </> : <p>HOF leaderboard address not configured.</p>}
+            </> : <p>HOF leaderboard address not configured or could not be read.</p>}
           </Card>
 
           <Card title="Prize Pool accounting">
@@ -228,7 +226,7 @@ export default function StatusPage() {
               <p>HOF reserved: <strong>{usdc(state.rewards.hofReserved)}</strong></p>
               <p style={{ lineHeight: 1.5 }}>HOF beneficiary payout remains intentionally unavailable until the V7 beneficiary mechanism is finalized.</p>
               <p><Link href="/rewards" style={{ color: "#7cff6b" }}>Open rewards →</Link></p>
-            </> : <p>Season Rewards address not configured.</p>}
+            </> : <p>Season Rewards address not configured or could not be read.</p>}
           </Card>
         </div>
 
