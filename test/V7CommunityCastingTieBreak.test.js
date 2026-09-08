@@ -52,6 +52,8 @@ describe("V7 Community casting tie-break", function () {
     const { walletA, walletB, community } = await deployFixture();
     const winner = await community.castingTieBreak(walletA.address, walletB.address);
     expect(winner).to.equal(walletA.address);
-    expect(walletA.address.toLowerCase() < walletB.address.toLowerCase()).to.not.equal(false);
+    expect(walletA.address.toLowerCase() < walletB.address.toLowerCase()).to.equal(
+      winner === walletA.address
+    );
   });
 });
