@@ -13,6 +13,7 @@ import {
 } from "@/lib/hofClient";
 
 type HofRow = { horse: number; points: string };
+type CommunityPodium = { season: number; wallets: readonly `0x${string}`[] };
 type CommunityWalletState = {
   wallet: string;
   currentSeason: string;
@@ -24,10 +25,43 @@ type CommunityWalletState = {
 
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
 
+function HofTable({ rows, pointsLabel }: { rows: HofRow[]; pointsLabel: string }) {
+  if (rows.length === 0) return null;
+  return (
+    <div style={{ overflowX: "auto", marginTop: 18 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "left", padding: 10 }}>Rank</th>
+            <th style={{ textAlign: "left", padding: 10 }}>HOF #</th>
+            <th style={{ textAlign: "right", padding: 10 }}>{pointsLabel}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr key={row.horse} style={{ borderTop: "1px solid #222" }}>
+              <td style={{ padding: 10 }}>{index + 1}</td>
+              <td style={{ padding: 10 }}>#{String(row.horse).padStart(2, "0")}</td>
+              <td style={{ padding: 10, textAlign: "right" }}>{row.points}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function shortWallet(wallet: string) {
+  return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+}
+
 export default function StandingsPage() {
-  const [hofRows, setHofRows] = useState<HofRow[]>([]);
+  const [hofSeasonRows, setHofSeasonRows] = useState<HofRow[]>([]);
+  const [hofAllTimeRows, setHofAllTimeRows] = useState<HofRow[]>([]);
   const [hofMeta, setHofMeta] = useState({ currentSeason: "-", racesRecorded: "-", seasonsFinalized: "-" });
-  const [hofStatus, setHofStatus] = useState("Loading HOF All-Time standings...");
+  const [hofStatus, setHofStatus] = useState("Loading HOF standings...");
+  const [communityPodiums, setCommunityPodiums] = useState<CommunityPodium[]>([]);
+  const [podiumStatus, setPodiumStatus] = useState("Loading finalized Community podiums...");
   const [community, setCommunity] = useState<CommunityWalletState | null>(null);
   const [communityStatus, setCommunityStatus] = useState("Connect a wallet to read its V7 Community points.");
 
@@ -42,23 +76,36 @@ export default function StandingsPage() {
       }
 
       try {
-        const [currentSeason, racesRecorded, seasonsFinalized, ranking] = await Promise.all([
+        const [currentSeason, racesRecorded, seasonsFinalized, seasonRanking, allTimeRanking] = await Promise.all([
           publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "currentSeason" }),
           publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "racesRecorded" }),
           publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "seasonsFinalized" }),
+          publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "ranking" }),
           publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "allTimeRanking" }),
         ]);
 
-        const points = await Promise.all(
-          ranking.map((horse) =>
-            publicClient.readContract({
-              address,
-              abi: HOF_LEADERBOARD_ABI,
-              functionName: "allTimePoints",
-              args: [horse],
-            }),
+        const [seasonPoints, allTimePoints] = await Promise.all([
+          Promise.all(
+            seasonRanking.map((horse) =>
+              publicClient.readContract({
+                address,
+                abi: HOF_LEADERBOARD_ABI,
+                functionName: "seasonPoints",
+                args: [horse],
+              }),
+            ),
           ),
-        );
+          Promise.all(
+            allTimeRanking.map((horse) =>
+              publicClient.readContract({
+                address,
+                abi: HOF_LEADERBOARD_ABI,
+                functionName: "allTimePoints",
+                args: [horse],
+              }),
+            ),
+          ),
+        ]);
 
         if (cancelled) return;
         setHofMeta({
@@ -66,8 +113,9 @@ export default function StandingsPage() {
           racesRecorded: String(racesRecorded),
           seasonsFinalized: String(seasonsFinalized),
         });
-        setHofRows(ranking.map((horse, index) => ({ horse: Number(horse), points: String(points[index]) })));
-        setHofStatus("V7 HOF All-Time ranking loaded from Robinhood Chain Testnet.");
+        setHofSeasonRows(seasonRanking.map((horse, index) => ({ horse: Number(horse), points: String(seasonPoints[index]) })));
+        setHofAllTimeRows(allTimeRanking.map((horse, index) => ({ horse: Number(horse), points: String(allTimePoints[index]) })));
+        setHofStatus("V7 HOF standings loaded from Robinhood Chain Testnet.");
       } catch (error) {
         console.error(error);
         if (!cancelled) setHofStatus("Could not read the configured HOF leaderboard.");
@@ -75,6 +123,58 @@ export default function StandingsPage() {
     }
 
     loadHof();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCommunityPodiums() {
+      const address = HOF_CONTRACTS.communitySeason;
+      if (!address) {
+        setPodiumStatus("V7 Community contract address is not configured yet.");
+        return;
+      }
+
+      try {
+        const finalized = await publicClient.readContract({
+          address,
+          abi: COMMUNITY_SEASON_ABI,
+          functionName: "seasonsFinalized",
+        });
+        const count = Number(finalized);
+        if (count === 0) {
+          if (!cancelled) {
+            setCommunityPodiums([]);
+            setPodiumStatus("No Community season has been finalized yet.");
+          }
+          return;
+        }
+
+        const podiums = await Promise.all(
+          Array.from({ length: count }, async (_, index) => {
+            const season = index + 1;
+            const wallets = await publicClient.readContract({
+              address,
+              abi: COMMUNITY_SEASON_ABI,
+              functionName: "getSeasonTop3",
+              args: [season],
+            });
+            return { season, wallets: [...wallets] } as CommunityPodium;
+          }),
+        );
+
+        if (!cancelled) {
+          setCommunityPodiums(podiums);
+          setPodiumStatus("Finalized Community podiums loaded on-chain.");
+        }
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) setPodiumStatus("Could not load finalized Community podiums.");
+      }
+    }
+
+    loadCommunityPodiums();
     return () => { cancelled = true; };
   }, []);
 
@@ -128,29 +228,31 @@ export default function StandingsPage() {
         </p>
 
         <section style={{ marginTop: 32, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
-          <h2>Hall of Fame — All-Time</h2>
+          <h2>Hall of Fame — Current Season</h2>
           <p>{hofStatus}</p>
           <p>
             Current season: {hofMeta.currentSeason} · Races recorded: {hofMeta.racesRecorded}/10 · Seasons finalized: {hofMeta.seasonsFinalized}/6
           </p>
-          {hofRows.length > 0 && (
-            <div style={{ overflowX: "auto", marginTop: 18 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr><th style={{ textAlign: "left", padding: 10 }}>Rank</th><th style={{ textAlign: "left", padding: 10 }}>HOF #</th><th style={{ textAlign: "right", padding: 10 }}>All-Time PTS</th></tr>
-                </thead>
-                <tbody>
-                  {hofRows.map((row, index) => (
-                    <tr key={row.horse} style={{ borderTop: "1px solid #222" }}>
-                      <td style={{ padding: 10 }}>{index + 1}</td>
-                      <td style={{ padding: 10 }}>#{String(row.horse).padStart(2, "0")}</td>
-                      <td style={{ padding: 10, textAlign: "right" }}>{row.points}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <HofTable rows={hofSeasonRows} pointsLabel="Season PTS" />
+        </section>
+
+        <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
+          <h2>Hall of Fame — All-Time</h2>
+          <p>All-Time points accumulate across all six seasons and carry prestige only.</p>
+          <HofTable rows={hofAllTimeRows} pointsLabel="All-Time PTS" />
+        </section>
+
+        <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
+          <h2>Community — Finalized Season Podiums</h2>
+          <p>{podiumStatus}</p>
+          {communityPodiums.map((podium) => (
+            <div key={podium.season} style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #222" }}>
+              <strong>Season {podium.season}</strong>
+              <p style={{ lineHeight: 1.8 }}>
+                1st: {shortWallet(podium.wallets[0])} · 2nd: {shortWallet(podium.wallets[1])} · 3rd: {shortWallet(podium.wallets[2])}
+              </p>
             </div>
-          )}
+          ))}
         </section>
 
         <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
