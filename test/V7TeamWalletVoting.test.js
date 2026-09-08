@@ -10,6 +10,11 @@ describe("V7 Team Wallet voting rule", function () {
 
     await genesis.setTeamWallet(team.address);
 
+    const SaleState = await ethers.getContractFactory("MockV7SaleSuccess");
+    const saleState = await SaleState.deploy();
+    await saleState.waitForDeployment();
+    await genesis.setSaleContract(await saleState.getAddress());
+
     // Mint through the Hall of Fame range (1-22) so token #23 is Legendary (5 VP).
     await genesis.ownerMint(owner.address, 22);
     await genesis.ownerMint(team.address, 1);
@@ -18,6 +23,8 @@ describe("V7 Team Wallet voting rule", function () {
     expect(await genesis.rarityOf(23)).to.equal(5n); // Legendary enum value
     expect(await genesis.votingPowerOf(23)).to.equal(0n);
 
+    // V7 allows Team Reserve secondary distribution only after Public Mint sell-out.
+    await saleState.setSaleSuccessful(true);
     await genesis.connect(team).transferFrom(team.address, buyer.address, 23);
 
     expect(await genesis.ownerOf(23)).to.equal(buyer.address);
