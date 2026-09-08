@@ -55,7 +55,8 @@ Never place private keys in `NEXT_PUBLIC_*` variables.
 
 The isolated testnet routes are:
 
-- `/mint` — V7 30 USDC public mint, live sale state and failed-sale on-chain refund flow.
+- `/mint` — V7 30 USDC public mint flow.
+- `/refund` — read-only sale/refund status plus the V7 failed-sale on-chain refund transaction. It is disabled unless the sale contract reports refunds enabled.
 - `/race` — secret pick, wallet NFT/VP discovery, same-pick VP top-up, reveal and current Community point claim flow.
 - `/standings` — current-season and All-Time HOF standings, Community All-Time standings, finalized Community podiums and connected-wallet Community points.
 - `/rewards` — read-only Chapter I reward accounting, Community payout history and HOF reserved allocation.
@@ -85,6 +86,8 @@ This command is also read-only. It reports Genesis supply/reveal state, Communit
 ## 5. Public Mint success and proceeds distribution
 
 The public sale succeeds only at exactly **2,000 Public Mint NFTs sold**. Until then, collected USDC remains inside the sale escrow and is subject to the V7 failed-sale refund condition.
+
+If the deadline passes without sell-out, holders use `/refund` with eligible Public Mint token IDs. The sale contract burns those NFTs and returns exactly **30 USDC per eligible NFT** atomically. Community/Team allocation NFTs cannot be used for a Public Mint refund.
 
 After confirmed sell-out, set:
 
