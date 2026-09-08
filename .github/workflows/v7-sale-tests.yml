@@ -22,5 +22,5 @@ jobs:
         run: npm install
       - name: Compile
         run: npx hardhat compile
-      - name: Run V7 sale integration test
-        run: npx hardhat test test/V7SaleGenesisIntegration.test.js
+      - name: Run full V7 test suite
+        run: npm test
