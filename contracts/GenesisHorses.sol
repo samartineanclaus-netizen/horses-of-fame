@@ -135,7 +135,10 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         returns (address)
     {
         address from = _ownerOf(tokenId);
-        if (from != address(0) && from == teamWallet) {
+        // Refund burns are not secondary distribution. refundBurn is restricted
+        // to the sale contract and verifies public-sale status and ownership;
+        // the sale separately enforces failed-sale timing and recorded payment.
+        if (from != address(0) && from == teamWallet && to != address(0)) {
             require(saleContract != address(0), "Team Reserve locked until sell-out");
             require(
                 IV7PublicSaleState(saleContract).saleSuccessful(),
