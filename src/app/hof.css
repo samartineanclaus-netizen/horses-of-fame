@@ -1,0 +1,27 @@
+/* Extend the existing black/gold palette across the shared HOF surfaces. */
+:root { --accent: var(--gold); }
+.hofMain h1 { line-height: 1.08; }
+.hofCatalog, .hofGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; }
+.hofCatalog { list-style:none; padding:0; margin:36px 0; }
+.hofCatalogCard, .hofHorse { min-width:0; padding:0; border:1px solid var(--line); background:var(--panel); text-align:left; }
+.hofHorse[aria-pressed=true] { border-color:var(--gold); background:#241c11; box-shadow:0 0 0 2px var(--gold); }
+.hofHorse:enabled:hover { border-color:var(--gold); }
+.hofPortrait { display:block; position:relative; aspect-ratio:1 / 1; width:100%; background:#0b0a08; }
+.hofPortraitPending { display:flex; align-items:center; justify-content:center; height:100%; padding:20px; color:var(--muted); font-size:14px; text-align:center; }
+.hofIdentity { display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; }
+.hofCatalogCard>.hofIdentity, .hofHorse>.hofIdentity { padding:18px; }
+.hofNumber { color:var(--gold); font-size:14px; letter-spacing:.12em; font-variant-numeric:tabular-nums; }
+.hofIdentity strong { font-size:18px; line-height:1.3; overflow-wrap:anywhere; letter-spacing:.025em; }
+.hofBreed { font-size:14px; color:var(--muted); line-height:1.5; }
+.hofMain td .hofIdentity { min-width:160px; }
+@media(max-width:900px) { .hofCatalog, .hofGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; } }
+@media(max-width:600px) { .hofCatalog, .hofGrid { grid-template-columns:minmax(0,1fr); } .hofNav>div { gap:16px; } }
+.hofRaceHeader,.hofVoteBar { display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 0;border-bottom:1px solid var(--line); }
+.hofClock { text-align:right;flex-shrink:0; }
+.hofClock span { display:block;color:var(--muted);font-size:14px;margin-bottom:8px; }
+.hofClock strong { font-variant-numeric:tabular-nums;font-size:32px;color:var(--gold); }
+.hofIntegrationNote { border-left:2px solid var(--gold);padding:16px 20px;background:var(--panel);color:var(--muted); }
+.hofVoteBar { position:sticky;top:0;z-index:10;background:rgba(7,7,6,.97);padding:20px;margin:24px 0; }
+.hofVoteBar p { margin:12px 0 0; }
+.hofVoteBar .hofIdentity { flex-direction:row;gap:12px;align-items:center;flex-wrap:wrap; }
+@media(max-width:600px) { .hofRaceHeader { align-items:flex-start;flex-direction:column;gap:12px; } .hofClock{text-align:left;} .hofVoteBar{padding:16px;gap:12px;} .hofVoteBar .hofBreed{display:none;} .hofVoteBar .primary{padding:12px;} }

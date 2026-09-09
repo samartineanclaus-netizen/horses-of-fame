@@ -1,4 +1,5 @@
 "use client";
+import {HofHorseIdentity} from "@/components/HofHorseCard";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -154,8 +155,9 @@ export default function WalletPage() {
         <p style={{ marginTop: 44, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — GENESIS · V7</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 72px)", margin: "8px 0 18px" }}>MY WALLET</h1>
         <p style={{ fontSize: 19, lineHeight: 1.6 }}>
-          Read-only wallet dashboard for Genesis ownership, current Voting Power, current-race usage and Community Championship points.
+          Read-only legacy testnet dashboard. The voting usage and points below belong to the earlier commit/reveal contracts, not the new owner-trusted race.
         </p>
+        <p><Link href="/race">Open owner-trusted Voting</Link> · <Link href="/standings">Season &amp; All-Time Leaderboards</Link></p>
 
         <div style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
           <p><strong>Status:</strong> {status}</p>
@@ -183,10 +185,10 @@ export default function WalletPage() {
             </section>
 
             <section style={{ marginTop: 24, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
-              <h2>Current race</h2>
+              <h2>Legacy race snapshot</h2>
               <p><strong>Committed:</strong> {snapshot.committed ? "Yes" : "No"}</p>
               <p><strong>Revealed:</strong> {snapshot.revealed ? "Yes" : "No"}</p>
-              {snapshot.revealed && <p><strong>Revealed HOF horse:</strong> #{snapshot.revealedHorse}</p>}
+              {snapshot.revealed && <p><strong>Revealed HOF horse:</strong> <HofHorseIdentity number={snapshot.revealedHorse}/></p>}
               <p style={{ color: "#aaa" }}>Used NFT VP stays single-use for the current race even if the NFT is transferred.</p>
               <Link href="/race" style={{ color: "#7cff6b" }}>Open race flow →</Link>
             </section>

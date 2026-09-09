@@ -1,0 +1,156 @@
+[
+  {
+    "id": 1,
+    "number": 1,
+    "name": "IMPERIUM",
+    "breed": "Thoroughbred",
+    "image": "/images/hof/0001.png"
+  },
+  {
+    "id": 2,
+    "number": 2,
+    "name": "SULTAN",
+    "breed": "Arabian",
+    "image": "/images/hof/0002.png"
+  },
+  {
+    "id": 3,
+    "number": 3,
+    "name": "OUTLAW",
+    "breed": "Quarter Horse",
+    "image": "/images/hof/0003.png"
+  },
+  {
+    "id": 4,
+    "number": 4,
+    "name": "MIDAS",
+    "breed": "Akhal-Teke",
+    "image": "/images/hof/0004.jpeg"
+  },
+  {
+    "id": 5,
+    "number": 5,
+    "name": "VALOR",
+    "breed": "Friesian",
+    "image": "/images/hof/0005.png"
+  },
+  {
+    "id": 6,
+    "number": 6,
+    "name": "BRAVER",
+    "breed": "Clydesdale",
+    "image": "/images/hof/0006.png"
+  },
+  {
+    "id": 7,
+    "number": 7,
+    "name": "SPIRIT",
+    "breed": "American Paint",
+    "image": "/images/hof/0007.png"
+  },
+  {
+    "id": 8,
+    "number": 8,
+    "name": "SOBERANO",
+    "breed": "Andalusian",
+    "image": "/images/hof/0008.png"
+  },
+  {
+    "id": 9,
+    "number": 9,
+    "name": "VELOCITY",
+    "breed": "Standardbred",
+    "image": "/images/hof/0009.png"
+  },
+  {
+    "id": 10,
+    "number": 10,
+    "name": "MONARCH",
+    "breed": "French Trotter",
+    "image": "/images/hof/0010.png"
+  },
+  {
+    "id": 11,
+    "number": 11,
+    "name": "VOSTOK",
+    "breed": "Orlov Trotter",
+    "image": "/images/hof/0011.png"
+  },
+  {
+    "id": 12,
+    "number": 12,
+    "name": "PHANTOM",
+    "breed": "Shagya Arabian",
+    "image": "/images/hof/0012.png"
+  },
+  {
+    "id": 13,
+    "number": 13,
+    "name": "VALIANT",
+    "breed": "Anglo-Arabian",
+    "image": "/images/hof/0013.png"
+  },
+  {
+    "id": 14,
+    "number": 14,
+    "name": "WARPAINT",
+    "breed": "Appaloosa",
+    "image": "/images/hof/0014.png"
+  },
+  {
+    "id": 15,
+    "number": 15,
+    "name": "EMPIRE",
+    "breed": "Cleveland Bay",
+    "image": "/images/hof/0015.png"
+  },
+  {
+    "id": 16,
+    "number": 16,
+    "name": "PATRIOT",
+    "breed": "Morgan",
+    "image": "/images/hof/0016.png"
+  },
+  {
+    "id": 17,
+    "number": 17,
+    "name": "MAHARAJA",
+    "breed": "Marwari",
+    "image": "/images/hof/0017.png"
+  },
+  {
+    "id": 18,
+    "number": 18,
+    "name": "THUNDER",
+    "breed": "Australian Stock Horse",
+    "image": "/images/hof/0018.png"
+  },
+  {
+    "id": 19,
+    "number": 19,
+    "name": "FUEGO",
+    "breed": "Paso Fino",
+    "image": "/images/hof/0019.png"
+  },
+  {
+    "id": 20,
+    "number": 20,
+    "name": "EL DORADO",
+    "breed": "Peruvian Paso",
+    "image": "/images/hof/0020.png"
+  },
+  {
+    "id": 21,
+    "number": 21,
+    "name": "MEMPHIS",
+    "breed": "Tennessee Walker",
+    "image": "/images/hof/0021.png"
+  },
+  {
+    "id": 22,
+    "number": 22,
+    "name": "IMPERATOR",
+    "breed": "Lipizzaner",
+    "image": "/images/hof/0022.png"
+  }
+]

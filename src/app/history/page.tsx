@@ -1,4 +1,5 @@
 "use client";
+import {HofHorseIdentity} from "@/components/HofHorseCard";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -110,8 +111,9 @@ export default function HistoryPage() {
         <p style={{ marginTop: 48, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — V7</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 20px" }}>SEASON HISTORY</h1>
         <p style={{ fontSize: 19, lineHeight: 1.6 }}>
-          Each finalized 10-race season is archived before active scores reset. Community Top 3 and all 22 HOF season point totals remain readable on-chain.
+          Archive of the earlier testnet leaderboard contracts. This is not the owner-trusted race leaderboard. Historical horse identities use the official HOF catalog.
         </p>
+        <p><Link href="/standings">Open owner-trusted Season &amp; All-Time Leaderboards →</Link></p>
         <p><strong>Status:</strong> {status}</p>
         <button type="button" onClick={() => void load()} style={{ padding: "12px 18px" }}>REFRESH HISTORY</button>
 
@@ -141,7 +143,7 @@ export default function HistoryPage() {
                   {entry.hofRows.map((row, index) => (
                     <tr key={row.horse} style={{ borderTop: "1px solid #222" }}>
                       <td style={{ padding: 10 }}>{index + 1}</td>
-                      <td style={{ padding: 10 }}>#{String(row.horse).padStart(2, "0")}</td>
+                      <td style={{ padding: 10 }}><HofHorseIdentity number={row.horse}/></td>
                       <td style={{ padding: 10, textAlign: "right" }}>{row.points}</td>
                     </tr>
                   ))}

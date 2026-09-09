@@ -1,0 +1,266 @@
+[
+  {
+    "number": 1,
+    "originalFilename": "0001_IMPERIUM.png",
+    "image": "/images/hof/0001.png",
+    "sha256": "a30ee54aa627e7a6370317594dc12b060290cb6fc0300d0f53da014c165b1fee",
+    "bytes": 3229560,
+    "portraitIdentity": {
+      "number": 1,
+      "name": "IMPERIUM",
+      "breed": "Thoroughbred"
+    }
+  },
+  {
+    "number": 2,
+    "originalFilename": "0002_SULTAN.png",
+    "image": "/images/hof/0002.png",
+    "sha256": "2041de53ee4167cc7c2dcbdcbdb31f8dfe6fa662f462b255cbeadeed70f74fd9",
+    "bytes": 3353079,
+    "portraitIdentity": {
+      "number": 2,
+      "name": "SULTAN",
+      "breed": "Arabian"
+    }
+  },
+  {
+    "number": 3,
+    "originalFilename": "0003_OUTLAW.png",
+    "image": "/images/hof/0003.png",
+    "sha256": "18c1191497e6aea4f796046a8b39bf46856455a12a187d9e13d3e4baaa100a1d",
+    "bytes": 3345883,
+    "portraitIdentity": {
+      "number": 3,
+      "name": "OUTLAW",
+      "breed": "Quarter Horse"
+    }
+  },
+  {
+    "number": 4,
+    "originalFilename": "0004_MIDAS.jpeg",
+    "image": "/images/hof/0004.jpeg",
+    "sha256": "eaaecfa6cd5600f76afe3f22e5a0755956bd19bcee4f5174ef054b33cc472642",
+    "bytes": 589857,
+    "portraitIdentity": {
+      "number": 4,
+      "name": "MIDAS",
+      "breed": "Akhal-Teke"
+    }
+  },
+  {
+    "number": 5,
+    "originalFilename": "0005_VALOR.png",
+    "image": "/images/hof/0005.png",
+    "sha256": "a83be4895e161383806bb3e9e5b12ebfb2fa3f8e3f364070b64db487f081d3c9",
+    "bytes": 3264701,
+    "portraitIdentity": {
+      "number": 5,
+      "name": "VALOR",
+      "breed": "Friesian"
+    }
+  },
+  {
+    "number": 6,
+    "originalFilename": "0006_BRAVER.png",
+    "image": "/images/hof/0006.png",
+    "sha256": "c611c82c2f29e600bc2d20fa62acf645ba834beff8cfd33a3783b2debe8df76d",
+    "bytes": 3372079,
+    "portraitIdentity": {
+      "number": 6,
+      "name": "BRAVER",
+      "breed": "Clydesdale"
+    }
+  },
+  {
+    "number": 7,
+    "originalFilename": "0007_SPIRIT.png",
+    "image": "/images/hof/0007.png",
+    "sha256": "fc38a256d3b49d39980dc45d04d4b1b899f23fc970c5a1b92ec4d0a59c47ae57",
+    "bytes": 3350024,
+    "portraitIdentity": {
+      "number": 7,
+      "name": "SPIRIT",
+      "breed": "American Paint"
+    }
+  },
+  {
+    "number": 8,
+    "originalFilename": "0021_MEMPHIS.png",
+    "image": "/images/hof/0008.png",
+    "sha256": "777c7ffcfcc3ff9f24d0feacc6b655225a749a4242b2318fea6d3aa32c56f328",
+    "bytes": 3508810,
+    "portraitIdentity": {
+      "number": 8,
+      "name": "SOBERANO",
+      "breed": "Andalusian"
+    }
+  },
+  {
+    "number": 9,
+    "originalFilename": "0009_VELOCITY.png",
+    "image": "/images/hof/0009.png",
+    "sha256": "ab47e1fa7498d500693bb19d3b0cee73296ddb99b94533be39868fb40f71244a",
+    "bytes": 3370385,
+    "portraitIdentity": {
+      "number": 9,
+      "name": "VELOCITY",
+      "breed": "Standardbred"
+    }
+  },
+  {
+    "number": 10,
+    "originalFilename": "0010_MONARCH.png",
+    "image": "/images/hof/0010.png",
+    "sha256": "6c4fec1d14ae97d44226d3c1fd526d6f68d24fa1d5c1783ccc66ee4f387c4ec1",
+    "bytes": 3265851,
+    "portraitIdentity": {
+      "number": 10,
+      "name": "MONARCH",
+      "breed": "French Trotter"
+    }
+  },
+  {
+    "number": 11,
+    "originalFilename": "0011_VOSTOK.png",
+    "image": "/images/hof/0011.png",
+    "sha256": "8ee4102ba2304674bd86692efc0bbd2ab13f87d29e39ca6ded2eac3b423609d4",
+    "bytes": 3506875,
+    "portraitIdentity": {
+      "number": 11,
+      "name": "VOSTOK",
+      "breed": "Orlov Trotter"
+    }
+  },
+  {
+    "number": 12,
+    "originalFilename": "0012_PHANTOM.png",
+    "image": "/images/hof/0012.png",
+    "sha256": "8985f848b5dcf29a8729817f79e074573520dac89caa69b31e3eafd36a073f49",
+    "bytes": 3444993,
+    "portraitIdentity": {
+      "number": 12,
+      "name": "PHANTOM",
+      "breed": "Shagya Arabian"
+    }
+  },
+  {
+    "number": 13,
+    "originalFilename": "0008_SOBERANO.png",
+    "image": "/images/hof/0013.png",
+    "sha256": "1d64e5d7edfad6beb3c8378d3bc8b9ef5d70f383e105dc1cddd06cd0b484b238",
+    "bytes": 3364092,
+    "portraitIdentity": {
+      "number": 13,
+      "name": "VALIANT",
+      "breed": "Anglo-Arabian"
+    }
+  },
+  {
+    "number": 14,
+    "originalFilename": "0014_WARPAINT.png",
+    "image": "/images/hof/0014.png",
+    "sha256": "45ffcedc5b458c16dc0957d2e693b1663ea1f546eee6da682d0e40086f1c8487",
+    "bytes": 3473827,
+    "portraitIdentity": {
+      "number": 14,
+      "name": "WARPAINT",
+      "breed": "Appaloosa"
+    }
+  },
+  {
+    "number": 15,
+    "originalFilename": "0013_VALIANT.png",
+    "image": "/images/hof/0015.png",
+    "sha256": "97b74433a7922491ac9c7f2a47a87f36bc468e02010656ab41e7884531426ca0",
+    "bytes": 3308616,
+    "portraitIdentity": {
+      "number": 15,
+      "name": "EMPIRE",
+      "breed": "Cleveland Bay"
+    }
+  },
+  {
+    "number": 16,
+    "originalFilename": "0015_EMPIRE.png",
+    "image": "/images/hof/0016.png",
+    "sha256": "aa4d1af6e7c7bde2ab68796fca9d872cb35278b7f8e1df810d2b8ad4bf6e28b9",
+    "bytes": 3269686,
+    "portraitIdentity": {
+      "number": 16,
+      "name": "PATRIOT",
+      "breed": "Morgan"
+    }
+  },
+  {
+    "number": 17,
+    "originalFilename": "0017_MAHARAJA.png",
+    "image": "/images/hof/0017.png",
+    "sha256": "f43122fc6a2b9dbc6650486220eee5643fec88baa18b3db2247672fef0817f5d",
+    "bytes": 3243356,
+    "portraitIdentity": {
+      "number": 17,
+      "name": "MAHARAJA",
+      "breed": "Marwari"
+    }
+  },
+  {
+    "number": 18,
+    "originalFilename": "0018_THUNDER.png",
+    "image": "/images/hof/0018.png",
+    "sha256": "ec4fc798f690ada3eb2e593b01fce5a742c1c3454ad0328cdcc30d6db5a113c6",
+    "bytes": 3412901,
+    "portraitIdentity": {
+      "number": 18,
+      "name": "THUNDER",
+      "breed": "Australian Stock Horse"
+    }
+  },
+  {
+    "number": 19,
+    "originalFilename": "0019_FUEGO.png",
+    "image": "/images/hof/0019.png",
+    "sha256": "1dbeebed40df3cecb6fe033b51b525fd6dfefb78c297dbefa5e44f546d29a4bb",
+    "bytes": 3346858,
+    "portraitIdentity": {
+      "number": 19,
+      "name": "FUEGO",
+      "breed": "Paso Fino"
+    }
+  },
+  {
+    "number": 20,
+    "originalFilename": "0020_EL_DORADO.png",
+    "image": "/images/hof/0020.png",
+    "sha256": "94d72901b9e5511038c31157cf427cbdee88c5f6cfa9b8542231cd75e07a7770",
+    "bytes": 3421057,
+    "portraitIdentity": {
+      "number": 20,
+      "name": "EL DORADO",
+      "breed": "Peruvian Paso"
+    }
+  },
+  {
+    "number": 21,
+    "originalFilename": "0016_PATRIOT.png",
+    "image": "/images/hof/0021.png",
+    "sha256": "623742a5fccf94545d8b2d392c8483feb9296432d1de203c53d1d40160488603",
+    "bytes": 3341854,
+    "portraitIdentity": {
+      "number": 21,
+      "name": "MEMPHIS",
+      "breed": "Tennessee Walker"
+    }
+  },
+  {
+    "number": 22,
+    "originalFilename": "0022_IMPERATOR.png",
+    "image": "/images/hof/0022.png",
+    "sha256": "f61a61cd5fb63daa8f556f626118790790ae9e5e4855ce9a5a3cffd22abd9e9a",
+    "bytes": 3387919,
+    "portraitIdentity": {
+      "number": 22,
+      "name": "IMPERATOR",
+      "breed": "Lipizzaner"
+    }
+  }
+]

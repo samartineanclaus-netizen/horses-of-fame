@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/dev-next.cjs",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "compile:contracts": "hardhat compile",
@@ -23,14 +23,17 @@
     "ops:v7:validate-deployment:testnet": "hardhat run scripts/validate-v7-deployment.js --network robinhoodTestnet",
     "ops:v7:launch-readiness:testnet": "hardhat run scripts/launch-readiness-v7.js --network robinhoodTestnet",
     "ops:v7:preflight-race:testnet": "hardhat run scripts/preflight-v7-race.js --network robinhoodTestnet",
-    "ops:v7:export-state:testnet": "hardhat run scripts/export-v7-chapter-state.js --network robinhoodTestnet"
+    "ops:v7:export-state:testnet": "hardhat run scripts/export-v7-chapter-state.js --network robinhoodTestnet",
+    "test:frontend": "node --test web-test/*.test.cjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "ethers": "6.17.0",
     "next": "16.3.4",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "wagmi": "^2.16.9",
-    "viem": "^2.37.3"
+    "viem": "^2.37.3",
+    "wagmi": "^2.16.9"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
@@ -44,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "hardhat": "^2.26.3",
+    "jsdom": "26.1.0",
     "typescript": "^5"
   }
 }

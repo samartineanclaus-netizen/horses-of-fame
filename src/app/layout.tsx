@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./voting.css";
+import "./hof.css";
 
 export const metadata: Metadata = {
   title: "Horses of Fame — Chapter I: Genesis",

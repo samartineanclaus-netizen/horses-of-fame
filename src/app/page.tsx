@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import HofGallery from "@/components/HofGallery";
+import {getHofHorse,hofHorseAlt} from "@/lib/hofHorses";
 
 const scoring = [
   ["1st", 25], ["2nd", 18], ["3rd", 15], ["4th", 12], ["5th", 10],
@@ -16,13 +18,7 @@ const tiers = [
   ["Legendary", "190", "5", "950"],
 ];
 
-const gallery = [
-  ["/assets/hof-rasta.png", "Music · Culture · Legacy"],
-  ["/assets/hof-boxer.png", "Sport · Culture · Legacy"],
-  ["/assets/hof-football.jpg", "Sports · Culture · Legacy"],
-  ["/assets/hof-singer.png", "Film · Culture · Legacy"],
-  ["/assets/hof-science.png", "Music · Culture · Legacy"],
-];
+
 
 const ROBINHOOD_TESTNET_CHAIN_ID = "0xb626";
 
@@ -130,20 +126,13 @@ export default function Home() {
           </div>
           <div className="heroArtwork">
             <div className="heroImageWrap">
-              <Image src="/assets/hero-hof.png" alt="Horses of Fame Hall of Fame Genesis artwork" fill sizes="(max-width: 900px) 100vw, 42vw" priority />
+              <Image src={getHofHorse(1).image} alt={hofHorseAlt(1)} quality={90} style={{objectFit:"contain"}} fill sizes="(max-width: 900px) 100vw, 42vw" priority />
             </div>
             <div className="heroArtMeta"><span>22 HALL OF FAME HORSES</span><strong>1% OF GENESIS</strong><small>Who receives them remains hidden until reveal.</small></div>
           </div>
         </div>
       </section>
 
-      <section className="galleryBand" aria-label="Horses of Fame collection preview">
-        <div className="galleryTrack shell">
-          {gallery.map(([src, label], i) => (
-            <article className="galleryCard" key={src}><div className="galleryImage"><Image src={src} alt={`Horses of Fame collection preview ${i + 1}`} fill sizes="(max-width: 700px) 64vw, 20vw" /></div><span>{label}</span></article>
-          ))}
-        </div>
-      </section>
 
       <section id="racing" className="section darkBand">
         <div className="shell">
@@ -163,7 +152,7 @@ export default function Home() {
       <section id="collection" className="section collectionSection">
         <div className="shell">
           <SectionTitle kicker="THE COLLECTION" title="22 ENTER THE HALL OF FAME" copy="Hidden among the 2,222 Genesis NFTs are 22 Hall of Fame horses. They race. The other 2,200 Genesis horses decide their fate." />
-          <div className="bannerWrap"><Image src="/assets/collection-banner.png" alt="Horses of Fame collection" width={1500} height={561} /></div>
+          <div className="hofMain"><HofGallery heading="h2"/></div>
           <div className="splitCallout"><div><span>22</span><p>Hall of Fame racers<br />0 Voting Power</p></div><div><span>2,200</span><p>Voting Genesis horses<br />4,800 total VP</p></div></div>
           <div className="bigLine">22 HORSES RACE. 2,200 DECIDE.</div>
         </div>
