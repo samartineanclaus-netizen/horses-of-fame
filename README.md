@@ -17,6 +17,7 @@ Do not silently add or reinterpret rules that V7 leaves open. Unresolved impleme
 The repository currently includes:
 
 - Genesis ERC-721 supply and locked rarity/VP structure.
+- Regression invariants for 22 HOF + 2,200 voting = 2,222 Genesis and exactly 4,800 nominal VP.
 - 2,000 Public Mint allocation plus 111 Community and 111 Team Reserve allocation caps.
 - 30 USDC Public Mint sale, failed-sale refunds and sell-out accounting.
 - 48,000 / 2,000 / 10,000 USDC proceeds split after successful sell-out.
@@ -31,6 +32,7 @@ The repository currently includes:
 - HOF prize allocation reserved without inventing the still-open beneficiary mechanism.
 - Testnet deployment, race registration, season finalization, status, validation and readiness scripts.
 - Website routes for mint, refund, race, wallet, standings, rewards, history, allocation and system status flows.
+- A `/race/backup` safety route that can export or restore the local secret-pick data only after verifying it against the connected wallet's existing on-chain commitment.
 
 ## Local verification
 
