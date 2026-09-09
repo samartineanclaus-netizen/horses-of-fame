@@ -9,7 +9,7 @@
     "lint": "eslint",
     "compile:contracts": "hardhat compile",
     "test:contracts": "hardhat test",
-    "check:deploy-scripts": "node --check scripts/deploy-v7-system.js && node --check scripts/deploy-v7-race.js && node --check scripts/register-v7-race.js && node --check scripts/finalize-v7-season.js && node --check scripts/pay-v7-community-season.js && node --check scripts/status-v7-system.js && node --check scripts/race-status-v7.js && node --check scripts/distribute-v7-proceeds.js && node --check scripts/community-champion-v7.js && node --check scripts/hof-champion-v7.js && node --check scripts/validate-v7-deployment.js && node --check scripts/launch-readiness-v7.js && node --check scripts/preflight-v7-race.js",
+    "check:deploy-scripts": "node --check scripts/deploy-v7-system.js && node --check scripts/deploy-v7-race.js && node --check scripts/register-v7-race.js && node --check scripts/finalize-v7-season.js && node --check scripts/pay-v7-community-season.js && node --check scripts/status-v7-system.js && node --check scripts/race-status-v7.js && node --check scripts/distribute-v7-proceeds.js && node --check scripts/community-champion-v7.js && node --check scripts/hof-champion-v7.js && node --check scripts/validate-v7-deployment.js && node --check scripts/launch-readiness-v7.js && node --check scripts/preflight-v7-race.js && node --check scripts/export-v7-chapter-state.js",
     "deploy:v7:testnet": "hardhat run scripts/deploy-v7-system.js --network robinhoodTestnet",
     "deploy:v7:race:testnet": "hardhat run scripts/deploy-v7-race.js --network robinhoodTestnet",
     "ops:v7:register-race:testnet": "hardhat run scripts/register-v7-race.js --network robinhoodTestnet",
@@ -22,7 +22,8 @@
     "ops:v7:hof-champion:testnet": "hardhat run scripts/hof-champion-v7.js --network robinhoodTestnet",
     "ops:v7:validate-deployment:testnet": "hardhat run scripts/validate-v7-deployment.js --network robinhoodTestnet",
     "ops:v7:launch-readiness:testnet": "hardhat run scripts/launch-readiness-v7.js --network robinhoodTestnet",
-    "ops:v7:preflight-race:testnet": "hardhat run scripts/preflight-v7-race.js --network robinhoodTestnet"
+    "ops:v7:preflight-race:testnet": "hardhat run scripts/preflight-v7-race.js --network robinhoodTestnet",
+    "ops:v7:export-state:testnet": "hardhat run scripts/export-v7-chapter-state.js --network robinhoodTestnet"
   },
   "dependencies": {
     "next": "16.3.4",
