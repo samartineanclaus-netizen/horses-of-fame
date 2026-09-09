@@ -55,6 +55,13 @@ async function main() {
   const community = await ethers.getContractAt("HOFCommunitySeason", communityAddress);
   const hof = await ethers.getContractAt("HOFSeasonLeaderboard", hofAddress);
   const rewards = await ethers.getContractAt("HOFSeasonRewards", rewardsAddress);
+  const rewardsUsdcAddress = await rewards.usdc();
+  await assertCode(rewardsUsdcAddress, "Rewards USDC");
+  const rewardsUsdc = new ethers.Contract(
+    rewardsUsdcAddress,
+    ["function balanceOf(address owner) view returns (uint256)"],
+    ethers.provider,
+  );
 
   const [
     totalSupply,
@@ -97,10 +104,7 @@ async function main() {
     rewards.communityPaid(),
     rewards.communityRemaining(),
     rewards.hofReserved(),
-    (await rewards.usdc()).then(async (usdcAddress) => {
-      const usdc = await ethers.getContractAt("IERC20", usdcAddress);
-      return usdc.balanceOf(rewardsAddress);
-    }),
+    rewardsUsdc.balanceOf(rewardsAddress),
   ]);
 
   const hofAllTimePoints = [];
@@ -152,6 +156,7 @@ async function main() {
       communitySeason: communityAddress,
       hofLeaderboard: hofAddress,
       seasonRewards: rewardsAddress,
+      rewardsUsdc: rewardsUsdcAddress,
     },
     genesis: {
       totalSupply: totalSupply.toString(),
