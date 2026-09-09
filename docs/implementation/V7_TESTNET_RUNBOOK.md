@@ -16,6 +16,7 @@ Before any transaction:
 ```bash
 npm run compile:contracts
 npm run test:contracts
+npm run lint
 npm run build
 ```
 
@@ -93,7 +94,7 @@ For one consolidated launch-readiness view, run:
 npm run ops:v7:launch-readiness:testnet
 ```
 
-The readiness checker classifies defined conditions as `READY`, `WAITING`, `ACTION AVAILABLE` or `BLOCKED`, while every unresolved V7 launch decision is shown explicitly as `UNRESOLVED V7`. It does not convert an unresolved item into code policy.
+The readiness checker classifies defined conditions as `READY`, `WAITING`, `ACTION AVAILABLE` or `BLOCKED`, while unresolved V7 launch decisions are shown explicitly as `UNRESOLVED V7`. It does not convert an unresolved item into code policy.
 
 ## 5. Public Mint success and proceeds distribution
 
@@ -123,7 +124,7 @@ The operation refuses to run before sell-out and reads the immutable destination
 
 The operation does not decide the unresolved final Prize Pool custody architecture, audit provider or wallet identities; those values must already have been explicitly supplied at deployment.
 
-## 6. Deploy one race
+## 6. Deploy and preflight one race
 
 Set:
 
@@ -152,6 +153,14 @@ Copy the printed race address into:
 NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=
 RACE_ADDRESS=
 ```
+
+Before using the race, run the read-only preflight:
+
+```bash
+npm run ops:v7:preflight-race:testnet
+```
+
+The preflight checks only defined V7 invariants: Robinhood Testnet, contract references, matching Team Reserve wallet, Public Mint sell-out, exact 24-hour voting window, Community/HOF season alignment and exact three-day cadence when there is a previous race in the same season. The sell-out + 10-day item is reported as a target, not converted into a hard rule. Team Reserve distribution terms and reveal/finalization timing remain reported as unresolved instead of being guessed.
 
 Read a race without exposing live totals or wallet choices:
 
