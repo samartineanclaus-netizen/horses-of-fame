@@ -35,7 +35,9 @@ describe("V7 atomic refunds", function () {
       .to.emit(sale, "Refunded")
       .withArgs(buyer.address, 60_000_000n, 2n);
     expect(await usdc.balanceOf(buyer.address)).to.equal(60_000_000n);
-    expect(await sale.paidBy(buyer.address)).to.equal(0n);
+    expect(await sale.paidBy(buyer.address)).to.equal(60_000_000n); // Historical gross payments.
+    expect(await sale.refundedTo(buyer.address)).to.equal(60_000_000n);
+    expect(await sale.totalRefunded()).to.equal(60_000_000n);
     await expect(genesis.ownerOf(1)).to.be.reverted;
     await expect(genesis.ownerOf(2)).to.be.reverted;
   });

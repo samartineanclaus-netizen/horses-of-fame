@@ -138,8 +138,18 @@ contract HOFCommunitySeason is Ownable {
     }
 
     function _calculateTop3() internal view returns (address[3] memory top3) {
+        // Exclude tied wallets that cannot be ordered because neither retains
+        // a Genesis token. Do not add a holding requirement to unequal scores.
+        uint256[] memory noNftAtScore = new uint256[](251); // 10 races * 25 points.
+        bool[] memory hasNft = new bool[](activeWallets.length);
+        for (uint256 i = 0; i < activeWallets.length; i++) {
+            address wallet = activeWallets[i];
+            hasNft[i] = IGenesisEnumerable(genesisContract).balanceOf(wallet) > 0;
+            if (!hasNft[i]) noNftAtScore[seasonPoints[wallet]]++;
+        }
         for (uint256 i = 0; i < activeWallets.length; i++) {
             address candidate = activeWallets[i];
+            if (!hasNft[i] && noNftAtScore[seasonPoints[candidate]] > 1) continue;
             if (top3[0] == address(0) || _ranksAhead(candidate, top3[0])) {
                 top3[2] = top3[1]; top3[1] = top3[0]; top3[0] = candidate;
             } else if (top3[1] == address(0) || _ranksAhead(candidate, top3[1])) {
@@ -199,7 +209,7 @@ contract HOFCommunitySeason is Ownable {
         IGenesisEnumerable genesis = IGenesisEnumerable(genesisContract);
         uint256 aBalance = genesis.balanceOf(walletA);
         uint256 bBalance = genesis.balanceOf(walletB);
-        require(aBalance > 0 || bBalance > 0, "no NFT tie-break winner");
+        if (aBalance == 0 && bBalance == 0) return address(0);
 
         if (aBalance == 0) return walletB;
         if (bBalance == 0) return walletA;

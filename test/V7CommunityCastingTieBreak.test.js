@@ -7,11 +7,13 @@ describe("V7 Community casting tie-break", function () {
     const Genesis = await ethers.getContractFactory("GenesisHorses");
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
+    await genesis.setTeamWallet(owner.address);
 
     // Token IDs are sequential. Give A #34 and B #121, matching the V7 example.
     await genesis.ownerMint(owner.address, 33);
     await genesis.ownerMint(walletA.address, 1); // #34
-    await genesis.ownerMint(owner.address, 86); // #35-#120
+    await genesis.ownerMint(owner.address, 78);
+    await genesis.ownerMint((await ethers.getSigners())[3].address, 8); // #35-#120
     await genesis.ownerMint(walletB.address, 1); // #121
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");
@@ -34,8 +36,10 @@ describe("V7 Community casting tie-break", function () {
     const Genesis = await ethers.getContractFactory("GenesisHorses");
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
+    await genesis.setTeamWallet(owner.address);
     await genesis.ownerMint(walletA.address, 2); // #1, #2
-    await genesis.ownerMint(owner.address, 118); // #3-#120
+    await genesis.ownerMint(owner.address, 111);
+    await genesis.ownerMint(walletA.address, 7); // #3-#120
     await genesis.ownerMint(walletB.address, 2); // #121, #122
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");
@@ -53,10 +57,12 @@ describe("V7 Community casting tie-break", function () {
     const Genesis = await ethers.getContractFactory("GenesisHorses");
     const genesis = await Genesis.deploy("placeholder");
     await genesis.waitForDeployment();
+    await genesis.setTeamWallet(owner.address);
 
     await genesis.ownerMint(owner.address, 33);
     await genesis.ownerMint(walletB.address, 1); // #34
-    await genesis.ownerMint(owner.address, 86);
+    await genesis.ownerMint(owner.address, 78);
+    await genesis.ownerMint((await ethers.getSigners())[3].address, 8);
     await genesis.ownerMint(walletA.address, 1); // #121
 
     const Community = await ethers.getContractFactory("HOFCommunitySeason");

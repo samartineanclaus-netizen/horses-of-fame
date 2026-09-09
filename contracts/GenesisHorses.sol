@@ -17,7 +17,12 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant UNCOMMON_SUPPLY = 480;
     uint256 public constant COMMON_SUPPLY = 970;
     uint256 public nextTokenId = 1;
-    uint256 public testMintPrice = 0.001 ether;
+    uint256 public constant PUBLIC_MINT_SUPPLY = 2000;
+    uint256 public constant COMMUNITY_ALLOCATION_SUPPLY = 111;
+    uint256 public constant TEAM_RESERVE_SUPPLY = 111;
+    uint256 public publicMinted;
+    uint256 public communityAllocationMinted;
+    uint256 public teamReserveMinted;
     address public saleContract;
     address public teamWallet;
     mapping(uint256 => bool) public publicSaleToken;
@@ -25,16 +30,26 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     string public placeholderURI;
     bool public revealed;
     enum Rarity { Unassigned, Common, Uncommon, Rare, Epic, Legendary, HallOfFame }
-    event TestMint(address indexed minter, uint256 quantity, uint256 value);
+    event AllocationMint(address indexed recipient, uint256 quantity, bool indexed teamReserve);
     event CollectionRevealed(string baseURI);
     event PlaceholderURIUpdated(string placeholderURI);
-    event TestMintPriceUpdated(uint256 newPrice);
     event SaleContractSet(address indexed saleContract);
     event TeamWalletSet(address indexed teamWallet);
 
     constructor(string memory initialPlaceholderURI) ERC721("Horses of Fame - Genesis", "HOFGEN") Ownable(msg.sender) { placeholderURI = initialPlaceholderURI; }
 
-    function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused { _mintSequential(to, quantity, false); }
+    function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused {
+        bool isTeam = teamWallet != address(0) && to == teamWallet;
+        if (isTeam) {
+            require(teamReserveMinted + quantity <= TEAM_RESERVE_SUPPLY, "Team Reserve allocation exceeded");
+            teamReserveMinted += quantity;
+        } else {
+            require(communityAllocationMinted + quantity <= COMMUNITY_ALLOCATION_SUPPLY, "Community allocation exceeded");
+            communityAllocationMinted += quantity;
+        }
+        _mintSequential(to, quantity, false);
+        emit AllocationMint(to, quantity, isTeam);
+    }
 
     function setSaleContract(address saleContract_) external onlyOwner {
         require(saleContract == address(0), "Sale contract already set");
@@ -52,6 +67,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
 
     function saleMint(address to, uint256 quantity) external whenNotPaused {
         require(msg.sender == saleContract, "Only sale contract");
+        require(publicMinted + quantity <= PUBLIC_MINT_SUPPLY, "Public allocation exceeded");
+        publicMinted += quantity;
         _mintSequential(to, quantity, true);
     }
 
@@ -75,16 +92,6 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
             _safeMint(to, tokenId);
         }
     }
-
-    function publicTestMint(uint256 quantity) external payable whenNotPaused {
-        require(quantity > 0, "Quantity must be greater than zero");
-        require(nextTokenId + quantity - 1 <= MAX_SUPPLY, "Genesis supply exceeded");
-        require(msg.value == testMintPrice * quantity, "Incorrect test mint payment");
-        for (uint256 i = 0; i < quantity; i++) { uint256 tokenId = nextTokenId++; _safeMint(msg.sender, tokenId); }
-        emit TestMint(msg.sender, quantity, msg.value);
-    }
-    function setTestMintPrice(uint256 newPrice) external onlyOwner { testMintPrice = newPrice; emit TestMintPriceUpdated(newPrice); }
-    function withdrawTestFunds() external onlyOwner { uint256 balance = address(this).balance; (bool success,) = payable(owner()).call{value: balance}(""); require(success, "Withdraw failed"); }
 
     function rarityOf(uint256 tokenId) public view returns (Rarity) {
         require(_ownerOf(tokenId) != address(0), "Token does not exist");

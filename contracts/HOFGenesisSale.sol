@@ -30,7 +30,10 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
 
     uint256 public sold;
     bool public distributed;
+    // Historical gross mint payments; no longer a refund entitlement ledger.
     mapping(address => uint256) public paidBy;
+    mapping(address => uint256) public refundedTo;
+    uint256 public totalRefunded;
 
     event Minted(address indexed buyer, uint256 quantity, uint256 paid);
     event Refunded(address indexed buyer, uint256 amount, uint256 quantity);
@@ -68,10 +71,10 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
         require(refundsEnabled(), "refunds not enabled");
         require(tokenIds.length > 0, "no tokens");
         uint256 amount = tokenIds.length * MINT_PRICE;
-        require(paidBy[msg.sender] >= amount, "refund exceeds paid amount");
 
         // Effects first. Any failure in burn or transfer reverts the whole transaction.
-        paidBy[msg.sender] -= amount;
+        refundedTo[msg.sender] += amount;
+        totalRefunded += amount;
         genesis.refundBurn(msg.sender, tokenIds);
         paymentToken.safeTransfer(msg.sender, amount);
 
