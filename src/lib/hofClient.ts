@@ -54,6 +54,10 @@ export const GENESIS_VOTING_ABI = [
   { type: "function", name: "votingPowerOf", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "uint256" }] },
 ] as const;
 
+// Backward-compatible descriptive alias used by read-only wallet/race pages.
+// It contains the same Genesis view functions and does not change contract logic.
+export const GENESIS_READ_ABI = GENESIS_VOTING_ABI;
+
 export const GENESIS_SALE_ABI = [
   {
     type: "function",
