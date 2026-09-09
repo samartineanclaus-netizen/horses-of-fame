@@ -96,6 +96,14 @@ npm run ops:v7:launch-readiness:testnet
 
 The readiness checker classifies defined conditions as `READY`, `WAITING`, `ACTION AVAILABLE` or `BLOCKED`, while unresolved V7 launch decisions are shown explicitly as `UNRESOLVED V7`. It does not convert an unresolved item into code policy.
 
+For a machine-readable, read-only Chapter I snapshot that can be archived or compared between operations, run:
+
+```bash
+npm run ops:v7:export-state:testnet
+```
+
+The export includes deployed addresses, Genesis/allocation state, Public Mint/refund state, Community participant All-Time points, HOF All-Time points/ranking, finalized Community podiums, HOF season history and reward accounting. It deliberately does not declare an equal-point Community ordering when the unresolved zero-NFT/zero-NFT tie case applies.
+
 ## 5. Public Mint success and proceeds distribution
 
 The public sale succeeds only at exactly **2,000 Public Mint NFTs sold**. Until then, collected USDC remains inside the sale escrow and is subject to the V7 failed-sale refund condition.
