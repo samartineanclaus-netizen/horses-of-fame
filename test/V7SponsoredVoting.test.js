@@ -52,8 +52,11 @@ describe('V7 sponsored signed voting',function(){
  });
  it('accepts at opening, rejects before opening, and at exact 24h close',async()=>{
   const f={...await loadFixture(fixture)},opens=(await time.latest())+100;
+  // Pin each boundary block; restored fixtures must not depend on wall-clock
+  // drift while the full2200-voter service/benchmark tests run.
+  await time.setNextBlockTimestamp(opens-2);
   f.race=await(await ethers.getContractFactory('HOFRelayedRace')).deploy(f.genesis.target,opens,f.team.address,f.owner.address,f.backend.address,f.key.publicKey);
-  const p=await packet(f);await expect(f.race.submitSigned(p)).revertedWith('voting closed');
+  const p=await packet(f);await time.setNextBlockTimestamp(opens-1);await expect(f.race.submitSigned(p)).revertedWith('voting closed');
   await time.setNextBlockTimestamp(opens);await f.race.submitSigned(p);
   const b=await packet(f,1);await time.setNextBlockTimestamp(opens+86400);await expect(f.race.submitSigned(b)).revertedWith('voting closed');
  });

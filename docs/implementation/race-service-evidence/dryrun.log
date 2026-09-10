@@ -1,0 +1,21 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+
+  Readiness canonical local dry run
+    ✔ canonical deployment and failed-sale path: 4x25, transfer, refund, burn (3246ms)
+{"race":"0x6F00454894e0790AaE84E7A6406E85075a321469","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0x399a7D6b7e00059d88d86C57a5A182786Fc7565f","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0xeE3eC48898A150D4a24Ff0F4C15E6a28601149A7","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0x6EeC73AcD9Ce536C202f5ee9D87d1AC16240b19a","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0xd4Cba5E2cd21E84234Bc51eB6DFc5Ac0b4B4C5c5","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0x196FE634d84C3E3806ed810682552C27DF90c5b5","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0x9CA5085eaF05c0d43B9e244A378Ad39c7B8955BF","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0xC37410730E13E646EB224Edd218bA99A61460769","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0x9b38Eb132102B07D96856E6337191A315DB0D8f2","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+{"race":"0xebF8F2CdF3235edcdf27Cf175ddb4813d4c42187","board":"0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e","registered":true,"chainId":46630}
+    ✔ sold-out canonical system -> sponsored voting -> 10 full race reveals -> Season/All-Time -> Community payout (5992ms)
+{"race":"0x1544672DB67160D46701Efca225861b72F6E3C4E","board":"0xe70f935c32dA4dB13e7876795f1e175465e6458e","registered":true,"chainId":46630}
+    ✔ automatic service E2E: canonical deploy/mint, browser signature, HTTP admission/sponsorship,24h close and both boards (11418ms)
+
+
+  3 passing (21s)

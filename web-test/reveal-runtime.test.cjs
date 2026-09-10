@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {spawnSync}=require('node:child_process');
+const {privateFile,createRuntime}=require('../scripts/run-race-reveal-service.cjs');
+test('service secret files require private permissions and are not logged',()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'hof-runtime-test-')),file=path.join(dir,'test.key');try{fs.writeFileSync(file,'local test fixture only',{mode:0o600});assert.equal(privateFile(file),'local test fixture only');if(process.platform!=='win32'){fs.chmodSync(file,0o644);assert.throws(()=>privateFile(file),/permissions/);}assert.throws(()=>privateFile(dir));}finally{fs.rmSync(dir,{recursive:true,force:true});}});
+test('runtime refuses production mode before creating a provider or reading secrets',async()=>{await assert.rejects(createRuntime({HOF_SERVICE_MODE:'productionUSDC'}),/testnet mode required/);await assert.rejects(createRuntime({}),/Missing HOF_SERVICE_MODE/);});
+test('service CLI is opt-in and fails with a generic non-secret error',()=>{const r=spawnSync(process.execPath,['scripts/run-race-reveal-service.cjs'],{cwd:path.join(__dirname,'..'),env:{...process.env,HOF_ENABLE_SERVICE:'NO',HOF_RPC_URL:'https://do-not-log-secret.invalid'}});assert.equal(r.status,1);assert.match(r.stderr.toString(),/failed closed/);assert.doesNotMatch(r.stdout.toString()+r.stderr.toString(),/do-not-log-secret/);});

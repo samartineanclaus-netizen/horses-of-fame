@@ -1,5 +1,11 @@
 # Horses of Fame — V7 Robinhood Chain Testnet Runbook
 
+> Historical runbook: the legacy claim/reveal and dual-leaderboard instructions
+> below are superseded. Do not execute them for canonical Sponsored Voting.
+> Use [Testnet Readiness](V7_TESTNET_READINESS.md) for canonical deployment and
+> [Race Reveal Service](V7_RACE_REVEAL_SERVICE.md) for automatic settlement.
+> Users do not call revealVote or claimRacePoints. Legacy scripts remain disabled.
+
 This runbook operates the implementation that follows `docs/tokenomics/HOF_TOKENOMICS_V7_MASTER.md`. It does not replace or amend V7.
 
 ## 1. Local setup

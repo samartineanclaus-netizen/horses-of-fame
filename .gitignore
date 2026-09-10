@@ -12,3 +12,5 @@ out/
 *.key
 *.journal
 .hof-runtime/
+
+!.env.v7-service.example

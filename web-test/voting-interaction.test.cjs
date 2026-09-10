@@ -43,7 +43,7 @@ test('actual Voting component: canonical selection, transaction boundary, privac
  window.ethereum=ethereum;
  const signer={getAddress:async()=>account};
  class Provider {async getNetwork(){return{chainId:1n};}async getBlock(){return{number:10,hash:'0xabc',timestamp:now};}async getSigner(){return signer;}destroy(){}}
- const race={opensAt:async()=>opens,closesAt:async()=>closes,finalized:async()=>false,genesis:async()=>genesisAddress,hofOwner:async()=>owner,backendSigner:async()=>owner,teamReserveWallet:async()=>owner,ballotIndexPlusOne:async()=>0n,tokenUsed:async()=>false};
+ const race={opensAt:async()=>opens,closesAt:async()=>closes,finalized:async()=>false,frozen:async()=>false,genesis:async()=>genesisAddress,hofOwner:async()=>owner,backendSigner:async()=>owner,teamReserveWallet:async()=>owner,ballotIndexPlusOne:async()=>0n,tokenUsed:async()=>false};
  for(const method of ['ranking','horseVP','horseRacePoints','acceptedBallotCount'])race[method]=async()=>{privateReads.push(method);throw Error('Partial results must not be read');};
  const board={registeredRace:async()=>true};
  const genesis={balanceOf:async()=>1n,tokenOfOwnerByIndex:async()=>500n,votingPowerOf:async()=>1n};
@@ -95,6 +95,16 @@ test('actual Voting component: canonical selection, transaction boundary, privac
   });
   await t.test('Race Reveal page also hides interim totals while voting is open',async()=>{
    await unmount();now=200;await mount('results');assert.equal(container.querySelectorAll('table').length,0);assert.match(container.textContent,/Waiting for Race Reveal/);assert.deepEqual(privateReads,[]);
+  });
+  await t.test('closed and frozen phases show real waiting/preparation with no results',async()=>{
+   await unmount();now=closes;await mount('results');assert.match(container.textContent,/Voting Closed/);assert.equal(container.querySelectorAll('tbody tr').length,0);
+   await unmount();race.frozen=async()=>true;await mount('results');assert.match(container.textContent,/Preparing Race Reveal/);assert.equal(container.querySelectorAll('tbody tr').length,0);assert.doesNotMatch(container.textContent,/Leaderboards Updated/);
+  });
+  await t.test('complete finalized race exposes exactly22 rows and both board activation',async()=>{
+   await unmount();race.finalized=async()=>true;race.ranking=async()=>Array.from({length:22},(_,i)=>i+1);race.horseVP=async()=>Array(22).fill(0n);race.horseRacePoints=async()=>Array(22).fill(0n);race.acceptedBallotCount=async()=>0n;
+   board.raceCount=async()=>1n;board.currentSeason=async()=>1n;board.races=async()=>raceAddress;
+   await mount('results');assert.match(container.textContent,/Race Revealed/);assert.equal(container.querySelectorAll('tbody tr').length,22);
+   await unmount();await mount('standings');assert.match(container.textContent,/Leaderboards Updated/);
   });
   await t.test('StrictMode cleanup removes wallet subscriptions',async()=>{await unmount();assert.equal(listeners.size,0);});
  } finally {

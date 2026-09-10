@@ -137,15 +137,15 @@ Mint and Refund re-read chain; Refund re-verifies immediately before sending.
 Canonical22dataset/artwork unchanged. Frontend tests/build are local evidence,
 not a real wallet/browser-to-hosted-service E2E claim.
 
-Operational blocker: signed-service exports tested server/queue primitives, but
-there is no complete reviewed service bootstrap/supervisor and automated
-post-deadline reveal scheduler configured here. settleRelayedRace is tested and
-callable; it is not proof that a background scheduler exists. A subsequent
-approved task must wire server-side secret injection, private ingress, persistent
-local directory, one worker/relayer nonce stream, automatic closure invocation,
-restart/log retention and an always-awake host. Do not start production from an
-imagined environment-only daemon. Admission refusal remains an accepted trust
-limitation, which direct fallback cannot resolve.
+Service implementation update (branch `work/v7-race-reveal-service`): the
+bootstrap and automatic post-deadline scheduler now exist and have local E2E
+coverage. See [Race Reveal service](V7_RACE_REVEAL_SERVICE.md) for configuration,
+nonce recovery, persistence and scope. The earlier readiness evidence below
+remains historical evidence for its own commit, not the service test count.
+Provisioning the secret files, persistent single-host runtime, supervision,
+RPC history/finality and an always-awake host remains an operational prerequisite.
+Admission refusal remains an accepted trust limitation that direct fallback
+cannot resolve.
 
 ## Read-only preflight
 
@@ -168,7 +168,7 @@ provider quota/history guarantee is not assumed. A user's powered-on computer ca
 host MVP worker but sleeping/shutdown breaks automatic reveal availability.
 
 1. Approve local changes after this report; preserve checkpoint separately.
-2. Resolve service bootstrap/scheduler and network reachability blockers.
+2. Provision/supervise the reviewed Race Reveal service and verify live RPC reachability.
 3. Prepare distinct test-only role addresses outside repo; approve custody.
 4. After separate authorization, manually request test ETH; no real money.
 5. Approve test-only token prerequisite deployment; record exact receipt; set address.

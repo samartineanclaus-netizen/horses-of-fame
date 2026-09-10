@@ -29,4 +29,35 @@ describe('Readiness canonical local dry run',function(){this.timeout(180000);
  }
  expect(await f.board.seasonPoints(f.buyer.address)).eq(250);await preparePrizeScan(f.board);await f.board.finalizeSeason();await f.rewards.payCommunitySeason(1);expect(await f.token.balanceOf(f.buyer.address)).eq(2500000000n);expect(await f.rewards.communityRolloverToChapter2()).eq(1500000000n);await expect(f.rewards.payCommunitySeason(1)).revertedWith('community season paid');expect(await f.board.previousSeasonEnd()).eq(await last.revealedAt());
  });
+ it('automatic service E2E: canonical deploy/mint, browser signature, HTTP admission/sponsorship,24h close and both boards',async()=>{
+ const f=await setup();await f.token.mint(f.buyer.address,60000000000n);await f.token.connect(f.buyer).approve(f.sale.target,60000000000n);await mintInBatches(f.sale.connect(f.buyer),'mint',[2000]);
+ const key=await generateRaceKey(),opens=(await time.latest())+100;
+ Object.assign(process.env,f.env,{HOF_TRUSTED_LEADERBOARDS:f.board.target,GENESIS_SALE_ADDRESS:f.sale.target,RACE_OPENS_AT_UNIX:String(opens),HOF_RACE_PUBLIC_KEY:key.publicKey});await require('../../scripts/deploy-v7-race.js').main();
+ const race=await ethers.getContractAt('HOFRelayedRace',await f.board.races(0));await time.increaseTo(opens);
+ const {createRuntime}=require('../../scripts/run-race-reveal-service.cjs'),ingress='local-test-ingress-'.repeat(3);
+ const pem=require('node:crypto').KeyObject.from(key.privateKey).export({type:'pkcs8',format:'pem'});
+ // Local JSON-RPC transport exercises the actual CLI bootstrap, ABI loading,
+ // file permissions, MockUSDC and role validation with genuine local contracts.
+ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hof-automatic-e2e-'));
+ const rpc=require('node:http').createServer(async(req,res)=>{let body='';for await(const chunk of req)body+=chunk;const input=JSON.parse(body);const answer=async q=>{try{return{jsonrpc:'2.0',id:q.id,result:await network.provider.send(q.method,q.params)};}catch{return{jsonrpc:'2.0',id:q.id,error:{code:-32000,message:'local RPC rejected'}};}};const output=Array.isArray(input)?await Promise.all(input.map(answer)):await answer(input);res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify(output));});
+ await new Promise(r=>rpc.listen(0,'127.0.0.1',r));
+ // Derive ONLY the public Hardhat fixture identities; never live keys.
+ const admissionFile=path.join(directory,'admission.key'),relayerFile=path.join(directory,'relayer.key');
+ for(const [file,index]of [[admissionFile,1],[relayerFile,2]]){const wallet=ethers.HDNodeWallet.fromPhrase(network.config.accounts.mnemonic,undefined,`m/44'/60'/0'/0/${index}`);fs.writeFileSync(file,wallet.privateKey,{mode:0o600});}
+ fs.writeFileSync(path.join(directory,ethers.keccak256(key.publicKey).slice(2)+'.pem'),pem,{mode:0o600});
+ let runtime;
+ try{runtime=await createRuntime({...f.env,HOF_SERVICE_MODE:'testnetMockUSDC',HOF_RPC_URL:`http://127.0.0.1:${rpc.address().port}`,HOF_TRUSTED_LEADERBOARDS:f.board.target,GENESIS_SALE_ADDRESS:f.sale.target,HOF_ADMISSION_KEY_FILE:admissionFile,HOF_RELAYER_KEY_FILE:relayerFile,HOF_DECRYPTION_KEY_DIRECTORY:directory,HOF_SERVICE_DIRECTORY:path.join(directory,'journal'),HOF_SIGNED_INGRESS_TOKEN:ingress});}
+ catch(e){await new Promise(r=>rpc.close(r));fs.rmSync(directory,{recursive:true,force:true});throw e;}
+ const {service,provider}=runtime;
+ try{
+ await new Promise(r=>service.http.listen(0,'127.0.0.1',r));service.start();
+ const until=async fn=>{const end=Date.now()+60000;while(!await fn()&&Date.now()<end)await new Promise(r=>setTimeout(r,20));expect(await fn()).eq(true);};
+ await until(async()=>Boolean(service.queue));const signed=await signVote(race,f.buyer,8,[{id:23,vp:await f.genesis.votingPowerOf(23)}]);
+ const send=async(route,body)=>{const res=await fetch(`http://127.0.0.1:${service.http.address().port}/vote/${route}`,{method:'POST',headers:{Authorization:`Bearer ${ingress}`},body:JSON.stringify(body)});expect(res.status).eq(200);return res.json();};
+ const auth=await send('prepare',signed);const submitted=await send('submit',{...signed,...auth});expect(submitted.state).eq('Submitted');await until(async()=>await race.ballotCount()===1n);
+ expect(await f.board.allTimePoints(f.buyer.address)).eq(0);await time.increaseTo(Number(await race.closesAt()));await until(async()=>await race.finalized());
+ expect(await f.board.seasonPoints(f.buyer.address)).eq(25);expect(await f.board.allTimePoints(f.buyer.address)).eq(25);expect((await race.ranking()).length).eq(22);
+ }finally{await service.close();provider.destroy();await new Promise(r=>rpc.close(r));fs.rmSync(directory,{recursive:true,force:true});}
+ });
+
 });

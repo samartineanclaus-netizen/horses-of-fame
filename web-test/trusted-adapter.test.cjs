@@ -11,7 +11,7 @@ test('deadline: open inclusive, close exclusive, unfinished stays awaiting',()=>
  assert.equal(phaseAt(100,200,false,300),'awaiting');assert.equal(phaseAt(100,200,true,300),'finalized');
 });
 test('no partial results read while awaiting finalization',async()=>{
- const race={opensAt:pinned(100),closesAt:pinned(200),finalized:pinned(false),ranking:()=>assert.fail('must not read')};
+ const race={opensAt:pinned(100),closesAt:pinned(200),finalized:pinned(false),frozen:pinned(false),ranking:()=>assert.fail('must not read')};
  assert.deepEqual((await readRace(race,block)).rows,[]);
 });
 test('complete 22-horse result, same block, reject incomplete result',async()=>{
@@ -93,3 +93,5 @@ test('wallet change during asynchronous session check blocks sending',async()=>{
  const ethereum={request:async({method})=>{current=false;return method==='eth_accounts'?[address]:'0x1';}};
  await assert.rejects(assertWalletSession(ethereum,address,1,()=>current),/changed/);
 });
+
+test('frozen race displays Preparing Race Reveal without publishing any partial result',async()=>{const race={opensAt:pinned(100),closesAt:pinned(200),finalized:pinned(false),frozen:pinned(true),ranking:()=>assert.fail('partial result read')};const data=await readRace(race,block);assert.equal(data.phase,'preparing');assert.deepEqual(data.rows,[]);});

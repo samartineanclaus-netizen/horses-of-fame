@@ -1,0 +1,8 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+
+  Mock mainnet constructor rejection (LOCAL ONLY)
+    ✔ cannot deploy test mock on simulated mainnet4663 (1945ms)
+
+
+  1 passing (2s)

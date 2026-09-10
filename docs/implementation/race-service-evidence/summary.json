@@ -1,0 +1,29 @@
+{
+  "base": "d8ffe5c4771d3c836737abd6d3a378f7cd140b33",
+  "branch": "work/v7-race-reveal-service",
+  "tests": {
+    "contractsBackend": 290,
+    "frontend": 73,
+    "canonicalLocalDryRun": 3,
+    "localMainnetMockRejection": 1,
+    "fullSeasonBenchmarkProfiles": 4,
+    "totalDistinct": 371
+  },
+  "compile": "PASS",
+  "typecheck": "PASS",
+  "lint": {
+    "errors": 0,
+    "inheritedWarnings": 8
+  },
+  "productionBuild": "PASS",
+  "testnetBuild": "PASS",
+  "protectedFilesUnchanged": 32,
+  "serviceStress": {
+    "voters": 2200,
+    "VP": 4800,
+    "settlementTransactions": 91,
+    "gas": 58131390,
+    "maxTransactionGas": 705328
+  },
+  "remoteTransactionsSent": false
+}
