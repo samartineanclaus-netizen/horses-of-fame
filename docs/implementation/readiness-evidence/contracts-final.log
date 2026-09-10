@@ -1,0 +1,372 @@
+
+
+  HOFVoting - gas scalable batching
+    ✔ recognizes Hall of Fame NFTs as zero VP
+    ✔ recognizes Legendary voting power
+    ✔ prepares an NFT batch and records VP
+    ✔ rejects Hall of Fame NFTs with zero VP
+    ✔ rejects tokens not owned by caller
+    ✔ prevents the same NFT being prepared twice
+    ✔ allows multiple batches before final commit
+    ✔ finalizes commitment using prepared VP
+    ✔ prevents adding NFTs after final commit
+    ✔ prevents the same wallet finalizing twice
+    ✔ prevents NFT reuse after transfer
+    ✔ rejects wrong reveal secret (100ms)
+    ✔ rejects reveal for a different horse
+    ✔ hides horse totals before finalization
+    ✔ reveals valid commitment and records VP
+    ✔ applies ranking, tie-break and scoring correctly (39ms)
+    ✔ supports exactly 100 NFTs in one batch (217ms)
+    ✔ rejects batches larger than 100 NFTs
+
+  V7 canonical frontend / admission / actual protocol integration
+    ✔ frontend ABI fragments match compiled contract inputs and outputs (72ms)
+    ✔ all22 canonical IDs survive browser encryption, HTTP admission, chain settlement and both boards (2349ms)
+
+  V7 Chapter 2 activation gate
+    ✔ rejects missing races, unfinished Race #60, and unauthorized activation (2105ms)
+    ✔ rejects 30 days minus one second from actual final Race Reveal (1739ms)
+    ✔ accepts exactly 30 days, before auxiliary season bookkeeping, and only once
+    ✔ accepts 30 days plus one second after delayed administrative season finalization (120ms)
+
+  V7 Community casting tie-break
+    ✔ selects the wallet holding the lower-numbered NFT (130ms)
+    ✔ uses the lowest NFT held when a wallet owns multiple NFTs (99ms)
+    ✔ does not use wallet address ordering as the tie-break (108ms)
+    ✔ makes a wallet with no NFT lose the tie-break against a wallet that still holds an NFT (144ms)
+
+  V7 Community cadence and parallel six-season integration
+    ✔ uses the same three-day interval in both leaderboards and keeps the 24-hour vote window (94ms)
+    ✔ rejects a second race opening one second early without changing either leaderboard (138ms)
+    ✔ rejects a second race opening one second late without changing either leaderboard (236ms)
+    ✔ rejects a different race contract using the same opening as the previous race (153ms)
+    ✔ accepts exact scheduled openings despite delayed registration and rejects out-of-order races (161ms)
+    ✔ processes the same 60 races in both leaderboards, preserving history, Top 3, resets and Chapter I limits (5488ms)
+
+  V7 Community/Holder Season
+    ✔ awards the wallet the points of its chosen horse's final position (96ms)
+    ✔ allows only one Community scoring result per wallet per race (99ms)
+    ✔ does not multiply Community points when a wallet uses more NFTs (116ms)
+    ✔ accumulates points for the same wallet across different races (116ms)
+    ✔ keeps separate wallet scores (131ms)
+    ✔ requires a revealed vote before Community points can be claimed (80ms)
+
+  V7 Community season history, reset and All-Time
+    ✔ archives wallet points, Top 3, resets season score and advances to season 2 (736ms)
+    ✔ keeps All-Time points while season 2 starts from zero and accumulates independently (1389ms)
+    ✔ keeps a persistent Chapter I wallet registry across season resets for All-Time standings (1482ms)
+    ✔ cannot finalize before ten races are registered (123ms)
+    ✔ does not add a participant-count requirement that is absent from V7 (440ms)
+
+  V7 Community race/season isolation
+    ✔ retains each race's original season after reset and assigns new races to season 2 (761ms)
+    ✔ rejects an unclaimed season-1 result after finalization without changing scores or archives (868ms)
+    ✔ cannot add old-race points to a wallet that already scored in the new season (1638ms)
+    ✔ still accepts a delayed claim within the same active season, exactly once (1311ms)
+    ✔ cannot re-register a previous-season race as a new-season race (1068ms)
+    ✔ blocks claims after all six seasons and preserves every season's history and All-Time (4386ms)
+
+  V7 unresolved Community tie protection
+    ✔ does not award a casting win when both tied wallets own zero Genesis NFTs (51ms)
+
+  V7 full-system deployment wiring
+    ✔ locks the V7 constants and cross-contract references in one deployable system (157ms)
+    ✔ routes a V7 public mint through USDC and the configured sale contract (139ms)
+
+  V7 final refund entitlement
+    ✔ refunds a secondary holder at the exact deadline and never the former owner (84ms)
+    ✔ rolls back duplicate IDs and mixed ownership/allocation requests atomically (107ms)
+    ✔ rolls back burns on a failed USDC transfer and blocks callback reentrancy (86ms)
+    ✔ rejects a new mint exactly at the deadline (64ms)
+    ✔ never enables refunds after full sell-out, including after the deadline (2223ms)
+    ✔ allows the designated Team wallet to refund its purchased token (51ms)
+
+  V7 Community rollover to Chapter 2
+    ✔ settles 0 winners with fixed prizes and separately backed rollover (96ms)
+    ✔ settles 1 winners with fixed prizes and separately backed rollover
+    ✔ settles 2 winners with fixed prizes and separately backed rollover
+    ✔ settles 3 winners with fixed prizes and separately backed rollover
+    ✔ preserves empty prize slots without increasing another winner's payout
+    ✔ accounts for all six seasons independently of payment order (78ms)
+    ✔ rejects unauthorized, unfinalized and duplicate winners without consuming a season
+    ✔ rolls back payment and rollover if a token transfer fails
+    ✔ blocks reentrancy even when the rewards owner itself receives token callbacks
+    ✔ does not count an unfunded missing prize as funded rollover (100ms)
+
+  V7 isolated supply buckets
+    ✔ mints exactly 2000 + 111 + 111 with independent lifetime caps (1919ms)
+    ✔ enforces access, rejects zero quantity and preserves counters on rejected recipients (82ms)
+
+  V7 final Community tie decisions
+    ✔ skips both tied nonholders and fills prizes from the next scores (1214ms)
+    ✔ passes an empty eligible podium into real rewards and reserves all 4000 USDC (1263ms)
+    ✔ uses ownership at winner determination, not at voting or claiming
+    ✔ uses the lowest current Token ID when both tied wallets retain NFTs
+
+  V7 full Chapter I lifecycle
+    ✔ runs six seasons / sixty races and preserves locked Chapter I lifecycle invariants (4763ms)
+
+  V7 Genesis allocation caps
+    ✔ locks Public 2,000 + Community 111 + Team Reserve 111 = 2,222
+    ✔ enforces the Community and Team Reserve 111-NFT buckets separately (195ms)
+    ✔ classifies only the designated Team Reserve Wallet into the Team bucket (103ms)
+    ✔ keeps the paid Public Mint isolated behind the configured sale contract (79ms)
+
+  V7 Chapter I Genesis Grand Champion
+    ✔ does not expose the Chapter I title before all six seasons are complete
+    ✔ names HOF All-Time #1 as Genesis Grand Champion after all 60 races (1763ms)
+
+  V7 HOF season history, reset and All-Time
+    ✔ archives season 1, resets active scores and advances to season 2 (301ms)
+    ✔ preserves finalized season points in All-Time standings (311ms)
+    ✔ continues accumulating All-Time points across seasons while each new season starts at zero (542ms)
+    ✔ cannot finalize an incomplete season (50ms)
+    ✔ keeps the V7 lower-number tie-break in All-Time standings
+
+  V7 HOF Season Leaderboard
+    ✔ accumulates HOF points across multiple races (74ms)
+    ✔ enforces exactly three days between race opening times (70ms)
+    ✔ accepts a race opening exactly three days after the previous race (75ms)
+    ✔ cannot record the same race twice (66ms)
+    ✔ only the season owner can record race results (52ms)
+    ✔ enforces exactly ten races per season (314ms)
+    ✔ uses lower HOF number as season tie-break
+    ✔ rejects a race that has not closed (56ms)
+
+  V7 locked Genesis supply and VP invariants
+    ✔ keeps 22 HOF + 2,200 voting NFTs = 2,222 Genesis
+    ✔ keeps the V7 rarity distribution at exactly 2,200 voting NFTs and 4,800 nominal VP
+    ✔ keeps the locked 2,000 Public + 111 Community + 111 Team Reserve allocation
+
+  V7 mint cap 25
+    ✔ accepts 25 and rejects 26 for Public, Community and Team (211ms)
+    ✔ enforces cap on direct saleMint even for the configured sale (40ms)
+    ✔ mints 100 Public as four transactions with unique IDs (403ms)
+    ✔ fills independent 111 allocations and preserves Team lock (218ms)
+    ✔ preserves earlier batches when a competing buyer consumes remaining supply (2579ms)
+    ✔ stops at exact deadline between batches (204ms)
+    ✔ keeps first batch after insufficient USDC or allowance (149ms)
+    ✔ reverts the entire batch and payment when recipient rejects a later NFT (118ms)
+    ✔ blocks receiver callback mint reentrancy (101ms)
+    ✔ retains current-owner refund, burn, lifetime counters and delayed reveal (153ms)
+MINT_GAS [{"kind":"public","batch":1,"gas":3621422},{"kind":"public","batch":2,"gas":3541522},{"kind":"community","batch":1,"gas":3000966},{"kind":"community","batch":2,"gas":2955266},{"kind":"team","batch":1,"gas":3000979},{"kind":"team","batch":2,"gas":2955279}]
+    ✔ measures cold/warm Public, Community and Team batches of 25 (298ms)
+
+  V7 public mint entrypoint integrity
+    ✔ does not expose the legacy payable publicTestMint bypass (38ms)
+    ✔ keeps public-sale minting restricted to the configured V7 sale contract
+
+  V7 owner-trusted encrypted voting
+    ✔ one Vote stores encrypted data, counts VP and exposes no reveal/claim entry point (257ms)
+    ✔ rejects early voting and accepts opensAt, closesAt-1 but rejects closesAt (64ms)
+    ✔ blocks owner, backend and Team even with signed admission, and blocks early freeze (69ms)
+    ✔ rejects invalid encryption, domain, key, horse and modified commitment in backend (194ms)
+    ✔ auth binds wallet, ciphertext, deadline and chain/race; invalid NFT lists roll back (58ms)
+    ✔ preserves same-pick topups and prohibits transferred token reuse (109ms)
+    ✔ never finalizes incomplete/duplicate/wrong-index or altered-score outputs (304ms)
+    ✔ uses full 22 ranking, lower horse tie, exact scoring and no VP multiplier (60ms)
+    ✔ rejects an omitted leaf, wrong VP sum and unauthorized result (43ms)
+    ✔ worker is resumable, handles empty race, and fails closed before final closure (62ms)
+    ✔ worker resumes a partially prepared result without a voter (331ms)
+    ✔ malformed owner-authorized ciphertext keeps backend reveal incomplete (38ms)
+    ✔ retains live ownership tie-break and treasury rollover integration for ten races (1797ms)
+    ✔ uses current lowest token ID and preserves a sole tied nonholder behind a holder (208ms)
+    ✔ keeps lowest-ID holder first when both retain NFTs (168ms)
+      GAS full-supply season finalization: 264226
+    ✔ bounds winner scan by full Genesis supply and measures finalization gas (2856ms)
+    ✔ serves admission over HTTP without exposing decrypted ballot data (56ms)
+      GAS 25-wallet score batch: 612643
+      GAS atomic race finalization: 73131
+    ✔ settles 101 distinct wallets in bounded batches and measures gas (4443ms)
+    ✔ skips tied nonholders for the next score, while unique-score nonholder stays eligible (2237ms)
+    ✔ rejects owner rotation, unauthorized registration and stale admissions
+    ✔ website reads activate both tables atomically and match contract getters without indexing (441ms)
+    ✔ prize scan resumes with strict cursors, rejects partial results and stale ownership (1852ms)
+    ✔ rejects transfer after the last prize batch and protects score-bucket cursors (294ms)
+    ✔ mint and refund burn invalidate scans; failed transfers and approvals cannot change revision (248ms)
+    ✔ bounds operator batch configuration before it submits any transaction
+
+  Phase 1 canonical provenance and configuration
+    ✔ accepts only fixed-factory Sponsored Race and rejects duplicate registration (430ms)
+    ✔ rejects malicious race with fabricated participants and scores despite matching all roles (214ms)
+    ✔ rejects directly deployed authentic implementation without factory provenance (198ms)
+    ✔ rejects a canonical race belonging to another board (171ms)
+    ✔ rejects wrong chapter and season at factory and wrong ordinal at board (229ms)
+    ✔ rejects unauthorized creation and registration (198ms)
+    ✔ preserves six seasons and Chapter 2 boundary with 60 genuine factory races (6858ms)
+    ✔ requires complete config, separate operational roles and valid RSA public key (179ms)
+    ✔ fails closed on wrong chain, missing token bytecode, decimals and expired deadline (42ms)
+    ✔ canonical deployment sources cannot instantiate legacy voting/leaderboards or test harnesses
+
+  Phase 1 journal and worker recovery
+    ✔ concurrent enqueue cannot overwrite attempts, pending hash or newer state (59ms)
+    ✔ rejects stale journal transitions and terminal-state rollback (44ms)
+    ✔ excludes duplicate workers on both journal and wallet across different journals (76ms)
+    ✔ refuses journal reuse on another deployment (48ms)
+    ✔ recovers dead-process lock without deleting a live owner lock
+    ✔ never reclaims a lock from another PID namespace as a dead process
+    ✔ unknown broadcast after crash never automatically retransmits after restart (63ms)
+    ✔ mined nonce cancellation without inclusion is rejected without retry (71ms)
+    ✔ RPC failure during recovery cannot cause broadcast (45ms)
+    ✔ stuck pending transaction is not resent; explicit same-payload replacement reconciles once (153ms)
+    ✔ finds a mined replacement after lost RPC response and restart (151ms)
+
+  Phase 1 authenticated admission quotas
+    ✔ requires private ingress config
+    ✔ anonymous bursts and spoofed proxy headers cannot consume legitimate wallet/race quota (525ms)
+    ✔ race-scoped keys isolate limits even with the same wallet
+
+  V7 public mint entrypoint
+    ✔ does not expose the legacy payable publicTestMint bypass
+    ✔ rejects direct public saleMint calls from ordinary wallets
+    ✔ marks NFTs minted by the configured V7 sale path as refundable public-sale tokens (50ms)
+
+  V7 deterministic race ranking
+    ✔ does not expose final ranking before voting closes (57ms)
+    ✔ ranks higher revealed VP ahead of lower VP (80ms)
+    ✔ uses lower HOF competitor number as the tie-break (73ms)
+    ✔ orders all zero-VP competitors by lower number (54ms)
+    ✔ produces a complete unique ranking of competitors 1 through 22 (74ms)
+
+  V7 Race Vote Reveal
+    ✔ cannot reveal before the 24-hour voting window closes (65ms)
+    ✔ rejects a horse number or salt that does not match the commitment (61ms)
+    ✔ reveals once and assigns the exact committed VP to the chosen horse (85ms)
+    ✔ cannot reveal the same wallet twice (85ms)
+    ✔ aggregates VP from different wallets choosing the same horse (87ms)
+
+  V7 locked race scoring
+    ✔ uses exactly 25/18/15/12/10/8/6/4/2/1 for positions 1-10 (65ms)
+    ✔ gives zero points to every position from 11 through 22 (127ms)
+    ✔ rejects positions outside 1 through 22 (71ms)
+    ✔ maps ranking positions back to the correct HOF competitor (40ms)
+    ✔ does not expose race points before voting closes (46ms)
+
+  V7 Race Voting Core
+    ✔ combines all eligible NFT VP behind one wallet commitment (65ms)
+    ✔ allows only one secret pick per wallet (78ms)
+    ✔ rejects Hall of Fame NFTs because they have 0 VP (71ms)
+    ✔ prevents reuse after a voted NFT is transferred to another wallet (101ms)
+    ✔ blocks the Team Reserve wallet itself from voting (69ms)
+    ✔ restores normal voting eligibility after a Team Reserve NFT is transferred to an independent holder (75ms)
+    ✔ enforces the exact 24-hour voting window (180ms)
+
+  V7 same-pick VP top-up for newly acquired NFTs
+    ✔ adds a newly acquired unused NFT to the wallet's existing secret pick (77ms)
+    ✔ cannot add VP before the wallet has fixed its secret pick (51ms)
+    ✔ cannot change or split the wallet pick while adding more VP (69ms)
+    ✔ cannot reuse an NFT that already contributed, even after transfer (84ms)
+    ✔ cannot add VP after the 24-hour voting window closes (70ms)
+
+  Testnet readiness guards
+    ✔ false-return payment/refund failures revert NFT and accounting atomically (97ms)
+    ✔ mock is labelled, six-decimal and has explicit test marker
+    ✔ mainnet deployment path rejects MockUSDC before signing
+    ✔ missing mode is not implicitly interpreted as a production token
+    ✔ existing artifacts match current source and compiler settings (756ms)
+    ✔ productionUSDC mode is rejected even for a 6-decimal token on testnet
+
+  V7 atomic refunds
+    ✔ burns public-sale NFTs and returns exactly 30 USDC per NFT (92ms)
+    ✔ cannot refund before the failed-sale deadline (63ms)
+    ✔ cannot refund an NFT after transferring it away (68ms)
+    ✔ cannot use owner/giveaway NFTs to claim public-sale refunds (56ms)
+
+  V7 sale -> Genesis integration
+    ✔ allows only the configured sale contract to mint public NFTs (66ms)
+    ✔ locks the sale contract configuration after the first valid setup
+
+  V7 sale payment-token decimals
+    ✔ accepts the 6-decimal USDC accounting used by V7 (54ms)
+    ✔ rejects an 18-decimal payment token so 30 * 1e6 cannot be mispriced
+
+  V7 primary-sale proceeds and Prize Pool custody invariants
+    ✔ rejects deployment when the Prize Pool destination is the founder wallet (45ms)
+    ✔ cannot distribute any primary-sale proceeds before all 2,000 Public Mint NFTs sell (65ms)
+    ✔ at sell-out records the sell-out time and distributes exactly 48,000 / 2,000 / 10,000 USDC only once (2282ms)
+
+  V7 Season Rewards
+    ✔ locks the exact V7 season and Chapter I reward constants (123ms)
+    ✔ pays only the archived Community Top 3 exactly 2500 / 1000 / 500 USDC (63ms)
+    ✔ cannot pay the Community allocation twice for the same season (80ms)
+    ✔ rejects invalid season numbers (78ms)
+    ✔ after all six Community payouts exactly 24000 USDC remains reserved for HOF (76ms)
+    ✔ does not expose HOF payout or generic withdrawal before V7 beneficiary mechanics are finalized (53ms)
+
+  V7 master document integrity
+    ✔ keeps the approved V7 master byte-for-byte unchanged
+
+  V7 sponsored signed voting
+    ✔ accepts a genuine admission, stores compact metadata and reconstructs ciphertext (85ms)
+    ✔ rejects modified signed voter
+    ✔ rejects modified signed race
+    ✔ rejects modified signed nonce
+    ✔ rejects modified signed deadline
+    ✔ rejects modified signed commitment
+    ✔ rejects modified signed ciphertextHash
+    ✔ rejects modified signed tokenIdsHash
+    ✔ rejects modified signed vp
+    ✔ rejects modified signed topUp
+    ✔ rejects modified ciphertext and token arrays, including duplicates atomically (41ms)
+    ✔ rejects wrong chain/domain and another race (64ms)
+    ✔ owner cannot vote (41ms)
+    ✔ backend cannot vote
+    ✔ team cannot vote
+    ✔ rejects admission refusal, malformed decrypted horse, and forged backend signature (43ms)
+    ✔ backend wins fallback race without a duplicate
+    ✔ direct wins fallback race without a duplicate
+    ✔ partial batch failure and duplicate nonce revert every earlier write (62ms)
+    ✔ bounds empty/oversized batches and total NFT uses (63ms)
+    ✔ accepts at opening, rejects before opening, and at exact 24h close (56ms)
+    ✔ accepts deadline-1 and personal deadline exact, rejects personal deadline+1 (64ms)
+    ✔ signed same-pick topups preserve current ownership and NFT reuse restrictions (87ms)
+    ✔ refuses stale eligibility after transfer and HOF 0VP (49ms)
+    ✔ rejects incomplete reconstruction and incomplete reveal; scores once with exact V7 mapping (180ms)
+    ✔ supports ERC1271 signatures while refusing reentry and unauthorized wallet changes (57ms)
+    ✔ maps every canonical HOF ID1–22 and independently checks every V7 score end-to-end (1081ms)
+    ✔ supports a genuine empty finalized race (69ms)
+
+  V7 sponsored queue/adaptive deadline flush
+    ✔ defaults to25 and flushes one vote without waiting for a full batch (92ms)
+    ✔ wakes automatically on enqueue and drains a partial batch (113ms)
+    ✔ flushes before the exact race deadline rather than waiting for25 (72ms)
+    ✔ expires at deadline; Signed/Submitted alone never become valid votes (63ms)
+    ✔ splits by gas budget and resumes every deferred vote (858ms)
+    ✔ restarts from durable queue, deduplicates enqueue and processing (96ms)
+    ✔ direct fallback before worker causes no second vote or paid backend retry (72ms)
+    ✔ backend before fallback rejects reused nonce (86ms)
+    ✔ rejects an ineligible packet before sponsorship and handles eligibility loss in queue (59ms)
+    ✔ rejects owner as operational relayer
+    ✔ rejects backend as operational relayer
+    ✔ rejects team as operational relayer
+    ✔ rejects treasury as operational relayer
+    ✔ serializes concurrent flush and protects competing wallet nonce intents (235ms)
+    ✔ truncates torn unacknowledged journal append, preserving acknowledged votes (64ms)
+    ✔ rate limits before expensive admission and never returns plaintext/private keys (136ms)
+    ✔ unauthenticated requests cannot exhaust another wallet admission quota (149ms)
+    ✔ dispatches a bounded window before validating the rest of a backlog (336ms)
+    ✔ bounds receipt waiting and reconciles an ambiguous broadcast without duplicate inclusion (79ms)
+    ✔ caps sponsored broadcast failures persistently per wallet/nonce, even after re-signing (94ms)
+    ✔ uses an urgent timer during the final60 seconds, including the boundary
+    ✔ rate limit windows reset and key cardinality is bounded
+
+  V7 Team Reserve sell-out transfer gate
+    ✔ keeps Team Reserve NFTs in the designated wallet until Public Mint sell-out (69ms)
+    ✔ does not lock Community allocation transfers behind Public Mint sell-out (52ms)
+    ✔ locks Team Reserve even if allocation was minted before the sale contract was configured
+
+  V7 Team Wallet voting rule
+    ✔ gives 0 VP in Team Wallet and restores rarity VP after transfer (58ms)
+    ✔ does not suppress voting power for the same rarity outside Team Wallet
+    ✔ locks Team Wallet after initial configuration
+
+  V7 trusted full-supply settlement gas stress
+      GAS_REPORT [{"stage":"freeze","transactions":1,"min":"95744","max":"95744","total":"95744"},{"stage":"propose","transactions":1,"min":"278280","max":"278280","total":"278280"},{"stage":"score batch","transactions":88,"min":"832297","max":"947424","total":"81420688"},{"stage":"race finalization","transactions":1,"min":"73131","max":"73131","total":"73131"},{"stage":"index batch","transactions":88,"min":"1367189","max":"1440389","total":"121056932"},{"stage":"begin prize scan","transactions":1,"min":"265114","max":"265114","total":"265114"},{"stage":"holder batch","transactions":89,"min":"483534","max":"815313","total":"70905677"},{"stage":"score bucket batch","transactions":11,"min":"73481","max":"203724","total":"1959026"},{"stage":"season finalization","transactions":1,"min":"245031","max":"245031","total":"245031"}]
+    ✔ settles 2200 real encrypted votes and all Community prizes in resumable capped batches (114746ms)
+      GAS 25 cold distinct score buckets: 2625875 index max: 1461391
+    ✔ measures a cold prize batch with 25 distinct reachable V7 season-score buckets (535ms)
+
+
+  273 passing (3m)
+

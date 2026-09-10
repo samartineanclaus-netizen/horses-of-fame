@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>{process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === "testnetMockUSDC" && <div role="note" style={{textAlign:"center",padding:12,background:"#17130a",color:"#e8c875"}}>TEST ONLY / NO VALUE — MockUSDC · Owner-trusted voting</div>}{children}</body>
     </html>
   );
 }

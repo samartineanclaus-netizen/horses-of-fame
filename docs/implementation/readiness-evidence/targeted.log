@@ -1,0 +1,14 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+
+  Testnet readiness guards
+    ✔ false-return payment/refund failures revert NFT and accounting atomically (774ms)
+    ✔ mock is labelled, six-decimal and has explicit test marker
+    ✔ mainnet deployment path rejects MockUSDC before signing
+    ✔ missing mode is not implicitly interpreted as a production token
+    ✔ existing artifacts match current source and compiler settings (657ms)
+    ✔ productionUSDC mode is rejected even for a 6-decimal token on testnet
+
+
+  6 passing (1s)
+

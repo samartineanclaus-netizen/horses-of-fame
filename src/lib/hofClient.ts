@@ -18,7 +18,7 @@ function envAddress(value: string | undefined): `0x${string}` | null {
 export const HOF_CONTRACTS = {
   genesis: envAddress(process.env.NEXT_PUBLIC_HOF_GENESIS_CONTRACT),
   sale: envAddress(process.env.NEXT_PUBLIC_HOF_GENESIS_SALE_CONTRACT),
-  usdc: envAddress(process.env.NEXT_PUBLIC_HOF_USDC_CONTRACT),
+  usdc: process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === 'testnetMockUSDC' && process.env.NEXT_PUBLIC_HOF_CHAIN_ID === '46630' ? envAddress(process.env.NEXT_PUBLIC_HOF_USDC_CONTRACT) : null,
   raceVoting: envAddress(process.env.NEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT),
   communitySeason: envAddress(process.env.NEXT_PUBLIC_HOF_COMMUNITY_SEASON_CONTRACT),
   hofLeaderboard: envAddress(process.env.NEXT_PUBLIC_HOF_LEADERBOARD_CONTRACT),

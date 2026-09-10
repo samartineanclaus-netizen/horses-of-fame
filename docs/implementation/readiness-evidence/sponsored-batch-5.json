@@ -1,0 +1,174 @@
+{
+  "batchSize": 5,
+  "scenario": "10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community",
+  "stages": {
+    "initial approval": {
+      "gas": "46343",
+      "tx": 1,
+      "max": "46343",
+      "min": "46343"
+    },
+    "mint": {
+      "gas": "309762536",
+      "tx": 90,
+      "max": "3609922",
+      "min": "1332041"
+    },
+    "distribution": {
+      "gas": "213684135",
+      "tx": 2200,
+      "max": "109404",
+      "min": "91631"
+    },
+    "race deployment": {
+      "gas": "31212030",
+      "tx": 10,
+      "max": "3121203",
+      "min": "3121203"
+    },
+    "race registration": {
+      "gas": "979245",
+      "tx": 10,
+      "max": "107712",
+      "min": "96837"
+    },
+    "vote": {
+      "gas": "3273206024",
+      "tx": 4400,
+      "max": "810813",
+      "min": "742185"
+    },
+    "freeze": {
+      "gas": "957000",
+      "tx": 10,
+      "max": "95700",
+      "min": "95700"
+    },
+    "propose": {
+      "gas": "7682403",
+      "tx": 10,
+      "max": "846310",
+      "min": "663689"
+    },
+    "scoring": {
+      "gas": "572682884",
+      "tx": 880,
+      "max": "705856",
+      "min": "529610"
+    },
+    "race finalization": {
+      "gas": "731090",
+      "tx": 10,
+      "max": "73109",
+      "min": "73109"
+    },
+    "Community indexing": {
+      "gas": "551932307",
+      "tx": 880,
+      "max": "1877679",
+      "min": "471493"
+    },
+    "Community scan begin": {
+      "gas": "302871",
+      "tx": 1,
+      "max": "302871",
+      "min": "302871"
+    },
+    "Community holders": {
+      "gas": "81445188",
+      "tx": 89,
+      "max": "1369630",
+      "min": "615887"
+    },
+    "Community scores": {
+      "gas": "1979996",
+      "tx": 11,
+      "max": "210015",
+      "min": "75578"
+    },
+    "season finalization": {
+      "gas": "284863",
+      "tx": 1,
+      "max": "284863",
+      "min": "284863"
+    },
+    "Community payout": {
+      "gas": "175405",
+      "tx": 1,
+      "max": "175405",
+      "min": "175405"
+    }
+  },
+  "races": [
+    {
+      "race": 1,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327319676"
+    },
+    {
+      "race": 2,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327319424"
+    },
+    {
+      "race": 3,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327322304"
+    },
+    {
+      "race": 4,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327320372"
+    },
+    {
+      "race": 5,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327321224"
+    },
+    {
+      "race": 6,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327321056"
+    },
+    {
+      "race": 7,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327320192"
+    },
+    {
+      "race": 8,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327321416"
+    },
+    {
+      "race": 9,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327319664"
+    },
+    {
+      "race": 10,
+      "voters": 2200,
+      "vp": 4800,
+      "voteGas": "327320696"
+    }
+  ],
+  "totalGas": "5047064320",
+  "transactions": 8604,
+  "recurringGas": "4523571306",
+  "recurringTransactions": 6313,
+  "gasPerVote": 148782.092,
+  "winners": [
+    "0xf47C216EA8f2599195F63eA928D43A5EE5ad3536",
+    "0xcAB9292f4289E223c1A793a9E12379720a9613a9",
+    "0x459bb6E255106d666bBc202d06Fe01996eba5Dd7"
+  ]
+}

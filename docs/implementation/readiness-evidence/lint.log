@@ -1,0 +1,102 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> horses-of-fame-site@0.1.0 lint
+> eslint
+
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/allocations/page.tsx
+  102:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/allocations/page.tsx:102:10
+  100 |
+  101 |   useEffect(() => {
+> 102 |     void load();
+      |          ^^^^ Avoid calling setState() directly within an effect
+  103 |   }, []);
+  104 |
+  105 |   return (  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/history/page.tsx
+  104:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/history/page.tsx:104:10
+  102 |
+  103 |   useEffect(() => {
+> 104 |     void load();
+      |          ^^^^ Avoid calling setState() directly within an effect
+  105 |   }, []);
+  106 |
+  107 |   return (  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/mint/page.tsx
+  86:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/mint/page.tsx:86:10
+  84 |
+  85 |   useEffect(() => {
+> 86 |     void loadSaleState();
+     |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  87 |   }, []);
+  88 |
+  89 |   async function connect() {  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/page.tsx
+  181:69  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  182:70  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/refund/page.tsx
+  62:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/refund/page.tsx:62:10
+  60 |
+  61 |   useEffect(() => {
+> 62 |     void refreshStatus();
+     |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  63 |   }, []);
+  64 |
+  65 |   async function connect() {  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/components/Voting.jsx
+  55:34   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  53 |     finally {provider.destroy();if(inFlight.current===generation)inFlight.current=null;if(generation===epoch.current)setLoading(false);}
+  54 |   },[wallet,mode]);
+> 55 |   useEffect(()=>{epoch.current++;setSnapshot(null);void refresh();const id=setInterval(refresh,15000);return()=>{epoch.current++;clearInterval(id);};},[refresh]);
+     |                                  ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  56 |   useEffect(()=>{
+  57 |     const ethereum=window.ethereum; if (!ethereum?.on) return;
+  58 |     const reset=()=>{epoch.current++;setWallet('');setPacket(null);packetRef.current=null;setSnapshot(null);setExcludedTokens([]);setHorse(null);setMessage('Wallet changed. Connect again to vote.');};  react-hooks/set-state-in-effect
+  55:120  warning  The ref value 'epoch.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'epoch.current' to a variable inside the effect, and use that variable in the cleanup function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+
+✖ 8 problems (0 errors, 8 warnings)
+

@@ -16,8 +16,9 @@ module.exports = {
   },
 
   networks: {
+    hardhat: { chainId: process.env.HOF_LOCAL_TESTNET === "1" ? 46630 : 31337 },
     robinhoodTestnet: {
-      url: "https://rpc.testnet.chain.robinhood.com",
+      url: process.env.HOF_RPC_URL || "https://rpc.testnet.chain.robinhood.com",
       chainId: 46630,
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     },

@@ -6,3 +6,9 @@ out/
 *.tsbuildinfo
 .env*
 !.env.example
+
+!.env.v7-deploy.example
+*.pem
+*.key
+*.journal
+.hof-runtime/
