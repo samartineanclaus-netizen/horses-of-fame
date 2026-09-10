@@ -4,11 +4,16 @@ import {useRef, useState} from 'react';
 import Image from 'next/image';
 import artworks from '../data/legendaryArtwork.json';
 
+// Display positions are separate from stable original asset identities.
+const galleryOrder = [1, 2, 9, 4, 5, 6, 7, 8, 3, 10, 11, 12, 13, 14, 15];
+const orderedArtworks = galleryOrder.map(number =>
+  artworks.find(artwork => artwork.assetKey === `artwork-${String(number).padStart(2, '0')}`));
+
 export default function LegendaryGallery({preview = false}) {
   const dialog = useRef(null);
   const trigger = useRef(null);
   const [active, setActive] = useState(null);
-  const visible = preview ? artworks.slice(0, 4) : artworks;
+  const visible = preview ? ['artwork-01', 'artwork-02', 'artwork-09', 'artwork-15'].map(key => artworks.find(artwork => artwork.assetKey === key)) : orderedArtworks;
 
   function open(artwork, button) {
     trigger.current = button;

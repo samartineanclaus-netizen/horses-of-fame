@@ -10,10 +10,8 @@
 .rewardContent{position:relative;z-index:2}
 .rewardArt{position:absolute;top:0;bottom:0;width:min(33vw,500px);z-index:1;pointer-events:none;opacity:.28}
 .rewardArt img{width:100%;height:100%;object-fit:cover}
-.rewardArtLeft{left:0}
 .rewardArtRight{right:0}
-.rewardArtLeft:after,.rewardArtRight:after{content:"";position:absolute;inset:0}
-.rewardArtLeft:after{background:linear-gradient(90deg,rgba(7,7,6,.08) 0%,rgba(7,7,6,.5) 55%,#0d0906 100%)}
+.rewardArtRight:after{content:"";position:absolute;inset:0}
 .rewardArtRight:after{background:linear-gradient(270deg,rgba(7,7,6,.08) 0%,rgba(7,7,6,.5) 55%,#0d0906 100%)}
 .rewards .sectionHead{margin-left:auto;margin-right:auto;text-align:center;max-width:760px}
 .rewards .rewardGrid,.rewards .bigLine{position:relative;z-index:3}

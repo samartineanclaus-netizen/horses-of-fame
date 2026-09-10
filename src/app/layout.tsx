@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./voting.css";
 import "./hof.css";
+import "./luxury.css";
 
 const configuredOrigin = process.env.NEXT_PUBLIC_HOF_SITE_URL;
 const verifiedOrigin = configuredOrigin && /^https:\/\/[^<>\s]+$/.test(configuredOrigin)
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><BrandHeader/>{process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === "testnetMockUSDC" && <div role="note" style={{textAlign:"center",padding:12,background:"#17130a",color:"#e8c875"}}>TEST ONLY / NO VALUE — MockUSDC · Owner-trusted voting</div>}{children}</body>
+      <body><BrandHeader/>{process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === "testnetMockUSDC" && <div role="note" style={{textAlign:"center",padding:12,background:"#17130a",color:"#e8c875"}}>TEST ONLY / NO VALUE — MockUSDC · Owner-trusted voting</div>}<div id="main-content" tabIndex={-1}>{children}</div></body>
     </html>
   );
 }

@@ -39,10 +39,14 @@ test('Legendary gallery renders15, preview4, lazy derivatives and accessible enl
  try{
   await act(async()=>mounted.render(React.createElement(Gallery,{preview:true})));
   assert.equal(container.querySelectorAll('.legendaryCard').length,4);
+  assert.deepEqual(Array.from(container.querySelectorAll('.legendaryCard img'), img => img.getAttribute('src')), [1,2,9,15].map(n=>artworks[n-1].image));
   assert.equal(container.querySelectorAll('img').length,4,'no hidden full gallery/downloads in preview');
   for(const img of container.querySelectorAll('img')){assert.equal(img.getAttribute('loading'),'lazy');assert.ok(img.alt);assert.ok(img.src.includes('/web/'));}
   await act(async()=>mounted.render(React.createElement(Gallery)));
   assert.equal(container.querySelectorAll('.legendaryCard').length,15);
+  const images=Array.from(container.querySelectorAll('.legendaryCard img'), img=>img.getAttribute('src'));
+  assert.deepEqual(images,[1,2,9,4,5,6,7,8,3,10,11,12,13,14,15].map(n=>artworks[n-1].image));
+  assert.equal(new Set(images).size,15,'each approved artwork appears exactly once');
   const button=container.querySelectorAll('.legendaryCard')[7];button.focus();
   assert.equal(button.getAttribute('aria-haspopup'),'dialog');
   await act(async()=>button.click());
