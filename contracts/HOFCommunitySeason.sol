@@ -150,8 +150,16 @@ contract HOFCommunitySeason is Ownable {
     }
 
     function _calculateTop3() internal view returns (address[3] memory top3) {
+        uint256[] memory noNftAtScore = new uint256[](251);
+        bool[] memory hasNft = new bool[](activeWallets.length);
+        for (uint256 i = 0; i < activeWallets.length; i++) {
+            address wallet = activeWallets[i];
+            hasNft[i] = IGenesisEnumerable(genesisContract).balanceOf(wallet) > 0;
+            if (!hasNft[i]) noNftAtScore[seasonPoints[wallet]]++;
+        }
         for (uint256 i = 0; i < activeWallets.length; i++) {
             address candidate = activeWallets[i];
+            if (!hasNft[i] && noNftAtScore[seasonPoints[candidate]] > 1) continue;
             if (top3[0] == address(0) || _ranksAhead(candidate, top3[0])) {
                 top3[2] = top3[1]; top3[1] = top3[0]; top3[0] = candidate;
             } else if (top3[1] == address(0) || _ranksAhead(candidate, top3[1])) {
@@ -176,10 +184,9 @@ contract HOFCommunitySeason is Ownable {
 
         // Approved rule: only on equal points, a wallet with no NFT loses the
         // tie-break against a wallet that still holds at least one Genesis NFT.
-        // V7 does not define a fallback when both tied wallets own zero NFTs,
-        // so stop instead of silently inventing an ordering rule.
+        // Approved addendum skips tied nonholders; neither wins this comparison.
         if (aBalance == 0 || bBalance == 0) {
-            require(aBalance > 0 || bBalance > 0, "unresolved no-NFT tie");
+            if (aBalance == 0 && bBalance == 0) return false;
             return aBalance > 0;
         }
 
@@ -213,7 +220,7 @@ contract HOFCommunitySeason is Ownable {
         IGenesisEnumerable genesis = IGenesisEnumerable(genesisContract);
         uint256 aBalance = genesis.balanceOf(walletA);
         uint256 bBalance = genesis.balanceOf(walletB);
-        require(aBalance > 0 || bBalance > 0, "no NFT tie-break winner");
+        if (aBalance == 0 && bBalance == 0) return address(0);
 
         if (aBalance == 0) return walletB;
         if (bBalance == 0) return walletA;

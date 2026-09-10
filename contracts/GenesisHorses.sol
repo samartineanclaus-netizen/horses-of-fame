@@ -27,6 +27,9 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     uint256 public constant COMMON_SUPPLY = 970;
 
     uint256 public nextTokenId = 1;
+    /// @notice Invalidates batched prize scans on every actual ownership change.
+    uint256 public ownershipRevision;
+    uint256 public publicMinted;
     uint256 public communityAllocationMinted;
     uint256 public teamReserveMinted;
     uint256 public nonPublicAllocationMinted;
@@ -99,6 +102,8 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
 
     function saleMint(address to, uint256 quantity) external whenNotPaused {
         require(msg.sender == saleContract, "Only sale contract");
+        require(publicMinted + quantity <= PUBLIC_MINT_SUPPLY, "Public allocation exceeded");
+        publicMinted += quantity;
         _mintSequential(to, quantity, true);
     }
 
@@ -135,14 +140,16 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
         returns (address)
     {
         address from = _ownerOf(tokenId);
-        if (from != address(0) && from == teamWallet) {
+        if (to != address(0) && from != address(0) && from == teamWallet) {
             require(saleContract != address(0), "Team Reserve locked until sell-out");
             require(
                 IV7PublicSaleState(saleContract).saleSuccessful(),
                 "Team Reserve locked until sell-out"
             );
         }
-        return super._update(to, tokenId, auth);
+        address previous = super._update(to, tokenId, auth);
+        if (previous != to) ++ownershipRevision;
+        return previous;
     }
 
     function rarityOf(uint256 tokenId) public view returns (Rarity) {

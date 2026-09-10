@@ -1,5 +1,8 @@
 # HOF frontend review — awaiting approval
 
+Historical frontend-only report. The combined protocol/backend/frontend results
+and dependency portability fix are in `../implementation/V7_INTEGRATION_REVIEW.md`.
+
 ## Status and branch
 
 - Branch: `work/hof-canonical-frontend`.

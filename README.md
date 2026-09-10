@@ -1,5 +1,14 @@
 # Horses of Fame — Chapter I V7 implementation
 
+## Integration review (not deployed)
+
+`work/v7-hof-integration` combines the canonical frontend with the approved V7
+protocol and the previously local owner-trusted implementation. See
+`docs/implementation/V7_INTEGRATION_REVIEW.md` and `V7_ADMISSION_API.md` in the
+same directory before configuring services. The older deployment scripts below
+remain legacy regression/operator references; they do not deploy or wire the new
+trusted path. No deployment, main merge, commit or push is authorized by this review.
+
 Next.js 16 App Router website plus Solidity contracts and Robinhood Chain Testnet operations for Horses of Fame Chapter I — Genesis.
 
 ## Source of truth

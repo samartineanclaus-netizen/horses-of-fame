@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("V7 unresolved Community tie protection", function () {
-  it("refuses to invent an ordering when both tied wallets own zero Genesis NFTs", async function () {
+  it("does not award a casting win when both tied wallets own zero Genesis NFTs", async function () {
     const [, walletA, walletB] = await ethers.getSigners();
 
     const Genesis = await ethers.getContractFactory("GenesisHorses");
@@ -17,7 +17,6 @@ describe("V7 unresolved Community tie protection", function () {
     expect(await genesis.balanceOf(walletA.address)).to.equal(0n);
     expect(await genesis.balanceOf(walletB.address)).to.equal(0n);
 
-    await expect(community.winsCastingTieBreak(walletA.address, walletB.address))
-      .to.be.revertedWith("unresolved no-NFT tie");
+    expect(await community.winsCastingTieBreak(walletA.address, walletB.address)).to.equal(false);
   });
 });

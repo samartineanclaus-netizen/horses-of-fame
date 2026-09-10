@@ -32,8 +32,13 @@ contract HOFSeasonRewards is Ownable, ReentrancyGuard {
     IERC20 public immutable usdc;
     ICommunitySeasonTop3 public immutable communitySeason;
 
+    // True after processing a season, including a zero-winner rollover.
     mapping(uint8 => bool) public communitySeasonPaid;
     uint256 public communityPaid;
+    uint256 public communityRolloverToChapter2;
+    mapping(uint8 => uint256) public communitySeasonRollover;
+
+    event CommunityRolloverRecorded(uint8 indexed season, uint256 amount);
 
     event CommunitySeasonRewardsPaid(
         uint8 indexed season,
@@ -54,26 +59,34 @@ contract HOFSeasonRewards is Ownable, ReentrancyGuard {
     function payCommunitySeason(uint8 season) external onlyOwner nonReentrant {
         require(season >= 1 && season <= CHAPTER_SEASONS, "bad season");
         require(!communitySeasonPaid[season], "community season paid");
-        require(communityPaid + COMMUNITY_PER_SEASON <= COMMUNITY_CHAPTER_ALLOCATION, "Community allocation exhausted");
+        require(communityPaid + communityRolloverToChapter2 + COMMUNITY_PER_SEASON <= COMMUNITY_CHAPTER_ALLOCATION, "Community allocation exhausted");
 
         address[3] memory winners = communitySeason.getSeasonTop3(season);
-        require(
-            winners[0] != address(0) && winners[1] != address(0) && winners[2] != address(0),
-            "invalid Top 3"
-        );
-        require(usdc.balanceOf(address(this)) >= COMMUNITY_PER_SEASON, "insufficient rewards");
-
+        uint256[3] memory amounts = [COMMUNITY_FIRST, COMMUNITY_SECOND, COMMUNITY_THIRD];
+        uint256 payout;
+        for (uint256 i = 0; i < 3; i++) {
+            if (winners[i] == address(0)) continue;
+            for (uint256 j = 0; j < i; j++) require(winners[i] != winners[j], "duplicate winner");
+            payout += amounts[i];
+        }
+        // Previously recorded rollover stays backed and cannot fund later payouts.
+        require(usdc.balanceOf(address(this)) >= communityRolloverToChapter2 + COMMUNITY_PER_SEASON, "insufficient rewards");
+        uint256 rollover = COMMUNITY_PER_SEASON - payout;
         communitySeasonPaid[season] = true;
-        communityPaid += COMMUNITY_PER_SEASON;
-        usdc.safeTransfer(winners[0], COMMUNITY_FIRST);
-        usdc.safeTransfer(winners[1], COMMUNITY_SECOND);
-        usdc.safeTransfer(winners[2], COMMUNITY_THIRD);
+        communityPaid += payout;
+        communitySeasonRollover[season] = rollover;
+        communityRolloverToChapter2 += rollover;
+        for (uint256 i = 0; i < 3; i++) {
+            if (winners[i] != address(0)) usdc.safeTransfer(winners[i], amounts[i]);
+        }
+        emit CommunityRolloverRecorded(season, rollover);
 
         emit CommunitySeasonRewardsPaid(season, winners[0], winners[1], winners[2]);
     }
 
+    /// @notice Unprocessed Chapter I budget, excluding paid and rolled amounts.
     function communityRemaining() external view returns (uint256) {
-        return COMMUNITY_CHAPTER_ALLOCATION - communityPaid;
+        return COMMUNITY_CHAPTER_ALLOCATION - communityPaid - communityRolloverToChapter2;
     }
 
     /// @notice Accounting reservation for the HOF half of the V7 prize pool.

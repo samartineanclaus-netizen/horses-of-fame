@@ -1,0 +1,1202 @@
+{
+  "environment": "local Hardhat, Solidity 0.8.25, Cancun, optimizer runs 200",
+  "fullSupply": {
+    "scenario": "2200 real encrypted voters, full 2222 Genesis, all nonzero scores",
+    "stages": [
+      {
+        "stage": "freeze",
+        "transactions": 1,
+        "min": "95744",
+        "max": "95744",
+        "total": "95744"
+      },
+      {
+        "stage": "propose",
+        "transactions": 1,
+        "min": "278280",
+        "max": "278280",
+        "total": "278280"
+      },
+      {
+        "stage": "score batch",
+        "transactions": 88,
+        "min": "831685",
+        "max": "946164",
+        "total": "81470368"
+      },
+      {
+        "stage": "race finalization",
+        "transactions": 1,
+        "min": "73131",
+        "max": "73131",
+        "total": "73131"
+      },
+      {
+        "stage": "index batch",
+        "transactions": 88,
+        "min": "1367211",
+        "max": "1440411",
+        "total": "121058868"
+      },
+      {
+        "stage": "begin prize scan",
+        "transactions": 1,
+        "min": "265069",
+        "max": "265069",
+        "total": "265069"
+      },
+      {
+        "stage": "holder batch",
+        "transactions": 89,
+        "min": "482981",
+        "max": "814760",
+        "total": "70856529"
+      },
+      {
+        "stage": "score bucket batch",
+        "transactions": 11,
+        "min": "73503",
+        "max": "203746",
+        "total": "1959268"
+      },
+      {
+        "stage": "season finalization",
+        "transactions": 1,
+        "min": "245031",
+        "max": "245031",
+        "total": "245031"
+      }
+    ],
+    "transactions": [
+      {
+        "stage": "freeze",
+        "gas": "95744"
+      },
+      {
+        "stage": "propose",
+        "gas": "278280"
+      },
+      {
+        "stage": "score batch",
+        "gas": "946164"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929400"
+      },
+      {
+        "stage": "score batch",
+        "gas": "928584"
+      },
+      {
+        "stage": "score batch",
+        "gas": "928476"
+      },
+      {
+        "stage": "score batch",
+        "gas": "928908"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929256"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929472"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929244"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930168"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929604"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929280"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930384"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929652"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930360"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930684"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929676"
+      },
+      {
+        "stage": "score batch",
+        "gas": "928764"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929244"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929748"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929868"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929664"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929712"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929364"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929172"
+      },
+      {
+        "stage": "score batch",
+        "gas": "928320"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929328"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930312"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930696"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929544"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929616"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929964"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930696"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930972"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930012"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930444"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930744"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930144"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930948"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929736"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929208"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929868"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929172"
+      },
+      {
+        "stage": "score batch",
+        "gas": "928596"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929364"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930156"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929604"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930648"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930588"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929784"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930024"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929664"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929604"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929352"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929520"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930288"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930072"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930348"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930072"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930072"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930972"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930144"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930396"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930120"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930372"
+      },
+      {
+        "stage": "score batch",
+        "gas": "931524"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930696"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930972"
+      },
+      {
+        "stage": "score batch",
+        "gas": "931104"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930840"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930972"
+      },
+      {
+        "stage": "score batch",
+        "gas": "931332"
+      },
+      {
+        "stage": "score batch",
+        "gas": "931068"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929064"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929964"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930084"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930024"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930132"
+      },
+      {
+        "stage": "score batch",
+        "gas": "929328"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930240"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930408"
+      },
+      {
+        "stage": "score batch",
+        "gas": "930732"
+      },
+      {
+        "stage": "score batch",
+        "gas": "926454"
+      },
+      {
+        "stage": "score batch",
+        "gas": "873405"
+      },
+      {
+        "stage": "score batch",
+        "gas": "874101"
+      },
+      {
+        "stage": "score batch",
+        "gas": "873465"
+      },
+      {
+        "stage": "score batch",
+        "gas": "874137"
+      },
+      {
+        "stage": "score batch",
+        "gas": "874305"
+      },
+      {
+        "stage": "score batch",
+        "gas": "831685"
+      },
+      {
+        "stage": "race finalization",
+        "gas": "73131"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1440411"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1389111"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1372011"
+      },
+      {
+        "stage": "index batch",
+        "gas": "1367211"
+      },
+      {
+        "stage": "begin prize scan",
+        "gas": "265069"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "482981"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792848"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814748"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797648"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797648"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792848"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814748"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797648"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797648"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792848"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814748"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "792860"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "814760"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "797660"
+      },
+      {
+        "stage": "holder batch",
+        "gas": "706648"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "203746"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "188755"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "186658"
+      },
+      {
+        "stage": "score bucket batch",
+        "gas": "73503"
+      },
+      {
+        "stage": "season finalization",
+        "gas": "245031"
+      }
+    ]
+  },
+  "coldScoreBuckets": {
+    "scenario": "25 distinct reachable season scores, cold holder buckets",
+    "holderBatch": "2625322",
+    "indexBatchMax": "1461413"
+  }
+}
