@@ -45,7 +45,7 @@ export default function BrandHeader() {
     <nav className="shell brandNav" aria-label="Main navigation">
       <Link href="/" className="brandHome" aria-label="Horses of Fame home"><Image src="/brand/hof-logo.webp" alt="HOF — Horses of Fame" width={96} height={96} priority/><span>HORSES OF FAME<small>THE GENESIS CHAPTER</small></span></Link>
       <div className="brandDesktopLinks">{navigation}</div>
-      <button type="button" className="luxWallet" disabled={busy} onClick={connect}>{busy ? 'Connecting…' : wallet ? `${wallet.slice(0,6)}…${wallet.slice(-4)}` : 'Connect Wallet'}</button>
+      <div className="luxWalletGroup"><button type="button" className="luxWallet" disabled={busy} onClick={connect}>{busy ? 'Connecting…' : wallet ? `${wallet.slice(0,6)}…${wallet.slice(-4)}` : 'Connect Wallet'}</button>{wallet && <span className="rhNetworkAccent rhWalletNetwork"><span aria-hidden="true" className="rhNetworkDot"/>Robinhood Testnet</span>}</div>
       <details ref={menu} className="brandMobileMenu"><summary aria-label="Toggle navigation">Menu</summary><div>{navigation}<Link href="/hall-of-fame" onClick={() => {menu.current.open = false;}}>Hall of Fame</Link><Link href="/results" onClick={() => {menu.current.open = false;}}>Race Reveal</Link></div></details>
     </nav>
     {message && <p className="luxWalletMessage" role="status">{message}</p>}

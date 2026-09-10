@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><BrandHeader/>{process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === "testnetMockUSDC" && <div role="note" style={{textAlign:"center",padding:12,background:"#17130a",color:"#e8c875"}}>TEST ONLY / NO VALUE — MockUSDC · Owner-trusted voting</div>}<div id="main-content" tabIndex={-1}>{children}</div></body>
+      <body><BrandHeader/>{process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === "testnetMockUSDC" && <div role="note" className="rhTestnetNotice"><span className="rhNetworkAccent rhTestnetBadge">Robinhood Testnet</span> TEST ONLY / NO VALUE — MockUSDC · Owner-trusted voting</div>}<div id="main-content" tabIndex={-1}>{children}</div></body>
     </html>
   );
 }

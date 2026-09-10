@@ -176,6 +176,7 @@ export default function StatusPage() {
         <Link href="/" style={{ color: "#d6b06a" }}>← Horses of Fame</Link>
         <p style={{ marginTop: 48, letterSpacing: 2, color: "#d6b06a" }}>CHAPTER I — V7 · READ ONLY</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 14px" }}>SYSTEM STATUS</h1>
+        <p className="rhNetworkAccent">Robinhood Testnet · Chain 46630</p>
         <p style={{ fontSize: 18, lineHeight: 1.6 }}>{status}</p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 18, marginTop: 30 }}>

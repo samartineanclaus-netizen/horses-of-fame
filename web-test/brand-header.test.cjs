@@ -18,10 +18,10 @@ test('header connects through verified wallet helper, resets on change and does 
  const root=require('react-dom/client').createRoot(document.getElementById('root'));
  try{
   await act(async()=>root.render(React.createElement(mod.exports.default)));
-  const button=document.querySelector('.luxWallet');assert.equal(button.textContent,'Connect Wallet');
+  const button=document.querySelector('.luxWallet');assert.equal(button.textContent,'Connect Wallet');assert.equal(document.querySelector('.rhWalletNetwork'),null);
   assert.equal(document.querySelector('.brandDesktopLinks [aria-current="page"]').textContent,'Racing');
-  await act(async()=>button.click());assert.equal(connections,1);assert.match(button.textContent,/0x1111/);
-  await act(async()=>listeners.get('accountsChanged')([]));assert.equal(button.textContent,'Connect Wallet');
+  await act(async()=>button.click());assert.equal(connections,1);assert.match(button.textContent,/0x1111/);assert.equal(document.querySelector('.rhWalletNetwork').textContent,'Robinhood Testnet');
+  await act(async()=>listeners.get('accountsChanged')([]));assert.equal(button.textContent,'Connect Wallet');assert.equal(document.querySelector('.rhWalletNetwork'),null);
   delete window.ethereum;await act(async()=>button.click());assert.match(document.querySelector('[role=status]').textContent,/compatible wallet/);assert.equal(connections,1);
   assert.deepEqual(requests.sort(),['eth_accounts','eth_chainId']);
  }finally{await act(async()=>root.unmount());assert.equal(listeners.size,0);Object.assign(global,old);dom.window.close();}

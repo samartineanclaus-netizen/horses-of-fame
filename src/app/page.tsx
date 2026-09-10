@@ -63,6 +63,6 @@ export default function Home() {
     </section>
 
     <section className="luxClosing"><div className="shell"><span className="luxEyebrow">CHAPTER I / GENESIS</span><h2>Every legacy<br/>has a <em>beginning.</em></h2><Link href="/mint" className="luxButton luxButtonGold">MINT GENESIS <span aria-hidden="true">↗</span></Link></div></section>
-    <footer className="luxFooter shell"><Link href="/">HORSES OF FAME</Link><span>22 HORSES. THE COMMUNITY DECIDES.</span><nav aria-label="More information"><Link href="/status">Status</Link><Link href="/refund">Refund</Link><Link href="/hall-of-fame">Hall of Fame</Link></nav></footer>
+    <footer className="luxFooter shell"><Link href="/">HORSES OF FAME</Link><span>22 HORSES. THE COMMUNITY DECIDES.<small className="rhNetworkAccent rhBuiltOn">Built on Robinhood Chain</small></span><nav aria-label="More information"><Link href="/status">Status</Link><Link href="/refund">Refund</Link><Link href="/hall-of-fame">Hall of Fame</Link></nav></footer>
   </main>;
 }
