@@ -105,8 +105,8 @@ export default function AllocationsPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 850, margin: "0 auto" }}>
-        <Link href="/" style={{ color: "#7cff6b" }}>← Horses of Fame</Link>
-        <p style={{ marginTop: 48, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — GENESIS · V7</p>
+        <Link href="/" style={{ color: "#d6b06a" }}>← Horses of Fame</Link>
+        <p style={{ marginTop: 48, letterSpacing: 2, color: "#d6b06a" }}>CHAPTER I — GENESIS · V7</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 20px" }}>ALLOCATION STATUS</h1>
         <p style={{ fontSize: 19, lineHeight: 1.6 }}>
           V7 locks Genesis at 2,222 NFTs: 2,000 Public Mint, 111 Community and 111 Team Reserve. This page reads the deployed counters only; it does not choose the unresolved Community distribution split or Team Reserve operational terms.

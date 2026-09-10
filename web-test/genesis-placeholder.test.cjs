@@ -4,11 +4,11 @@ const fs=require('node:fs');
 const {validatePlaceholder,publicURL,MINT_WINDOW_SECONDS}=require('../scripts/v7-placeholder.cjs');
 const metadata=require('../public/genesis/unrevealed.json');
 const uri='https://hof-fixture.example.org/genesis/unrevealed.json'; // Test fixture only; no network requests.
-const logo=fs.readFileSync('public/assets/hof-logo.webp');
+const logo=fs.readFileSync('public/brand/hof-logo.webp');
 function fetcher(data=metadata,options={}) {return async url=> url.endsWith('.json') ? new Response(typeof data==='string'?data:JSON.stringify(data),{status:options.jsonStatus||200}) : new Response(options.image||logo,{status:options.imageStatus||200,headers:{'content-type':options.type||'image/webp'}});}
 test('canonical metadata only has name, description and root-relative original logo',async()=>{
- assert.deepEqual(Object.keys(metadata).sort(),['description','image','name']);assert.match(metadata.description,/TESTNET \/ TEST ONLY \/ NO VALUE/);assert.equal(metadata.image,'/assets/hof-logo.webp');
- const calls=[];const mock=fetcher();await validatePlaceholder(uri,46630,async(url,options)=>{calls.push(url);assert.equal(options.redirect,'error');return mock(url);});assert.deepEqual(calls,[uri,'https://hof-fixture.example.org/assets/hof-logo.webp']);
+ assert.deepEqual(Object.keys(metadata).sort(),['description','image','name']);assert.match(metadata.description,/TESTNET \/ TEST ONLY \/ NO VALUE/);assert.equal(metadata.image,'/brand/hof-logo.webp');
+ const calls=[];const mock=fetcher();await validatePlaceholder(uri,46630,async(url,options)=>{calls.push(url);assert.equal(options.redirect,'error');return mock(url);});assert.deepEqual(calls,[uri,'https://hof-fixture.example.org/brand/hof-logo.webp']);
 });
 test('mint window is exactly seven days',()=>assert.equal(MINT_WINDOW_SECONDS,604800n));
 for(const chain of [1,466,42161]) test(`testnet metadata rejected on chain ${chain} before HTTP`,async()=>assert.rejects(validatePlaceholder(uri,chain,()=>{throw Error('unexpected HTTP');}),/TESTNET/));

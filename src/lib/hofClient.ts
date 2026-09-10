@@ -16,6 +16,7 @@ function envAddress(value: string | undefined): `0x${string}` | null {
 }
 
 export const HOF_CONTRACTS = {
+  trustedLeaderboards: envAddress(process.env.NEXT_PUBLIC_HOF_TRUSTED_LEADERBOARDS),
   genesis: envAddress(process.env.NEXT_PUBLIC_HOF_GENESIS_CONTRACT),
   sale: envAddress(process.env.NEXT_PUBLIC_HOF_GENESIS_SALE_CONTRACT),
   usdc: process.env.NEXT_PUBLIC_HOF_TOKEN_MODE === 'testnetMockUSDC' && process.env.NEXT_PUBLIC_HOF_CHAIN_ID === '46630' ? envAddress(process.env.NEXT_PUBLIC_HOF_USDC_CONTRACT) : null,
@@ -204,3 +205,16 @@ export async function requestAccount(ethereum: EthereumProvider): Promise<string
   await verifyRobinhoodChain(ethereum);
   return accounts[0];
 }
+
+// Read-only ABI subset from contracts/HOFTrustedLeaderboards.sol.
+export const CANONICAL_BOARD_STATUS_ABI = [
+ {type:"function",name:"currentSeason",stateMutability:"view",inputs:[],outputs:[{type:"uint8"}]},
+ {type:"function",name:"seasonsFinalized",stateMutability:"view",inputs:[],outputs:[{type:"uint8"}]},
+ {type:"function",name:"raceCount",stateMutability:"view",inputs:[],outputs:[{type:"uint256"}]},
+ {type:"function",name:"getSeasonTop3",stateMutability:"view",inputs:[{name:"season",type:"uint8"}],outputs:[{type:"address[3]"}]},
+] as const;
+export const CANONICAL_REWARDS_LINK_ABI = [
+ {type:"function",name:"communitySeason",stateMutability:"view",inputs:[],outputs:[{type:"address"}]},
+ {type:"function",name:"usdc",stateMutability:"view",inputs:[],outputs:[{type:"address"}]},
+ {type:"function",name:"communityRolloverToChapter2",stateMutability:"view",inputs:[],outputs:[{type:"uint256"}]},
+] as const;

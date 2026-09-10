@@ -226,8 +226,8 @@ export default function MintPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <Link href="/" style={{ color: "#7cff6b" }}>← Horses of Fame</Link>
-        <p style={{ marginTop: 48, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — GENESIS · V7</p>
+        <Link href="/" style={{ color: "#d6b06a" }}>← Horses of Fame</Link>
+        <p style={{ marginTop: 48, letterSpacing: 2, color: "#d6b06a" }}>CHAPTER I — GENESIS · V7</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 20px" }}>PUBLIC MINT</h1>
         <p style={{ fontSize: 20, lineHeight: 1.6 }}>
           2,000 Public Mint NFTs · 30 USDC each · Robinhood Chain. This page calls the V7 sale contract only when its testnet addresses are configured.

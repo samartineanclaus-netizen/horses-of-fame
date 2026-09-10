@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import LegendaryGallery from "@/components/LegendaryGallery";
 import HofGallery from "@/components/HofGallery";
-import {getHofHorse,hofHorseAlt} from "@/lib/hofHorses";
 
 const scoring = [
   ["1st", 25], ["2nd", 18], ["3rd", 15], ["4th", 12], ["5th", 10],
@@ -20,85 +19,8 @@ const tiers = [
 
 
 
-const ROBINHOOD_TESTNET_CHAIN_ID = "0xb626";
-
-type EthereumProvider = {
-  request: (args: {
-    method: string;
-    params?: unknown[] | Record<string, unknown>;
-  }) => Promise<unknown>;
-};
-
-function getEthereum() {
-  return (window as Window & { ethereum?: EthereumProvider }).ethereum;
-}
-
-async function ensureRobinhoodTestnet(ethereum: EthereumProvider) {
-  try {
-    await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ROBINHOOD_TESTNET_CHAIN_ID }] });
-  } catch {
-    await ethereum.request({
-      method: "wallet_addEthereumChain",
-      params: [{
-        chainId: ROBINHOOD_TESTNET_CHAIN_ID,
-        chainName: "Robinhood Chain Testnet",
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-        rpcUrls: ["https://rpc.testnet.chain.robinhood.com"],
-        blockExplorerUrls: ["https://explorer.testnet.chain.robinhood.com"],
-      }],
-    });
-  }
-}
-
-function WalletButton() {
-  const [address, setAddress] = useState("");
-  const [connecting, setConnecting] = useState(false);
-
-  async function connectWallet() {
-    const ethereum = getEthereum();
-    if (!ethereum) {
-      alert("Please install an EVM wallet such as MetaMask.");
-      return;
-    }
-    try {
-      setConnecting(true);
-      await ensureRobinhoodTestnet(ethereum);
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-      if (Array.isArray(accounts) && typeof accounts[0] === "string") setAddress(accounts[0]);
-    } catch (error) {
-      console.error("Wallet connection failed:", error);
-    } finally {
-      setConnecting(false);
-    }
-  }
-
-  const label = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : connecting ? "CONNECTING..." : "CONNECT WALLET";
-  return <button className="wallet" type="button" onClick={connectWallet}>{label}</button>;
-}
-
 function MintButton() {
   return <a className="primary" href="/mint">MINT GENESIS — 30 USDC</a>;
-}
-
-function Header() {
-  return (
-    <header className="navWrap">
-      <nav className="nav shell">
-        <a className="brandLogo" href="#top" aria-label="Horses of Fame home">
-          <Image src="/assets/hof-logo.webp" alt="Horses of Fame" width={390} height={61} priority />
-        </a>
-        <div className="navLinks">
-          <a href="#collection">Collection</a>
-          <a href="#racing">Racing</a>
-          <a href="/race">Race</a>
-          <a href="/standings">Standings</a>
-          <a href="/rewards">Rewards</a>
-          <a href="/status">Status</a>
-        </div>
-        <WalletButton />
-      </nav>
-    </header>
-  );
 }
 
 function SectionTitle({ kicker, title, copy }: { kicker: string; title: string; copy?: string }) {
@@ -108,31 +30,26 @@ function SectionTitle({ kicker, title, copy }: { kicker: string; title: string; 
 export default function Home() {
   return (
     <main id="top">
-      <Header />
 
-      <section className="hero">
-        <div className="heroGlow" />
-        <div className="shell heroGrid">
-          <div className="heroCopy">
-            <span className="eyebrow">CHAPTER I — GENESIS</span>
-            <h1>2,222 GENESIS HORSES.<br /><em>22 HORSES RACE.</em><br />THE COMMUNITY DECIDES.</h1>
-            <p className="lead">A community-powered NFT racing game on Robinhood Chain.</p>
-            <div className="heroStats">
-              <div><strong>6</strong><span>Seasons</span></div>
-              <div><strong>60</strong><span>Races</span></div>
-              <div><strong>$48K</strong><span>Rewards</span></div>
-            </div>
-            <div className="actions"><MintButton /><a className="secondary" href="#racing">How it works</a></div>
-          </div>
-          <div className="heroArtwork">
-            <div className="heroImageWrap">
-              <Image src={getHofHorse(1).image} alt={hofHorseAlt(1)} quality={90} style={{objectFit:"contain"}} fill sizes="(max-width: 900px) 100vw, 42vw" priority />
-            </div>
-            <div className="heroArtMeta"><span>22 HALL OF FAME HORSES</span><strong>1% OF GENESIS</strong><small>Who receives them remains hidden until reveal.</small></div>
-          </div>
+
+      <section className="brandHero" aria-label="Horses of Fame Genesis">
+        <div className="brandBanner"><Image src="/brand/hof-banner.webp" alt="Horses of Fame — 22 horses race. The community decides." fill priority quality={90} sizes="100vw" /></div>
+        <div className="shell brandHeroCopy"><p className="kicker">CHAPTER I — GENESIS</p><h1>The Genesis Collection</h1><p className="lead">22 Hall of Fame race horses. 2,200 voting Genesis NFTs. Community-powered racing.</p>
+          <div className="heroStats"><div><strong>2,222</strong><span>Genesis NFTs</span></div><div><strong>6</strong><span>Seasons</span></div><div><strong>60</strong><span>Races</span></div></div>
+          <div className="actions"><MintButton/><a className="secondary" href="/hall-of-fame">Meet the 22</a></div>
+          <p className="note">Public Mint: 2,000 × 30 USDC. Community: 111. Team Reserve: 111.</p>
         </div>
       </section>
 
+      <section className="section legendaryPreview" aria-labelledby="legendary-preview-title">
+        <div className="shell">
+          <p className="kicker">GENESIS · ARTWORK SHOWCASE</p>
+          <h2 id="legendary-preview-title">Legendary Collection</h2>
+          <p className="legendaryIntro">Discover the artwork. A separate showcase from the 22 Hall of Fame horses that compete in community races.</p>
+          <LegendaryGallery preview />
+          <a className="secondary" href="/legendary">Explore Legendary Collection</a>
+        </div>
+      </section>
 
       <section id="racing" className="section darkBand">
         <div className="shell">
@@ -151,10 +68,10 @@ export default function Home() {
 
       <section id="collection" className="section collectionSection">
         <div className="shell">
-          <SectionTitle kicker="THE COLLECTION" title="22 ENTER THE HALL OF FAME" copy="Hidden among the 2,222 Genesis NFTs are 22 Hall of Fame horses. They race. The other 2,200 Genesis horses decide their fate." />
+          <SectionTitle kicker="THE COLLECTION" title="22 ENTER THE HALL OF FAME" copy="Genesis contains 22 Hall of Fame race horses with 0 VP and 2,200 voting Genesis NFTs. Eligible holders power the races." />
           <div className="hofMain"><HofGallery heading="h2"/></div>
-          <div className="splitCallout"><div><span>22</span><p>Hall of Fame racers<br />0 Voting Power</p></div><div><span>2,200</span><p>Voting Genesis horses<br />4,800 total VP</p></div></div>
-          <div className="bigLine">22 HORSES RACE. 2,200 DECIDE.</div>
+          <p className="note">Allocation: 2,000 Public + 111 Community + 111 Team Reserve = 2,222. Team Reserve cannot vote while held in the designated wallet.</p><div className="splitCallout"><div><span>22</span><p>Hall of Fame racers<br />0 Voting Power</p></div><div><span>2,200</span><p>Voting Genesis horses<br />4,800 total VP</p></div></div>
+          <div className="bigLine">22 HOF + 2,200 VOTING GENESIS = 2,222</div>
         </div>
       </section>
 
@@ -170,7 +87,7 @@ export default function Home() {
         <div className="shell">
           <SectionTitle kicker="SCORING" title="ONE RACE. ONE SCORING SYSTEM." />
           <div className="scoreGrid">{scoring.map(([place, pts]) => <div key={place}><span>{place}</span><strong>{pts}</strong><small>PTS</small></div>)}</div>
-          <div className="champGrid">
+          <p className="note">Positions 11–22 receive 0 points. VP determines the race ranking; each eligible wallet earns one scoring result.</p><div className="champGrid">
             <article><span>01</span><h3>Community Championship</h3><p>Every eligible wallet gets one score per race based on the finishing position of its selected Hall of Fame horse.</p></article>
             <article><span>02</span><h3>Hall of Fame Championship</h3><p>The 22 Hall of Fame horses accumulate the same points across each 10-race season.</p></article>
           </div>
@@ -181,15 +98,15 @@ export default function Home() {
         <div className="rewardArt rewardArtLeft" aria-hidden="true"><img src="/assets/reward-left.webp" alt="" /></div>
         <div className="rewardArt rewardArtRight" aria-hidden="true"><img src="/assets/reward-right.webp" alt="" /></div>
         <div className="shell rewardContent">
-          <SectionTitle kicker="REWARDS" title="$8,000 USDC EVERY SEASON" copy="Two championships. Two podiums. Six seasons." />
+          <SectionTitle kicker="REWARDS" title="THE CHAPTER I PRIZE PROGRAM" copy="After successful public sell-out: 48,000 USDC allocated across six seasons. Community rewards and a reserved HOF allocation." />
           <div className="rewardGrid">{["Community Championship", "Hall of Fame Championship"].map((name) => <article key={name}><h3>{name}</h3><div><span>1st</span><strong>$2,500</strong></div><div><span>2nd</span><strong>$1,000</strong></div><div><span>3rd</span><strong>$500</strong></div></article>)}</div>
-          <div className="bigLine">6 SEASONS · 60 RACES · $48,000 TOTAL REWARDS</div>
+          <p className="note">HOF beneficiary payouts remain pending the final V7 mechanism. Unawarded Community prizes remain reserved for the Chapter 2 Prize Pool. Testnet uses MockUSDC with no monetary value.</p><a className="secondary" href="/rewards">View reward accounting</a>
         </div>
       </section>
 
       <section id="roadmap" className="section roadmap">
         <div className="shell">
-          <SectionTitle kicker="ROADMAP" title="CHAPTER I — GENESIS" copy="Only Chapter I is revealed. What follows stays locked." />
+          <SectionTitle kicker="ROADMAP" title="CHAPTER I — GENESIS" copy="Chapter I is Genesis. Chapters II–IV remain undisclosed." />
           <div className="roadCards">{[["I", "GENESIS", "UNLOCKED"], ["II", "???", "LOCKED"], ["III", "???", "LOCKED"], ["IV", "???", "LOCKED"]].map((x, i) => <article className={i === 0 ? "activeRoad" : ""} key={x[0]}><span>CHAPTER {x[0]}</span><h3>{x[1]}</h3><small>{x[2]}</small></article>)}</div>
           <div className="legacy"><div><strong>GENESIS GRAND CHAMPION</strong><span>#1 Hall of Fame horse after 60 races.</span></div><div><strong>GENESIS COMMUNITY CHAMPION</strong><span>#1 Community wallet after 60 races.</span></div></div>
         </div>
@@ -199,6 +116,7 @@ export default function Home() {
         <div className="shell narrow">
           <SectionTitle kicker="FAQ" title="THE ESSENTIALS" />
           {[
+            ["Who can read votes during voting?", "Testnet uses owner-trusted encryption: the HOF backend can decrypt early. Public votes and intermediate rankings are hidden. HOF sponsors signed vote inclusion; direct fallback uses your own gas."],
             ["How much is the Genesis mint?", "$30 per Public Mint NFT. All 2,000 Public Mint NFTs must sell by the final mint deadline for the public sale to succeed."],
             ["How does a wallet vote?", "One wallet makes one secret pick per race. Eligible Genesis VP used by that wallet backs that single Hall of Fame horse; an eligible unused NFT acquired during voting may add VP only to the same pick."],
             ["Can Voting Power be split?", "No. A wallet cannot split its VP across multiple horses in the same race."],

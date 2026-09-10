@@ -1,0 +1,122 @@
+[
+  {
+    "assetKey": "artwork-01",
+    "label": "Legendary Artwork 01",
+    "image": "/assets/legendary/web/artwork-01.webp",
+    "alt": "Brown horse wearing a crested bronze helmet and red cloak beside rocky cliffs",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-02",
+    "label": "Legendary Artwork 02",
+    "image": "/assets/legendary/web/artwork-02.webp",
+    "alt": "Chestnut horse wearing a jeweled crown, chain mail and green cloak before mountains",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-03",
+    "label": "Legendary Artwork 03",
+    "image": "/assets/legendary/web/artwork-03.webp",
+    "alt": "Chestnut horse with flowing mane, woven cloak and gold neck ornament in a forest",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-04",
+    "label": "Legendary Artwork 04",
+    "image": "/assets/legendary/web/artwork-04.webp",
+    "alt": "Brown horse wearing a black bicorne and green military coat in a snowy landscape",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-05",
+    "label": "Legendary Artwork 05",
+    "image": "/assets/legendary/web/artwork-05.webp",
+    "alt": "Cream horse wearing a pale blue dress and feathered hair ornaments in a garden",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-06",
+    "label": "Legendary Artwork 06",
+    "image": "/assets/legendary/web/artwork-06.webp",
+    "alt": "Dun horse wearing a fur-trimmed hat and blue coat before snowy hills",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-07",
+    "label": "Legendary Artwork 07",
+    "image": "/assets/legendary/web/artwork-07.webp",
+    "alt": "Dark horse wearing a beaded ceremonial headdress and embroidered robes",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-08",
+    "label": "Legendary Artwork 08",
+    "image": "/assets/legendary/web/artwork-08.webp",
+    "alt": "Brown horse wearing a wide black hat with a white feather and lace collar",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-09",
+    "label": "Legendary Artwork 09",
+    "image": "/assets/legendary/web/artwork-09.webp",
+    "alt": "Gray horse wearing a light lace veil and dark embroidered dress",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-10",
+    "label": "Legendary Artwork 10",
+    "image": "/assets/legendary/web/artwork-10.webp",
+    "alt": "Chestnut horse wearing pearls and a large white lace ruff",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-11",
+    "label": "Legendary Artwork 11",
+    "image": "/assets/legendary/web/artwork-11.webp",
+    "alt": "Chestnut horse wearing a feathered black hat, fur-trimmed robe and gold chain",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-12",
+    "label": "Legendary Artwork 12",
+    "image": "/assets/legendary/web/artwork-12.webp",
+    "alt": "Chestnut horse wearing a tall blue and gold headdress and jeweled collar",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-13",
+    "label": "Legendary Artwork 13",
+    "image": "/assets/legendary/web/artwork-13.webp",
+    "alt": "Brown horse wearing a jeweled cream head covering and red embroidered robes",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-14",
+    "label": "Legendary Artwork 14",
+    "image": "/assets/legendary/web/artwork-14.webp",
+    "alt": "Gray horse wearing a dark veil and embroidered black dress",
+    "width": 1254,
+    "height": 1254
+  },
+  {
+    "assetKey": "artwork-15",
+    "label": "Legendary Artwork 15",
+    "image": "/assets/legendary/web/artwork-15.webp",
+    "alt": "Chestnut horse wearing a large green and blue feather headdress and gold ornaments",
+    "width": 1254,
+    "height": 1254
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "hof-logo",
+    "original": "public/brand/originals/hof-logo.png",
+    "uploadedFilename": "16610646-C344-4539-8E67-ED8C5F9951D4 2.PNG",
+    "sha256": "53b5cd2d4434ad1c5b3e295a6428f8391215ad81248a8ec8b7f92bc79da8a284",
+    "width": 1254,
+    "height": 1254,
+    "web": "/brand/hof-logo.webp"
+  },
+  {
+    "name": "hof-banner",
+    "original": "public/brand/originals/hof-banner.png",
+    "uploadedFilename": "87F38D86-364A-441B-B2CA-3BA9C81ADE1B 2.PNG",
+    "sha256": "da322dd9b3172433897ad6ee2396a3123b35f99411ab1cc24bbded5485700633",
+    "width": 2048,
+    "height": 682,
+    "web": "/brand/hof-banner.webp"
+  }
+]

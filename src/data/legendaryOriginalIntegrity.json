@@ -1,0 +1,152 @@
+[
+  {
+    "assetKey": "artwork-01",
+    "sourceFilename": "0EBC0A9C-3A18-4A58-93A0-F47F26DF2B94.PNG",
+    "original": "public/assets/legendary/originals/artwork-01.png",
+    "sha256": "ef9c025ea1b3d75a322dbbebbaf87fc87fc73a8b675ff181a4e024b20ad10318",
+    "bytes": 3489424,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1821504
+  },
+  {
+    "assetKey": "artwork-02",
+    "sourceFilename": "1A4335A5-8175-46A3-92FC-3F007445E802.PNG",
+    "original": "public/assets/legendary/originals/artwork-02.png",
+    "sha256": "56a2f8b5b1cb2d5a6e7f22c38d06cdbe3db944be3eb8029193708bc1acd9c725",
+    "bytes": 3567571,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1871168
+  },
+  {
+    "assetKey": "artwork-03",
+    "sourceFilename": "7F708928-4AD8-4E2E-B231-D0D515702999.PNG",
+    "original": "public/assets/legendary/originals/artwork-03.png",
+    "sha256": "cad189a5097c0f4910d42eb3b7d4f0a5815b4fc309a157b4e5c31ba008a4b834",
+    "bytes": 3690937,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1936462
+  },
+  {
+    "assetKey": "artwork-04",
+    "sourceFilename": "27FEB325-4D53-4E7D-A5F5-167715EFEDAE.PNG",
+    "original": "public/assets/legendary/originals/artwork-04.png",
+    "sha256": "9ab4396c0f3bbc1ec8abd9071e05b4d916604112fe3fadc9d4946b8ae2e33a85",
+    "bytes": 3175710,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1592070
+  },
+  {
+    "assetKey": "artwork-05",
+    "sourceFilename": "41B401DD-3A2B-4C24-9432-1C190CBA6AF3.PNG",
+    "original": "public/assets/legendary/originals/artwork-05.png",
+    "sha256": "8bbb68d360ad51a86d6f306f479c4ffa6a98da8172b25164d946dec81cd809be",
+    "bytes": 3414950,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1742880
+  },
+  {
+    "assetKey": "artwork-06",
+    "sourceFilename": "94BCE93D-4050-4ABB-88EA-10FD18146ECD.PNG",
+    "original": "public/assets/legendary/originals/artwork-06.png",
+    "sha256": "cef7117006d1da7605676cc71bd52043a2ede1d1c0f7895ea1c7f54f4c2457b6",
+    "bytes": 3551352,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1838476
+  },
+  {
+    "assetKey": "artwork-07",
+    "sourceFilename": "95D05E44-CA2E-4C26-862A-171A0B1A9E34.PNG",
+    "original": "public/assets/legendary/originals/artwork-07.png",
+    "sha256": "40756ca9d2cfe669ae5dbdee14385ce8ba15fcf7302446c370cdd9f3261ac18e",
+    "bytes": 3021621,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1503170
+  },
+  {
+    "assetKey": "artwork-08",
+    "sourceFilename": "174E0866-AF61-41F6-AA76-710CE89149D8.PNG",
+    "original": "public/assets/legendary/originals/artwork-08.png",
+    "sha256": "523d6dfacceef6c66cd2015fa482cab9a63caef52844b3b14720401f66e927d1",
+    "bytes": 3345184,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1711262
+  },
+  {
+    "assetKey": "artwork-09",
+    "sourceFilename": "5082F9E9-8720-47AA-AE95-BA6031DCDAFB.PNG",
+    "original": "public/assets/legendary/originals/artwork-09.png",
+    "sha256": "3525623661200e43fcb8839b59366a25378d8e4a1200e6b8760e72cc3611030c",
+    "bytes": 3478455,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1786188
+  },
+  {
+    "assetKey": "artwork-10",
+    "sourceFilename": "A627CD29-1876-43CB-A20A-C916C3DE081C.PNG",
+    "original": "public/assets/legendary/originals/artwork-10.png",
+    "sha256": "6384169f6e3503c500f9f07d8631a738e698cf7c3e1c0f892e93275e36591f18",
+    "bytes": 3360302,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1678430
+  },
+  {
+    "assetKey": "artwork-11",
+    "sourceFilename": "BF6632C9-AEEC-4788-8D41-07B364C948D1.PNG",
+    "original": "public/assets/legendary/originals/artwork-11.png",
+    "sha256": "b6912ab6f195cf0357f65f4488c1e6b49ccc1dca4ed83621ea2f04274ce8edd4",
+    "bytes": 3350437,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1712980
+  },
+  {
+    "assetKey": "artwork-12",
+    "sourceFilename": "C0B05A05-B8A0-4BA0-B01B-AAC818F4E031.PNG",
+    "original": "public/assets/legendary/originals/artwork-12.png",
+    "sha256": "702b77181f365374414b1366ef9dca73df9596f1e68af9c44d49a4428494b0ea",
+    "bytes": 3046637,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1512004
+  },
+  {
+    "assetKey": "artwork-13",
+    "sourceFilename": "C046C183-8DC9-41C6-BAA8-9A1FE16A6EED.PNG",
+    "original": "public/assets/legendary/originals/artwork-13.png",
+    "sha256": "f0a5745b0d16d3667d7b5104036db5c683b2f062452028686875443d8b00a48b",
+    "bytes": 3387036,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1749134
+  },
+  {
+    "assetKey": "artwork-14",
+    "sourceFilename": "D1F79E17-3FD3-40C2-8BF8-BFCFEAA0D233.PNG",
+    "original": "public/assets/legendary/originals/artwork-14.png",
+    "sha256": "6c7b19271f75f1115834c69ae82976b88af3799e76327fa8e17d8a3bc2201ff8",
+    "bytes": 3145496,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1590176
+  },
+  {
+    "assetKey": "artwork-15",
+    "sourceFilename": "FF425599-4984-4E0D-ADAB-40690C8133C6.JPEG",
+    "original": "public/assets/legendary/originals/artwork-15.jpeg",
+    "sha256": "2b9f167f7c518a37e1904db4639e6b58bd31949d9f74aa0caaf41c9008523bb5",
+    "bytes": 564874,
+    "width": 1254,
+    "height": 1254,
+    "webBytes": 1848638
+  }
+]

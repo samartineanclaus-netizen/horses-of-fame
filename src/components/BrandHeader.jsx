@@ -1,0 +1,4 @@
+import Image from 'next/image';
+import Link from 'next/link';
+export default function BrandHeader(){return <header className="brandHeader"><nav className="shell brandNav" aria-label="Main navigation"><Link href="/" className="brandHome" aria-label="Horses of Fame home"><Image src="/brand/hof-logo.webp" alt="HOF — Horses of Fame" width={96} height={96} priority/><span>HORSES OF FAME<small>CHAPTER I · GENESIS</small></span></Link><div className="brandDesktopLinks"><Links/></div><details className="brandMobileMenu"><summary>Menu</summary><div><Links/></div></details></nav></header>;}
+function Links(){return <><Link href="/hall-of-fame">Hall of Fame</Link><Link href="/legendary">Legendary</Link><Link href="/mint">Mint</Link><Link href="/race">Vote</Link><Link href="/results">Race Reveal</Link><Link href="/standings">Leaderboards</Link><Link href="/rewards">Rewards</Link><Link href="/refund">Refund</Link><Link href="/status">Status</Link></>;}

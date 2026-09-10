@@ -1,14 +1,14 @@
 # Genesis placeholder — TESTNET ONLY
 
 Approved static metadata: `public/genesis/unrevealed.json`. The original
-`public/assets/hof-logo.webp` is unchanged. No rarity, VP, horse ID or attributes
+`public/brand/hof-logo.webp` is unchanged. No rarity, VP, horse ID or attributes
 are published by this JSON. This is delayed NFT metadata reveal, separate from
 Race Reveal. It does not make on-chain rarity/VP private.
 
 Host both files on the actual public testnet website. No public domain is chosen
 or claimed live by this change. Set `GENESIS_PLACEHOLDER_URI` to the full HTTPS
 URL ending `/genesis/unrevealed.json`, not a folder or image URL.
-The JSON intentionally uses the approved root-relative `/assets/hof-logo.webp`;
+The JSON intentionally uses the approved root-relative `/brand/hof-logo.webp`;
 the preflight resolves it against the metadata origin. Verify the intended wallet
 viewer supports relative image URIs before its testnet demo; some NFT indexers
 require absolute image URLs. Do not invent a domain to work around this.

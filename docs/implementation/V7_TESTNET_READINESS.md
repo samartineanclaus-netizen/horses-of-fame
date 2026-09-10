@@ -267,7 +267,7 @@ These are not fixed by this task. No new lint error.
 ## Approved Genesis testnet placeholder
 
 Use only the static `/genesis/unrevealed.json` metadata and unchanged
-`/assets/hof-logo.webp`; see `V7_GENESIS_PLACEHOLDER.md` for URL verification and
+`/brand/hof-logo.webp`; see `V7_GENESIS_PLACEHOLDER.md` for URL verification and
 relative-image compatibility. The canonical preflight/deployment now validates
 both resources before writing. Historical `set-test-metadata.js` scripts and
 `metadata/1.json` are not part of this path. No site domain is configured yet.

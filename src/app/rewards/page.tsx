@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPublicClient, http } from "viem";
 import {
-  COMMUNITY_SEASON_ABI,
+  CANONICAL_BOARD_STATUS_ABI,
   ERC20_BALANCE_ABI,
+  CANONICAL_REWARDS_LINK_ABI,
   HOF_CONTRACTS,
   ROBINHOOD_TESTNET_RPC,
   SEASON_REWARDS_ABI,
@@ -21,6 +22,7 @@ type SeasonRow = {
 type RewardsState = {
   balance: bigint;
   communityPaid: bigint;
+  rollover: bigint;
   communityRemaining: bigint;
   hofReserved: bigint;
   chapterPrizePool: bigint;
@@ -53,13 +55,20 @@ export default function RewardsPage() {
     async function loadRewards() {
       const rewards = HOF_CONTRACTS.seasonRewards;
       const usdc = HOF_CONTRACTS.usdc;
-      const community = HOF_CONTRACTS.communitySeason;
+      const community = HOF_CONTRACTS.trustedLeaderboards;
       if (!rewards || !usdc || !community) {
-        setStatus("V7 rewards, USDC and Community contract addresses must be configured.");
+        setStatus("Awaiting canonical V7 Rewards, payment token and Leaderboards configuration.");
         return;
       }
 
       try {
+        if(await publicClient.getChainId() !== 46630) throw Error("Wrong chain");
+        const blockNumber=await publicClient.getBlockNumber();
+        const [linkedBoard,linkedToken,rollover]=await Promise.all([
+          publicClient.readContract({address:rewards,abi:CANONICAL_REWARDS_LINK_ABI,functionName:"communitySeason",blockNumber}),
+          publicClient.readContract({address:rewards,abi:CANONICAL_REWARDS_LINK_ABI,functionName:"usdc",blockNumber}),
+          publicClient.readContract({address:rewards,abi:CANONICAL_REWARDS_LINK_ABI,functionName:"communityRolloverToChapter2",blockNumber})]);
+        if(linkedBoard.toLowerCase()!==community.toLowerCase()||linkedToken.toLowerCase()!==usdc.toLowerCase())throw Error("Canonical reward wiring mismatch");
         const [
           balance,
           communityPaid,
@@ -71,21 +80,22 @@ export default function RewardsPage() {
           third,
           seasonsFinalized,
         ] = await Promise.all([
-          publicClient.readContract({ address: usdc, abi: ERC20_BALANCE_ABI, functionName: "balanceOf", args: [rewards] }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "communityPaid" }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "communityRemaining" }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "hofReserved" }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "CHAPTER_PRIZE_POOL" }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "COMMUNITY_FIRST" }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "COMMUNITY_SECOND" }),
-          publicClient.readContract({ address: rewards, abi: SEASON_REWARDS_ABI, functionName: "COMMUNITY_THIRD" }),
-          publicClient.readContract({ address: community, abi: COMMUNITY_SEASON_ABI, functionName: "seasonsFinalized" }),
+          publicClient.readContract({ blockNumber, address: usdc, abi: ERC20_BALANCE_ABI, functionName: "balanceOf", args: [rewards] }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "communityPaid" }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "communityRemaining" }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "hofReserved" }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "CHAPTER_PRIZE_POOL" }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "COMMUNITY_FIRST" }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "COMMUNITY_SECOND" }),
+          publicClient.readContract({ blockNumber, address: rewards, abi: SEASON_REWARDS_ABI, functionName: "COMMUNITY_THIRD" }),
+          publicClient.readContract({ blockNumber, address: community, abi: CANONICAL_BOARD_STATUS_ABI, functionName: "seasonsFinalized" }),
         ]);
 
         const rows = await Promise.all(
           Array.from({ length: 6 }, async (_, index) => {
             const season = index + 1;
             const paid = await publicClient.readContract({
+              blockNumber,
               address: rewards,
               abi: SEASON_REWARDS_ABI,
               functionName: "communitySeasonPaid",
@@ -94,8 +104,9 @@ export default function RewardsPage() {
             const finalized = season <= Number(seasonsFinalized);
             const winners = finalized
               ? await publicClient.readContract({
+                  blockNumber,
                   address: community,
-                  abi: COMMUNITY_SEASON_ABI,
+                  abi: CANONICAL_BOARD_STATUS_ABI,
                   functionName: "getSeasonTop3",
                   args: [season],
                 })
@@ -105,7 +116,7 @@ export default function RewardsPage() {
         );
 
         if (cancelled) return;
-        setState({ balance, communityPaid, communityRemaining, hofReserved, chapterPrizePool, first, second, third, seasons: rows });
+        setState({ rollover, balance, communityPaid, communityRemaining, hofReserved, chapterPrizePool, first, second, third, seasons: rows });
         setStatus("V7 reward accounting loaded from Robinhood Chain Testnet.");
       } catch (error) {
         console.error(error);
@@ -120,13 +131,14 @@ export default function RewardsPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <Link href="/" style={{ color: "#7cff6b" }}>← Horses of Fame</Link>
-        <p style={{ marginTop: 48, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — V7</p>
+        <Link href="/" style={{ color: "#d6b06a" }}>← Horses of Fame</Link>
+        <p style={{ marginTop: 48, letterSpacing: 2, color: "#d6b06a" }}>CHAPTER I — V7</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 20px" }}>REWARDS</h1>
         <p style={{ fontSize: 19, lineHeight: 1.6 }}>
           Chapter I allocates 48,000 USDC across six seasons: 4,000 Community + 4,000 HOF per season. The HOF beneficiary mechanism is still to finalize in V7, so this page exposes that allocation only as reserved accounting.
         </p>
 
+        <p>Unawarded Community prizes remain earmarked for Chapter 2. HOF amounts are reserved, not currently payable. Testnet MockUSDC is TEST ONLY / NO VALUE.</p>
         <section style={{ marginTop: 30, padding: 22, border: "1px solid #333", borderRadius: 12 }}>
           <p>{status}</p>
           {state && (
@@ -135,7 +147,7 @@ export default function RewardsPage() {
               <p><strong>Rewards contract balance:</strong> {formatUSDC(state.balance)}</p>
               <p><strong>Community paid:</strong> {formatUSDC(state.communityPaid)}</p>
               <p><strong>Community remaining:</strong> {formatUSDC(state.communityRemaining)}</p>
-              <p><strong>HOF reserved:</strong> {formatUSDC(state.hofReserved)}</p>
+              <p><strong>Chapter 2 Community rollover:</strong> {formatUSDC(state.rollover)}</p><p><strong>HOF reserved:</strong> {formatUSDC(state.hofReserved)}</p>
             </div>
           )}
         </section>
@@ -152,10 +164,10 @@ export default function RewardsPage() {
               {state.seasons.map((row) => (
                 <div key={row.season} style={{ padding: "16px 0", borderTop: "1px solid #222" }}>
                   <strong>Season {row.season}</strong>
-                  <p>Standings finalized: {row.finalized ? "Yes" : "No"} · Community paid: {row.communityPaid ? "Yes" : "No"}</p>
+                  <p>Standings finalized: {row.finalized ? "Yes" : "No"} · Community rewards processed: {row.communityPaid ? "Yes" : "No"}</p>
                   {row.winners && (
                     <p>
-                      Community Top 3: {shortWallet(row.winners[0])} / {shortWallet(row.winners[1])} / {shortWallet(row.winners[2])}
+                      Community Top 3: {row.winners.map((wallet,index)=><span key={index}>{index>0?" / ":""}{/^0x0{40}$/i.test(wallet)?"Unawarded → rollover":shortWallet(wallet)}</span>)}
                     </p>
                   )}
                 </div>

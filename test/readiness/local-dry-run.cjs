@@ -14,7 +14,7 @@ describe('Readiness canonical local dry run',function(){this.timeout(180000);
  let originalFetch;
  before(()=>{originalFetch=global.fetch;global.fetch=async(url,options)=>{
   if(url==='https://hof-fixture.example.org/genesis/unrevealed.json')return new Response(fs.readFileSync('public/genesis/unrevealed.json'));
-  if(url==='https://hof-fixture.example.org/assets/hof-logo.webp')return new Response(fs.readFileSync('public/assets/hof-logo.webp'),{headers:{'content-type':'image/webp'}});
+  if(url==='https://hof-fixture.example.org/brand/hof-logo.webp')return new Response(fs.readFileSync('public/brand/hof-logo.webp'),{headers:{'content-type':'image/webp'}});
   if(new URL(url).hostname==='127.0.0.1')return originalFetch(url,options);
   throw Error('Unexpected HTTP in local dry run');
  };});

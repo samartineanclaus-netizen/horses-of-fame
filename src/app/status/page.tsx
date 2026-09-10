@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPublicClient, http } from "viem";
 import {
-  COMMUNITY_SEASON_ABI,
+  CANONICAL_BOARD_STATUS_ABI,
   HOF_CONTRACTS,
-  HOF_LEADERBOARD_ABI,
   ROBINHOOD_TESTNET_RPC,
   SEASON_REWARDS_ABI,
 } from "@/lib/hofClient";
@@ -81,6 +80,11 @@ export default function StatusPage() {
     let cancelled = false;
 
     async function load() {
+      if (![HOF_CONTRACTS.genesis, HOF_CONTRACTS.sale, HOF_CONTRACTS.trustedLeaderboards, HOF_CONTRACTS.seasonRewards].some(Boolean)) {
+        if (!cancelled) setStatus("Awaiting canonical testnet deployment configuration. No on-chain state loaded.");
+        return;
+      }
+      if(await publicClient.getChainId().catch(()=>0)!==46630){if(!cancelled)setStatus("Robinhood Testnet connection unavailable or wrong chain. No state verified.");return;}
       const next: StatusState = {};
       const errors: string[] = [];
 
@@ -127,34 +131,16 @@ export default function StatusPage() {
         }
       }
 
-      if (HOF_CONTRACTS.communitySeason) {
+      if (HOF_CONTRACTS.trustedLeaderboards) {
         try {
-          const address = HOF_CONTRACTS.communitySeason;
-          const [currentSeason, races, finalized] = await Promise.all([
-            publicClient.readContract({ address, abi: COMMUNITY_SEASON_ABI, functionName: "currentSeason" }),
-            publicClient.readContract({ address, abi: COMMUNITY_SEASON_ABI, functionName: "racesRegistered" }),
-            publicClient.readContract({ address, abi: COMMUNITY_SEASON_ABI, functionName: "seasonsFinalized" }),
-          ]);
-          next.community = { currentSeason: String(currentSeason), races: String(races), finalized: String(finalized) };
-        } catch (error) {
-          console.error(error);
-          errors.push("Community leaderboard");
-        }
-      }
-
-      if (HOF_CONTRACTS.hofLeaderboard) {
-        try {
-          const address = HOF_CONTRACTS.hofLeaderboard;
-          const [currentSeason, races, finalized] = await Promise.all([
-            publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "currentSeason" }),
-            publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "racesRecorded" }),
-            publicClient.readContract({ address, abi: HOF_LEADERBOARD_ABI, functionName: "seasonsFinalized" }),
-          ]);
-          next.hof = { currentSeason: String(currentSeason), races: String(races), finalized: String(finalized) };
-        } catch (error) {
-          console.error(error);
-          errors.push("HOF leaderboard");
-        }
+          const address=HOF_CONTRACTS.trustedLeaderboards;
+          const [season,count,finalized]=await Promise.all([
+            publicClient.readContract({address,abi:CANONICAL_BOARD_STATUS_ABI,functionName:"currentSeason"}),
+            publicClient.readContract({address,abi:CANONICAL_BOARD_STATUS_ABI,functionName:"raceCount"}),
+            publicClient.readContract({address,abi:CANONICAL_BOARD_STATUS_ABI,functionName:"seasonsFinalized"})]);
+          next.community={currentSeason:String(season),races:String(Math.max(0,Number(count)-Number(finalized)*10)),finalized:String(finalized)};
+          next.hof=next.community;
+        } catch {errors.push("Canonical Season / All-Time Leaderboards");}
       }
 
       if (HOF_CONTRACTS.seasonRewards) {
@@ -175,7 +161,7 @@ export default function StatusPage() {
       if (!cancelled) {
         setState(next);
         setStatus(errors.length === 0
-          ? "On-chain V7 state loaded. This page is read-only."
+          ? Object.keys(next).length ? "Configured V7 state loaded. Unconfigured components are listed below. Read-only." : "Awaiting canonical testnet deployment configuration. No on-chain state loaded."
           : `Loaded available V7 state. Could not read: ${errors.join(", ")}. No transaction was sent.`);
       }
     }
@@ -187,8 +173,8 @@ export default function StatusPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#050505", color: "#fff", padding: "40px 20px" }}>
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        <Link href="/" style={{ color: "#7cff6b" }}>← Horses of Fame</Link>
-        <p style={{ marginTop: 48, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — V7 · READ ONLY</p>
+        <Link href="/" style={{ color: "#d6b06a" }}>← Horses of Fame</Link>
+        <p style={{ marginTop: 48, letterSpacing: 2, color: "#d6b06a" }}>CHAPTER I — V7 · READ ONLY</p>
         <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 14px" }}>SYSTEM STATUS</h1>
         <p style={{ fontSize: 18, lineHeight: 1.6 }}>{status}</p>
 
@@ -220,7 +206,7 @@ export default function StatusPage() {
               <p>Current season: <strong>{state.community.currentSeason}</strong></p>
               <p>Races registered this season: <strong>{state.community.races}</strong> / 10</p>
               <p>Seasons finalized: <strong>{state.community.finalized}</strong> / 6</p>
-              <p><Link href="/standings" style={{ color: "#7cff6b" }}>Open Community standings →</Link></p>
+              <p><Link href="/standings" style={{ color: "#d6b06a" }}>Open Community standings →</Link></p>
             </> : <p>Community leaderboard address not configured or could not be read.</p>}
           </Card>
 
@@ -229,7 +215,7 @@ export default function StatusPage() {
               <p>Current season: <strong>{state.hof.currentSeason}</strong></p>
               <p>Races recorded this season: <strong>{state.hof.races}</strong> / 10</p>
               <p>Seasons finalized: <strong>{state.hof.finalized}</strong> / 6</p>
-              <p><Link href="/standings" style={{ color: "#7cff6b" }}>Open HOF standings →</Link></p>
+              <p><Link href="/standings" style={{ color: "#d6b06a" }}>Open HOF standings →</Link></p>
             </> : <p>HOF leaderboard address not configured or could not be read.</p>}
           </Card>
 
@@ -239,17 +225,17 @@ export default function StatusPage() {
               <p>Community remaining: <strong>{usdc(state.rewards.communityRemaining)}</strong></p>
               <p>HOF reserved: <strong>{usdc(state.rewards.hofReserved)}</strong></p>
               <p style={{ lineHeight: 1.5 }}>HOF beneficiary payout remains intentionally unavailable until the V7 beneficiary mechanism is finalized.</p>
-              <p><Link href="/rewards" style={{ color: "#7cff6b" }}>Open rewards →</Link></p>
+              <p><Link href="/rewards" style={{ color: "#d6b06a" }}>Open rewards →</Link></p>
             </> : <p>Season Rewards address not configured or could not be read.</p>}
           </Card>
         </div>
 
         <div style={{ marginTop: 26, display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <Link href="/mint" style={{ color: "#7cff6b" }}>Public Mint</Link>
-          <Link href="/refund" style={{ color: "#7cff6b" }}>Refund</Link>
-          <Link href="/race" style={{ color: "#7cff6b" }}>Race</Link>
-          <Link href="/standings" style={{ color: "#7cff6b" }}>Standings</Link>
-          <Link href="/rewards" style={{ color: "#7cff6b" }}>Rewards</Link>
+          <Link href="/mint" style={{ color: "#d6b06a" }}>Public Mint</Link>
+          <Link href="/refund" style={{ color: "#d6b06a" }}>Refund</Link>
+          <Link href="/race" style={{ color: "#d6b06a" }}>Race</Link>
+          <Link href="/standings" style={{ color: "#d6b06a" }}>Standings</Link>
+          <Link href="/rewards" style={{ color: "#d6b06a" }}>Rewards</Link>
         </div>
       </div>
     </main>
