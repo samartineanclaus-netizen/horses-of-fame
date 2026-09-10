@@ -1,0 +1,8 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {inclusionState}=require('../lib/owner-voting/signed-ballot.cjs');
+const packet={intent:{voter:'0x0000000000000000000000000000000000000001',race:'0x0000000000000000000000000000000000000002',nonce:0,deadline:1000,commitment:'0x'+'11'.repeat(32),ciphertextHash:'0x'+'22'.repeat(32),tokenIdsHash:'0x'+'33'.repeat(32),vp:1,topUp:false}};
+function fixture({receipt={status:1,blockNumber:5,blockHash:'a'},canonical='a',finalized=4,logs=[{transactionHash:'tx',blockNumber:5,blockHash:'a'}]}={}){return {runner:{provider:{getNetwork:async()=>({chainId:1n}),getBlock:async n=>n==='latest'?{number:6}:n==='finalized'?{number:finalized}:{hash:canonical,timestamp:50},getTransactionReceipt:async()=>receipt}},queryFilter:async()=>logs,filters:{IntentIncluded:()=>({})},closesAt:async()=>1000n};}
+test('no matching inclusion means Submitted regardless of backend status',async()=>assert.equal(await inclusionState(fixture({logs:[]}),packet),'Submitted'));
+test('canonical receipt required; finality separately upgrades confirmation',async()=>{assert.equal(await inclusionState(fixture(),packet),'Included on-chain');assert.equal(await inclusionState(fixture({finalized:5}),packet),'Vote confirmed');});
+test('missing, failed or reorged receipt cannot confirm',async()=>{for(const options of [{receipt:null},{receipt:{status:0}},{canonical:'different'},{receipt:{status:1,blockNumber:5,blockHash:'different'}}])assert.equal(await inclusionState(fixture(options),packet),'Submitted');});
+test('duplicate inclusion logs fail closed',async()=>{const log={transactionHash:'tx',blockNumber:5,blockHash:'a'};await assert.rejects(inclusionState(fixture({logs:[log,log]}),packet),/Duplicate inclusion/);});

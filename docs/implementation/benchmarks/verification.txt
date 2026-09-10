@@ -1,0 +1,644 @@
+Solidity compile
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> horses-of-fame-site@0.1.0 compile:contracts
+> hardhat compile
+
+Nothing to compile
+
+
+Full regression (231)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+
+  HOFVoting - gas scalable batching
+    ✔ recognizes Hall of Fame NFTs as zero VP
+    ✔ recognizes Legendary voting power
+    ✔ prepares an NFT batch and records VP
+    ✔ rejects Hall of Fame NFTs with zero VP
+    ✔ rejects tokens not owned by caller
+    ✔ prevents the same NFT being prepared twice
+    ✔ allows multiple batches before final commit (71ms)
+    ✔ finalizes commitment using prepared VP
+    ✔ prevents adding NFTs after final commit
+    ✔ prevents the same wallet finalizing twice
+    ✔ prevents NFT reuse after transfer (154ms)
+    ✔ rejects wrong reveal secret
+    ✔ rejects reveal for a different horse
+    ✔ hides horse totals before finalization
+    ✔ reveals valid commitment and records VP
+    ✔ applies ranking, tie-break and scoring correctly
+    ✔ supports exactly 100 NFTs in one batch (145ms)
+    ✔ rejects batches larger than 100 NFTs
+
+  V7 canonical frontend / admission / actual protocol integration
+    ✔ frontend ABI fragments match compiled contract inputs and outputs (58ms)
+    ✔ all22 canonical IDs survive browser encryption, HTTP admission, chain settlement and both boards (2702ms)
+
+  V7 Chapter 2 activation gate
+    ✔ rejects missing races, unfinished Race #60, and unauthorized activation (2602ms)
+    ✔ rejects 30 days minus one second from actual final Race Reveal (2221ms)
+    ✔ accepts exactly 30 days, before auxiliary season bookkeeping, and only once
+    ✔ accepts 30 days plus one second after delayed administrative season finalization (77ms)
+
+  V7 Community casting tie-break
+    ✔ selects the wallet holding the lower-numbered NFT (152ms)
+    ✔ uses the lowest NFT held when a wallet owns multiple NFTs (137ms)
+    ✔ does not use wallet address ordering as the tie-break (125ms)
+    ✔ makes a wallet with no NFT lose the tie-break against a wallet that still holds an NFT (171ms)
+
+  V7 Community cadence and parallel six-season integration
+    ✔ uses the same three-day interval in both leaderboards and keeps the 24-hour vote window (124ms)
+    ✔ rejects a second race opening one second early without changing either leaderboard (106ms)
+    ✔ rejects a second race opening one second late without changing either leaderboard (132ms)
+    ✔ rejects a different race contract using the same opening as the previous race (228ms)
+    ✔ accepts exact scheduled openings despite delayed registration and rejects out-of-order races (145ms)
+    ✔ processes the same 60 races in both leaderboards, preserving history, Top 3, resets and Chapter I limits (8886ms)
+
+  V7 Community/Holder Season
+    ✔ awards the wallet the points of its chosen horse's final position (170ms)
+    ✔ allows only one Community scoring result per wallet per race (129ms)
+    ✔ does not multiply Community points when a wallet uses more NFTs (143ms)
+    ✔ accumulates points for the same wallet across different races (134ms)
+    ✔ keeps separate wallet scores (191ms)
+    ✔ requires a revealed vote before Community points can be claimed (193ms)
+
+  V7 Community season history, reset and All-Time
+    ✔ archives wallet points, Top 3, resets season score and advances to season 2 (812ms)
+    ✔ keeps All-Time points while season 2 starts from zero and accumulates independently (1769ms)
+    ✔ keeps a persistent Chapter I wallet registry across season resets for All-Time standings (2151ms)
+    ✔ cannot finalize before ten races are registered (113ms)
+    ✔ does not add a participant-count requirement that is absent from V7 (804ms)
+
+  V7 Community race/season isolation
+    ✔ retains each race's original season after reset and assigns new races to season 2 (1333ms)
+    ✔ rejects an unclaimed season-1 result after finalization without changing scores or archives (738ms)
+    ✔ cannot add old-race points to a wallet that already scored in the new season (1945ms)
+    ✔ still accepts a delayed claim within the same active season, exactly once (1215ms)
+    ✔ cannot re-register a previous-season race as a new-season race (972ms)
+    ✔ blocks claims after all six seasons and preserves every season's history and All-Time (4018ms)
+
+  V7 unresolved Community tie protection
+    ✔ does not award a casting win when both tied wallets own zero Genesis NFTs
+
+  V7 full-system deployment wiring
+    ✔ locks the V7 constants and cross-contract references in one deployable system (131ms)
+    ✔ routes a V7 public mint through USDC and the configured sale contract (84ms)
+
+  V7 final refund entitlement
+    ✔ refunds a secondary holder at the exact deadline and never the former owner (54ms)
+    ✔ rolls back duplicate IDs and mixed ownership/allocation requests atomically (63ms)
+    ✔ rolls back burns on a failed USDC transfer and blocks callback reentrancy (64ms)
+    ✔ rejects a new mint exactly at the deadline (159ms)
+    ✔ never enables refunds after full sell-out, including after the deadline (1579ms)
+    ✔ allows the designated Team wallet to refund its purchased token (61ms)
+
+  V7 Community rollover to Chapter 2
+    ✔ settles 0 winners with fixed prizes and separately backed rollover (70ms)
+    ✔ settles 1 winners with fixed prizes and separately backed rollover
+    ✔ settles 2 winners with fixed prizes and separately backed rollover (41ms)
+    ✔ settles 3 winners with fixed prizes and separately backed rollover (127ms)
+    ✔ preserves empty prize slots without increasing another winner's payout
+    ✔ accounts for all six seasons independently of payment order (193ms)
+    ✔ rejects unauthorized, unfinalized and duplicate winners without consuming a season
+    ✔ rolls back payment and rollover if a token transfer fails
+    ✔ blocks reentrancy even when the rewards owner itself receives token callbacks
+    ✔ does not count an unfunded missing prize as funded rollover (45ms)
+
+  V7 isolated supply buckets
+    ✔ mints exactly 2000 + 111 + 111 with independent lifetime caps (2453ms)
+    ✔ enforces access, rejects zero quantity and preserves counters on rejected recipients (46ms)
+
+  V7 final Community tie decisions
+    ✔ skips both tied nonholders and fills prizes from the next scores (1640ms)
+    ✔ passes an empty eligible podium into real rewards and reserves all 4000 USDC (1794ms)
+    ✔ uses ownership at winner determination, not at voting or claiming
+    ✔ uses the lowest current Token ID when both tied wallets retain NFTs
+
+  V7 full Chapter I lifecycle
+    ✔ runs six seasons / sixty races and preserves locked Chapter I lifecycle invariants (4363ms)
+
+  V7 Genesis allocation caps
+    ✔ locks Public 2,000 + Community 111 + Team Reserve 111 = 2,222 (49ms)
+    ✔ enforces the Community and Team Reserve 111-NFT buckets separately (72ms)
+    ✔ classifies only the designated Team Reserve Wallet into the Team bucket (44ms)
+    ✔ keeps the paid Public Mint isolated behind the configured sale contract (62ms)
+
+  V7 Chapter I Genesis Grand Champion
+    ✔ does not expose the Chapter I title before all six seasons are complete
+    ✔ names HOF All-Time #1 as Genesis Grand Champion after all 60 races (2173ms)
+
+  V7 HOF season history, reset and All-Time
+    ✔ archives season 1, resets active scores and advances to season 2 (528ms)
+    ✔ preserves finalized season points in All-Time standings (261ms)
+    ✔ continues accumulating All-Time points across seasons while each new season starts at zero (988ms)
+    ✔ cannot finalize an incomplete season (217ms)
+    ✔ keeps the V7 lower-number tie-break in All-Time standings (122ms)
+
+  V7 HOF Season Leaderboard
+    ✔ accumulates HOF points across multiple races (163ms)
+    ✔ enforces exactly three days between race opening times (141ms)
+    ✔ accepts a race opening exactly three days after the previous race (319ms)
+    ✔ cannot record the same race twice (147ms)
+    ✔ only the season owner can record race results (135ms)
+    ✔ enforces exactly ten races per season (514ms)
+    ✔ uses lower HOF number as season tie-break
+    ✔ rejects a race that has not closed (38ms)
+
+  V7 locked Genesis supply and VP invariants
+    ✔ keeps 22 HOF + 2,200 voting NFTs = 2,222 Genesis
+    ✔ keeps the V7 rarity distribution at exactly 2,200 voting NFTs and 4,800 nominal VP
+    ✔ keeps the locked 2,000 Public + 111 Community + 111 Team Reserve allocation
+
+  V7 public mint entrypoint integrity
+    ✔ does not expose the legacy payable publicTestMint bypass
+    ✔ keeps public-sale minting restricted to the configured V7 sale contract
+
+  V7 owner-trusted encrypted voting
+    ✔ one Vote stores encrypted data, counts VP and exposes no reveal/claim entry point (98ms)
+    ✔ rejects early voting and accepts opensAt, closesAt-1 but rejects closesAt (47ms)
+    ✔ blocks owner, backend and Team even with signed admission, and blocks early freeze
+    ✔ rejects invalid encryption, domain, key, horse and modified commitment in backend (1366ms)
+    ✔ auth binds wallet, ciphertext, deadline and chain/race; invalid NFT lists roll back (69ms)
+    ✔ preserves same-pick topups and prohibits transferred token reuse (75ms)
+    ✔ never finalizes incomplete/duplicate/wrong-index or altered-score outputs (207ms)
+    ✔ uses full 22 ranking, lower horse tie, exact scoring and no VP multiplier
+    ✔ rejects an omitted leaf, wrong VP sum and unauthorized result (42ms)
+    ✔ worker is resumable, handles empty race, and fails closed before final closure
+    ✔ worker resumes a partially prepared result without a voter (302ms)
+    ✔ malformed owner-authorized ciphertext keeps backend reveal incomplete
+    ✔ retains live ownership tie-break and treasury rollover integration for ten races (1254ms)
+    ✔ uses current lowest token ID and preserves a sole tied nonholder behind a holder (189ms)
+    ✔ keeps lowest-ID holder first when both retain NFTs (211ms)
+      GAS full-supply season finalization: 264226
+    ✔ bounds winner scan by full Genesis supply and measures finalization gas (1808ms)
+    ✔ serves admission over HTTP without exposing decrypted ballot data (50ms)
+      GAS 25-wallet score batch: 612823
+      GAS atomic race finalization: 73131
+    ✔ settles 101 distinct wallets in bounded batches and measures gas (4826ms)
+    ✔ skips tied nonholders for the next score, while unique-score nonholder stays eligible (1538ms)
+    ✔ rejects owner rotation, unauthorized registration and stale admissions
+    ✔ website reads activate both tables atomically and match contract getters without indexing (300ms)
+    ✔ prize scan resumes with strict cursors, rejects partial results and stale ownership (1185ms)
+    ✔ rejects transfer after the last prize batch and protects score-bucket cursors (163ms)
+    ✔ mint and refund burn invalidate scans; failed transfers and approvals cannot change revision (160ms)
+    ✔ bounds operator batch configuration before it submits any transaction
+
+  V7 public mint entrypoint
+    ✔ does not expose the legacy payable publicTestMint bypass
+    ✔ rejects direct public saleMint calls from ordinary wallets
+    ✔ marks NFTs minted by the configured V7 sale path as refundable public-sale tokens
+
+  V7 deterministic race ranking
+    ✔ does not expose final ranking before voting closes (39ms)
+    ✔ ranks higher revealed VP ahead of lower VP (62ms)
+    ✔ uses lower HOF competitor number as the tie-break (51ms)
+    ✔ orders all zero-VP competitors by lower number
+    ✔ produces a complete unique ranking of competitors 1 through 22 (63ms)
+
+  V7 Race Vote Reveal
+    ✔ cannot reveal before the 24-hour voting window closes (38ms)
+    ✔ rejects a horse number or salt that does not match the commitment (52ms)
+    ✔ reveals once and assigns the exact committed VP to the chosen horse (62ms)
+    ✔ cannot reveal the same wallet twice (55ms)
+    ✔ aggregates VP from different wallets choosing the same horse (50ms)
+
+  V7 locked race scoring
+    ✔ uses exactly 25/18/15/12/10/8/6/4/2/1 for positions 1-10 (39ms)
+    ✔ gives zero points to every position from 11 through 22 (44ms)
+    ✔ rejects positions outside 1 through 22
+    ✔ maps ranking positions back to the correct HOF competitor
+    ✔ does not expose race points before voting closes
+
+  V7 Race Voting Core
+    ✔ combines all eligible NFT VP behind one wallet commitment (58ms)
+    ✔ allows only one secret pick per wallet (46ms)
+    ✔ rejects Hall of Fame NFTs because they have 0 VP (48ms)
+    ✔ prevents reuse after a voted NFT is transferred to another wallet (51ms)
+    ✔ blocks the Team Reserve wallet itself from voting (59ms)
+    ✔ restores normal voting eligibility after a Team Reserve NFT is transferred to an independent holder (64ms)
+    ✔ enforces the exact 24-hour voting window (175ms)
+
+  V7 same-pick VP top-up for newly acquired NFTs
+    ✔ adds a newly acquired unused NFT to the wallet's existing secret pick (87ms)
+    ✔ cannot add VP before the wallet has fixed its secret pick (40ms)
+    ✔ cannot change or split the wallet pick while adding more VP (49ms)
+    ✔ cannot reuse an NFT that already contributed, even after transfer (49ms)
+    ✔ cannot add VP after the 24-hour voting window closes (53ms)
+
+  V7 atomic refunds
+    ✔ burns public-sale NFTs and returns exactly 30 USDC per NFT (49ms)
+    ✔ cannot refund before the failed-sale deadline (42ms)
+    ✔ cannot refund an NFT after transferring it away (42ms)
+    ✔ cannot use owner/giveaway NFTs to claim public-sale refunds (44ms)
+
+  V7 sale -> Genesis integration
+    ✔ allows only the configured sale contract to mint public NFTs (43ms)
+    ✔ locks the sale contract configuration after the first valid setup
+
+  V7 sale payment-token decimals
+    ✔ accepts the 6-decimal USDC accounting used by V7
+    ✔ rejects an 18-decimal payment token so 30 * 1e6 cannot be mispriced
+
+  V7 primary-sale proceeds and Prize Pool custody invariants
+    ✔ rejects deployment when the Prize Pool destination is the founder wallet
+    ✔ cannot distribute any primary-sale proceeds before all 2,000 Public Mint NFTs sell (41ms)
+    ✔ at sell-out records the sell-out time and distributes exactly 48,000 / 2,000 / 10,000 USDC only once (757ms)
+
+  V7 Season Rewards
+    ✔ locks the exact V7 season and Chapter I reward constants (60ms)
+    ✔ pays only the archived Community Top 3 exactly 2500 / 1000 / 500 USDC (201ms)
+    ✔ cannot pay the Community allocation twice for the same season (204ms)
+    ✔ rejects invalid season numbers (74ms)
+    ✔ after all six Community payouts exactly 24000 USDC remains reserved for HOF (438ms)
+    ✔ does not expose HOF payout or generic withdrawal before V7 beneficiary mechanics are finalized (277ms)
+
+  V7 master document integrity
+    ✔ keeps the approved V7 master byte-for-byte unchanged
+
+  V7 sponsored signed voting
+    ✔ accepts a genuine admission, stores compact metadata and reconstructs ciphertext (445ms)
+    ✔ rejects modified signed voter
+    ✔ rejects modified signed race
+    ✔ rejects modified signed nonce
+    ✔ rejects modified signed deadline
+    ✔ rejects modified signed commitment
+    ✔ rejects modified signed ciphertextHash
+    ✔ rejects modified signed tokenIdsHash
+    ✔ rejects modified signed vp
+    ✔ rejects modified signed topUp
+    ✔ rejects modified ciphertext and token arrays, including duplicates atomically (46ms)
+    ✔ rejects wrong chain/domain and another race (47ms)
+    ✔ owner cannot vote
+    ✔ backend cannot vote
+    ✔ team cannot vote
+    ✔ rejects admission refusal, malformed decrypted horse, and forged backend signature
+    ✔ backend wins fallback race without a duplicate
+    ✔ direct wins fallback race without a duplicate
+    ✔ partial batch failure and duplicate nonce revert every earlier write
+    ✔ bounds empty/oversized batches and total NFT uses (43ms)
+    ✔ accepts at opening, rejects before opening, and at exact 24h close (51ms)
+    ✔ accepts deadline-1 and personal deadline exact, rejects personal deadline+1 (60ms)
+    ✔ signed same-pick topups preserve current ownership and NFT reuse restrictions (64ms)
+    ✔ refuses stale eligibility after transfer and HOF 0VP
+    ✔ rejects incomplete reconstruction and incomplete reveal; scores once with exact V7 mapping (144ms)
+    ✔ supports ERC1271 signatures while refusing reentry and unauthorized wallet changes (46ms)
+    ✔ supports a genuine empty finalized race (45ms)
+
+  V7 sponsored queue/adaptive deadline flush
+    ✔ defaults to25 and flushes one vote without waiting for a full batch (52ms)
+    ✔ wakes automatically on enqueue and drains a partial batch (44ms)
+    ✔ flushes before the exact race deadline rather than waiting for25 (47ms)
+    ✔ expires at deadline; Signed/Submitted alone never become valid votes
+    ✔ splits by gas budget and resumes every deferred vote (720ms)
+    ✔ restarts from durable queue, deduplicates enqueue and processing (46ms)
+    ✔ direct fallback before worker causes no second vote or paid backend retry
+    ✔ backend before fallback rejects reused nonce (136ms)
+    ✔ rejects an ineligible packet before sponsorship and handles eligibility loss in queue (91ms)
+    ✔ rejects owner as operational relayer
+    ✔ rejects backend as operational relayer
+    ✔ rejects team as operational relayer
+    ✔ rejects treasury as operational relayer
+    ✔ serializes concurrent flush and protects competing wallet nonce intents (134ms)
+    ✔ truncates torn unacknowledged journal append, preserving acknowledged votes (55ms)
+    ✔ rate limits before expensive admission and never returns plaintext/private keys (517ms)
+    ✔ unauthenticated requests cannot exhaust another wallet admission quota (101ms)
+    ✔ dispatches a bounded window before validating the rest of a backlog (537ms)
+    ✔ bounds receipt waiting and reconciles an ambiguous broadcast without duplicate inclusion (73ms)
+    ✔ caps sponsored broadcast failures persistently per wallet/nonce, even after re-signing (127ms)
+    ✔ uses an urgent timer during the final60 seconds, including the boundary
+    ✔ rate limit windows reset and key cardinality is bounded
+
+  V7 Team Reserve sell-out transfer gate
+    ✔ keeps Team Reserve NFTs in the designated wallet until Public Mint sell-out (79ms)
+    ✔ does not lock Community allocation transfers behind Public Mint sell-out (177ms)
+    ✔ locks Team Reserve even if allocation was minted before the sale contract was configured
+
+  V7 Team Wallet voting rule
+    ✔ gives 0 VP in Team Wallet and restores rarity VP after transfer (65ms)
+    ✔ does not suppress voting power for the same rarity outside Team Wallet (43ms)
+    ✔ locks Team Wallet after initial configuration
+
+  V7 trusted full-supply settlement gas stress
+      GAS_REPORT [{"stage":"freeze","transactions":1,"min":"95744","max":"95744","total":"95744"},{"stage":"propose","transactions":1,"min":"278268","max":"278268","total":"278268"},{"stage":"score batch","transactions":88,"min":"832213","max":"946656","total":"81419032"},{"stage":"race finalization","transactions":1,"min":"73131","max":"73131","total":"73131"},{"stage":"index batch","transactions":88,"min":"1367211","max":"1440411","total":"121058868"},{"stage":"begin prize scan","transactions":1,"min":"265069","max":"265069","total":"265069"},{"stage":"holder batch","transactions":89,"min":"482981","max":"814760","total":"70856529"},{"stage":"score bucket batch","transactions":11,"min":"73503","max":"203746","total":"1959268"},{"stage":"season finalization","transactions":1,"min":"245031","max":"245031","total":"245031"}]
+    ✔ settles 2200 real encrypted votes and all Community prizes in resumable capped batches (84114ms)
+      GAS 25 cold distinct score buckets: 2625322 index max: 1461413
+    ✔ measures a cold prize batch with 25 distinct reachable V7 season-score buckets (501ms)
+
+
+  231 passing (3m)
+
+
+
+Sponsored contract run with added canonical test (28, 27 overlap)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+
+  V7 sponsored signed voting
+    ✔ accepts a genuine admission, stores compact metadata and reconstructs ciphertext (1649ms)
+    ✔ rejects modified signed voter
+    ✔ rejects modified signed race
+    ✔ rejects modified signed nonce
+    ✔ rejects modified signed deadline
+    ✔ rejects modified signed commitment
+    ✔ rejects modified signed ciphertextHash
+    ✔ rejects modified signed tokenIdsHash
+    ✔ rejects modified signed vp
+    ✔ rejects modified signed topUp
+    ✔ rejects modified ciphertext and token arrays, including duplicates atomically (109ms)
+    ✔ rejects wrong chain/domain and another race (109ms)
+    ✔ owner cannot vote
+    ✔ backend cannot vote
+    ✔ team cannot vote
+    ✔ rejects admission refusal, malformed decrypted horse, and forged backend signature (43ms)
+    ✔ backend wins fallback race without a duplicate
+    ✔ direct wins fallback race without a duplicate
+    ✔ partial batch failure and duplicate nonce revert every earlier write (53ms)
+    ✔ bounds empty/oversized batches and total NFT uses (47ms)
+    ✔ accepts at opening, rejects before opening, and at exact 24h close (47ms)
+    ✔ accepts deadline-1 and personal deadline exact, rejects personal deadline+1 (177ms)
+    ✔ signed same-pick topups preserve current ownership and NFT reuse restrictions (112ms)
+    ✔ refuses stale eligibility after transfer and HOF 0VP (39ms)
+    ✔ rejects incomplete reconstruction and incomplete reveal; scores once with exact V7 mapping (175ms)
+    ✔ supports ERC1271 signatures while refusing reentry and unauthorized wallet changes (56ms)
+    ✔ maps every canonical HOF ID1–22 and independently checks every V7 score end-to-end (1123ms)
+    ✔ supports a genuine empty finalized race (62ms)
+
+
+  28 passing (4s)
+
+
+
+Frontend
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> horses-of-fame-site@0.1.0 test:frontend
+> node --test web-test/*.test.cjs
+
+✔ 24h countdown reaches zero exactly at deadline and never goes negative (1.764056ms)
+✔ countdown uses chain anchor rather than local wall clock as chain time (0.255218ms)
+✔ a backwards client clock cannot extend beyond the last observed chain remainder (0.209026ms)
+✔ canonical dataset matches the approved 22 identities exactly (3.259005ms)
+✔ lookup uses canonical number for arbitrary race ranking order (0.954009ms)
+✔ catalog records are immutable and images cannot be assigned by upload order (1.735671ms)
+✔ all 22 supplied portraits retain their original bytes and identity (143.551184ms)
+✔ five mislabeled uploads map to their actual portrait identities (0.565135ms)
+✔ no matching inclusion means Submitted regardless of backend status (8.088546ms)
+✔ canonical receipt required; finality separately upgrades confirmation (2.764948ms)
+✔ missing, failed or reorged receipt cannot confirm (4.192778ms)
+✔ duplicate inclusion logs fail closed (1.743407ms)
+✔ sponsored Voting: canonical selection, one signature, admission retry and paid fallback states (737.515652ms)
+✔ deadline: open inclusive, close exclusive, unfinished stays awaiting (3.578818ms)
+✔ no partial results read while awaiting finalization (1.820615ms)
+✔ complete 22-horse result, same block, reject incomplete result (1.357847ms)
+✔ duplicate horse identities and missing totals reject the entire Race Reveal (0.765316ms)
+✔ owner excluded; used NFTs and nonvoting NFTs filtered (1.766768ms)
+✔ both leaderboards include finalized votes without participant indexing or claims (7.063829ms)
+✔ season rollover does not duplicate all-time or leak prior-season points (2.010266ms)
+✔ incomplete RPC snapshot rejects entire leaderboard (0.969038ms)
+✔ RPC fanout bounded and original order preserved (23.582409ms)
+✔ admission proxy forwards ciphertext only and strips extra backend fields (15.25332ms)
+✔ admission rejects plaintext, oversized input, foreign origin, missing backend (4.186849ms)
+✔ admission errors fail closed without exposing private diagnostics (1.166035ms)
+✔ wallet session rechecks accounts and chain without prompting a signature (1.052051ms)
+✔ wallet change during asynchronous session check blocks sending (0.267596ms)
+▶ actual Voting component: canonical selection, transaction boundary, privacy and lifecycle
+  ✔ renders exactly22 official horses in canonical order with accessible names (17.474861ms)
+  ✔ connected eligible wallet cannot Vote without a selection (59.7503ms)
+  ✔ click selects one horse; changing selection deselects the previous one (64.471403ms)
+  ✔ Vote passes the canonical number13 to the real UI submission boundary (41.400032ms)
+  ✔ open voting exposes no interim ranking, totals, result table or reveal/claim controls (1.799162ms)
+  ✔ account changes clear selection and invalidate voting eligibility (123.812395ms)
+  ✔ exact closing timestamp disables selection and Vote (75.548821ms)
+  ✔ Race Reveal page also hides interim totals while voting is open (6.322097ms)
+  ✔ StrictMode cleanup removes wallet subscriptions (1.453031ms)
+✔ actual Voting component: canonical selection, transaction boundary, privacy and lifecycle (894.335516ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1957.365892
+
+
+Typecheck
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> horses-of-fame-site@0.1.0 typecheck
+> tsc --noEmit
+
+
+
+Lint
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> horses-of-fame-site@0.1.0 lint
+> eslint
+
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/allocations/page.tsx
+  102:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/allocations/page.tsx:102:10
+  100 |
+  101 |   useEffect(() => {
+> 102 |     void load();
+      |          ^^^^ Avoid calling setState() directly within an effect
+  103 |   }, []);
+  104 |
+  105 |   return (  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/history/page.tsx
+  104:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/history/page.tsx:104:10
+  102 |
+  103 |   useEffect(() => {
+> 104 |     void load();
+      |          ^^^^ Avoid calling setState() directly within an effect
+  105 |   }, []);
+  106 |
+  107 |   return (  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/mint/page.tsx
+  90:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/mint/page.tsx:90:10
+  88 |
+  89 |   useEffect(() => {
+> 90 |     void loadSaleState();
+     |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  91 |   }, []);
+  92 |
+  93 |   async function connect() {  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/page.tsx
+  181:69  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  182:70  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/refund/page.tsx
+  61:10  warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/app/refund/page.tsx:61:10
+  59 |
+  60 |   useEffect(() => {
+> 61 |     void refreshStatus();
+     |          ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  62 |   }, []);
+  63 |
+  64 |   async function connect() {  react-hooks/set-state-in-effect
+
+/workspace/scratch/9ccd2d30f4e4/hof-integration/src/components/Voting.jsx
+  55:34   warning  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  53 |     finally {provider.destroy();if(inFlight.current===generation)inFlight.current=null;if(generation===epoch.current)setLoading(false);}
+  54 |   },[wallet,mode]);
+> 55 |   useEffect(()=>{epoch.current++;setSnapshot(null);void refresh();const id=setInterval(refresh,15000);return()=>{epoch.current++;clearInterval(id);};},[refresh]);
+     |                                  ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  56 |   useEffect(()=>{
+  57 |     const ethereum=window.ethereum; if (!ethereum?.on) return;
+  58 |     const reset=()=>{epoch.current++;setWallet('');setPacket(null);packetRef.current=null;setSnapshot(null);setExcludedTokens([]);setHorse(null);setMessage('Wallet changed. Connect again to vote.');};  react-hooks/set-state-in-effect
+  55:120  warning  The ref value 'epoch.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'epoch.current' to a variable inside the effect, and use that variable in the cleanup function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+
+✖ 8 problems (0 errors, 8 warnings)
+
+
+
+Production build
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> horses-of-fame-site@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.3.4 (webpack)
+✓ Running next.config.mjs took 21ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.2s
+  Running TypeScript ...
+  Finished TypeScript in 4.3s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/19) ...
+  Generating static pages using 8 workers (4/19) 
+  Generating static pages using 8 workers (9/19) 
+  Generating static pages using 8 workers (14/19) 
+✓ Generating static pages using 8 workers (19/19) in 907ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /allocations
+├ ƒ /api/vote/admission
+├ ƒ /api/vote/prepare
+├ ƒ /api/vote/submit
+├ ○ /hall-of-fame
+├ ○ /history
+├ ƒ /metadata/[filename]
+├ ○ /mint
+├ ○ /race
+├ ○ /race/backup
+├ ○ /refund
+├ ○ /results
+├ ○ /review
+├ ○ /rewards
+├ ○ /standings
+├ ○ /status
+└ ○ /wallet
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+
+Four fresh full-season benchmarks
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+
+  V7 sponsored full-season benchmark
+      MEASURED batch=5 race=1/10 voteGas=327368324
+      MEASURED batch=5 race=2/10 voteGas=327367088
+      MEASURED batch=5 race=3/10 voteGas=327366152
+      MEASURED batch=5 race=4/10 voteGas=327367328
+      MEASURED batch=5 race=5/10 voteGas=327366716
+      MEASURED batch=5 race=6/10 voteGas=327367568
+      MEASURED batch=5 race=7/10 voteGas=327367136
+      MEASURED batch=5 race=8/10 voteGas=327367052
+      MEASURED batch=5 race=9/10 voteGas=327366008
+      MEASURED batch=5 race=10/10 voteGas=327368816
+      SEASON_RESULT {  "batchSize": 5,  "scenario": "10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community",  "stages": {    "initial approval": {      "gas": "46343",      "tx": 1,      "max": "46343",      "min": "46343"    },    "mint": {      "gas": "303723704",      "tx": 22,      "max": "13956493",      "min": "12925442"    },    "distribution": {      "gas": "213684135",      "tx": 2200,      "max": "109404",      "min": "91631"    },    "race deployment": {      "gas": "33187850",      "tx": 10,      "max": "3318785",      "min": "3318785"    },    "race registration": {      "gas": "916485",      "tx": 10,      "max": "101436",      "min": "90561"    },    "vote": {      "gas": "3273672188",      "tx": 4400,      "max": "810978",      "min": "742326"    },    "freeze": {      "gas": "957000",      "tx": 10,      "max": "95700",      "min": "95700"    },    "propose": {      "gas": "7682439",      "tx": 10,      "max": "846298",      "min": "663701"    },    "scoring": {      "gas": "572515832",      "tx": 880,      "max": "705844",      "min": "529658"    },    "race finalization": {      "gas": "731090",      "tx": 10,      "max": "73109",      "min": "73109"    },    "Community indexing": {      "gas": "551951631",      "tx": 880,      "max": "1877701",      "min": "471511"    },    "Community scan begin": {      "gas": "302826",      "tx": 1,      "max": "302826",      "min": "302826"    },    "Community holders": {      "gas": "81396040",      "tx": 89,      "max": "1369077",      "min": "615334"    },    "Community scores": {      "gas": "1980238",      "tx": 11,      "max": "210037",      "min": "75600"    },    "season finalization": {      "gas": "284863",      "tx": 1,      "max": "284863",      "min": "284863"    },    "Community payout": {      "gas": "175339",      "tx": 1,      "max": "175339",      "min": "175339"    }  },  "races": [    {      "race": 1,      "voters": 2200,      "vp": 4800,      "voteGas": "327368324"    },    {      "race": 2,      "voters": 2200,      "vp": 4800,      "voteGas": "327367088"    },    {      "race": 3,      "voters": 2200,      "vp": 4800,      "voteGas": "327366152"    },    {      "race": 4,      "voters": 2200,      "vp": 4800,      "voteGas": "327367328"    },    {      "race": 5,      "voters": 2200,      "vp": 4800,      "voteGas": "327366716"    },    {      "race": 6,      "voters": 2200,      "vp": 4800,      "voteGas": "327367568"    },    {      "race": 7,      "voters": 2200,      "vp": 4800,      "voteGas": "327367136"    },    {      "race": 8,      "voters": 2200,      "vp": 4800,      "voteGas": "327367052"    },    {      "race": 9,      "voters": 2200,      "vp": 4800,      "voteGas": "327366008"    },    {      "race": 10,      "voters": 2200,      "vp": 4800,      "voteGas": "327368816"    }  ],  "totalGas": "5043208003",  "transactions": 8536,  "recurringGas": "4525753821",  "recurringTransactions": 6313,  "gasPerVote": 148803.28127272727,  "winners": [    "0xf47C216EA8f2599195F63eA928D43A5EE5ad3536",    "0xcAB9292f4289E223c1A793a9E12379720a9613a9",    "0x459bb6E255106d666bBc202d06Fe01996eba5Dd7"  ]}
+    ✔ measures 10 full races x2200 voters x4800 VP, batch 5 (415365ms)
+      MEASURED batch=10 race=1/10 voteGas=316774252
+      MEASURED batch=10 race=2/10 voteGas=316748908
+      MEASURED batch=10 race=3/10 voteGas=316774828
+      MEASURED batch=10 race=4/10 voteGas=316777564
+      MEASURED batch=10 race=5/10 voteGas=316775380
+      MEASURED batch=10 race=6/10 voteGas=316776316
+      MEASURED batch=10 race=7/10 voteGas=316774360
+      MEASURED batch=10 race=8/10 voteGas=316774456
+      MEASURED batch=10 race=9/10 voteGas=316775068
+      MEASURED batch=10 race=10/10 voteGas=316775056
+      SEASON_RESULT {  "batchSize": 10,  "scenario": "10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community",  "stages": {    "initial approval": {      "gas": "46343",      "tx": 1,      "max": "46343",      "min": "46343"    },    "mint": {      "gas": "303723704",      "tx": 22,      "max": "13956493",      "min": "12925442"    },    "distribution": {      "gas": "213684135",      "tx": 2200,      "max": "109404",      "min": "91631"    },    "race deployment": {      "gas": "33188090",      "tx": 10,      "max": "3318809",      "min": "3318809"    },    "race registration": {      "gas": "916473",      "tx": 10,      "max": "101436",      "min": "90549"    },    "vote": {      "gas": "3167726188",      "tx": 2200,      "max": "1505189",      "min": "1436513"    },    "freeze": {      "gas": "957000",      "tx": 10,      "max": "95700",      "min": "95700"    },    "propose": {      "gas": "7682403",      "tx": 10,      "max": "846310",      "min": "663701"    },    "scoring": {      "gas": "572595020",      "tx": 880,      "max": "705880",      "min": "529658"    },    "race finalization": {      "gas": "731090",      "tx": 10,      "max": "73109",      "min": "73109"    },    "Community indexing": {      "gas": "551951631",      "tx": 880,      "max": "1877701",      "min": "471511"    },    "Community scan begin": {      "gas": "302826",      "tx": 1,      "max": "302826",      "min": "302826"    },    "Community holders": {      "gas": "81396040",      "tx": 89,      "max": "1369077",      "min": "615334"    },    "Community scores": {      "gas": "1980238",      "tx": 11,      "max": "210037",      "min": "75600"    },    "season finalization": {      "gas": "284863",      "tx": 1,      "max": "284863",      "min": "284863"    },    "Community payout": {      "gas": "175339",      "tx": 1,      "max": "175339",      "min": "175339"    }  },  "races": [    {      "race": 1,      "voters": 2200,      "vp": 4800,      "voteGas": "316774252"    },    {      "race": 2,      "voters": 2200,      "vp": 4800,      "voteGas": "316748908"    },    {      "race": 3,      "voters": 2200,      "vp": 4800,      "voteGas": "316774828"    },    {      "race": 4,      "voters": 2200,      "vp": 4800,      "voteGas": "316777564"    },    {      "race": 5,      "voters": 2200,      "vp": 4800,      "voteGas": "316775380"    },    {      "race": 6,      "voters": 2200,      "vp": 4800,      "voteGas": "316776316"    },    {      "race": 7,      "voters": 2200,      "vp": 4800,      "voteGas": "316774360"    },    {      "race": 8,      "voters": 2200,      "vp": 4800,      "voteGas": "316774456"    },    {      "race": 9,      "voters": 2200,      "vp": 4800,      "voteGas": "316775068"    },    {      "race": 10,      "voters": 2200,      "vp": 4800,      "voteGas": "316775056"    }  ],  "totalGas": "4937341383",  "transactions": 6336,  "recurringGas": "4419887201",  "recurringTransactions": 4113,  "gasPerVote": 143987.554,  "winners": [    "0xf47C216EA8f2599195F63eA928D43A5EE5ad3536",    "0xcAB9292f4289E223c1A793a9E12379720a9613a9",    "0x459bb6E255106d666bBc202d06Fe01996eba5Dd7"  ]}
+    ✔ measures 10 full races x2200 voters x4800 VP, batch 10 (385898ms)
+      MEASURED batch=20 race=1/10 voteGas=311523952
+      MEASURED batch=20 race=2/10 voteGas=311497468
+      MEASURED batch=20 race=3/10 voteGas=311524552
+      MEASURED batch=20 race=4/10 voteGas=311523748
+      MEASURED batch=20 race=5/10 voteGas=311522140
+      MEASURED batch=20 race=6/10 voteGas=311524528
+      MEASURED batch=20 race=7/10 voteGas=311523400
+      MEASURED batch=20 race=8/10 voteGas=311523556
+      MEASURED batch=20 race=9/10 voteGas=311521984
+      MEASURED batch=20 race=10/10 voteGas=311495800
+      SEASON_RESULT {  "batchSize": 20,  "scenario": "10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community",  "stages": {    "initial approval": {      "gas": "46343",      "tx": 1,      "max": "46343",      "min": "46343"    },    "mint": {      "gas": "303723704",      "tx": 22,      "max": "13956493",      "min": "12925442"    },    "distribution": {      "gas": "213684135",      "tx": 2200,      "max": "109404",      "min": "91631"    },    "race deployment": {      "gas": "33187958",      "tx": 10,      "max": "3318797",      "min": "3318785"    },    "race registration": {      "gas": "916461",      "tx": 10,      "max": "101436",      "min": "90549"    },    "vote": {      "gas": "3115181128",      "tx": 1100,      "max": "2894140",      "min": "2825248"    },    "freeze": {      "gas": "957000",      "tx": 10,      "max": "95700",      "min": "95700"    },    "propose": {      "gas": "7682367",      "tx": 10,      "max": "846310",      "min": "663677"    },    "scoring": {      "gas": "572629388",      "tx": 880,      "max": "706732",      "min": "529742"    },    "race finalization": {      "gas": "731090",      "tx": 10,      "max": "73109",      "min": "73109"    },    "Community indexing": {      "gas": "551951631",      "tx": 880,      "max": "1877701",      "min": "471511"    },    "Community scan begin": {      "gas": "302826",      "tx": 1,      "max": "302826",      "min": "302826"    },    "Community holders": {      "gas": "81396040",      "tx": 89,      "max": "1369077",      "min": "615334"    },    "Community scores": {      "gas": "1980238",      "tx": 11,      "max": "210037",      "min": "75600"    },    "season finalization": {      "gas": "284863",      "tx": 1,      "max": "284863",      "min": "284863"    },    "Community payout": {      "gas": "175339",      "tx": 1,      "max": "175339",      "min": "175339"    }  },  "races": [    {      "race": 1,      "voters": 2200,      "vp": 4800,      "voteGas": "311523952"    },    {      "race": 2,      "voters": 2200,      "vp": 4800,      "voteGas": "311497468"    },    {      "race": 3,      "voters": 2200,      "vp": 4800,      "voteGas": "311524552"    },    {      "race": 4,      "voters": 2200,      "vp": 4800,      "voteGas": "311523748"    },    {      "race": 5,      "voters": 2200,      "vp": 4800,      "voteGas": "311522140"    },    {      "race": 6,      "voters": 2200,      "vp": 4800,      "voteGas": "311524528"    },    {      "race": 7,      "voters": 2200,      "vp": 4800,      "voteGas": "311523400"    },    {      "race": 8,      "voters": 2200,      "vp": 4800,      "voteGas": "311523556"    },    {      "race": 9,      "voters": 2200,      "vp": 4800,      "voteGas": "311521984"    },    {      "race": 10,      "voters": 2200,      "vp": 4800,      "voteGas": "311495800"    }  ],  "totalGas": "4884830511",  "transactions": 5236,  "recurringGas": "4367376329",  "recurringTransactions": 3013,  "gasPerVote": 141599.14218181817,  "winners": [    "0xf47C216EA8f2599195F63eA928D43A5EE5ad3536",    "0xcAB9292f4289E223c1A793a9E12379720a9613a9",    "0x459bb6E255106d666bBc202d06Fe01996eba5Dd7"  ]}
+    ✔ measures 10 full races x2200 voters x4800 VP, batch 20 (451714ms)
+      MEASURED batch=25 race=1/10 voteGas=310494928
+      MEASURED batch=25 race=2/10 voteGas=310492300
+      MEASURED batch=25 race=3/10 voteGas=310492420
+      MEASURED batch=25 race=4/10 voteGas=310493104
+      MEASURED batch=25 race=5/10 voteGas=310494364
+      MEASURED batch=25 race=6/10 voteGas=310494316
+      MEASURED batch=25 race=7/10 voteGas=310494040
+      MEASURED batch=25 race=8/10 voteGas=310494364
+      MEASURED batch=25 race=9/10 voteGas=310494304
+      MEASURED batch=25 race=10/10 voteGas=310493464
+      SEASON_RESULT {  "batchSize": 25,  "scenario": "10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community",  "stages": {    "initial approval": {      "gas": "46343",      "tx": 1,      "max": "46343",      "min": "46343"    },    "mint": {      "gas": "303723704",      "tx": 22,      "max": "13956493",      "min": "12925442"    },    "distribution": {      "gas": "213684135",      "tx": 2200,      "max": "109404",      "min": "91631"    },    "race deployment": {      "gas": "33187970",      "tx": 10,      "max": "3318797",      "min": "3318797"    },    "race registration": {      "gas": "916485",      "tx": 10,      "max": "101436",      "min": "90561"    },    "vote": {      "gas": "3104937604",      "tx": 880,      "max": "3588941",      "min": "3520289"    },    "freeze": {      "gas": "957000",      "tx": 10,      "max": "95700",      "min": "95700"    },    "propose": {      "gas": "7682427",      "tx": 10,      "max": "846310",      "min": "663701"    },    "scoring": {      "gas": "572703716",      "tx": 880,      "max": "706744",      "min": "529514"    },    "race finalization": {      "gas": "731090",      "tx": 10,      "max": "73109",      "min": "73109"    },    "Community indexing": {      "gas": "551951631",      "tx": 880,      "max": "1877701",      "min": "471511"    },    "Community scan begin": {      "gas": "302826",      "tx": 1,      "max": "302826",      "min": "302826"    },    "Community holders": {      "gas": "81396040",      "tx": 89,      "max": "1369077",      "min": "615334"    },    "Community scores": {      "gas": "1980238",      "tx": 11,      "max": "210037",      "min": "75600"    },    "season finalization": {      "gas": "284863",      "tx": 1,      "max": "284863",      "min": "284863"    },    "Community payout": {      "gas": "175339",      "tx": 1,      "max": "175339",      "min": "175339"    }  },  "races": [    {      "race": 1,      "voters": 2200,      "vp": 4800,      "voteGas": "310494928"    },    {      "race": 2,      "voters": 2200,      "vp": 4800,      "voteGas": "310492300"    },    {      "race": 3,      "voters": 2200,      "vp": 4800,      "voteGas": "310492420"    },    {      "race": 4,      "voters": 2200,      "vp": 4800,      "voteGas": "310493104"    },    {      "race": 5,      "voters": 2200,      "vp": 4800,      "voteGas": "310494364"    },    {      "race": 6,      "voters": 2200,      "vp": 4800,      "voteGas": "310494316"    },    {      "race": 7,      "voters": 2200,      "vp": 4800,      "voteGas": "310494040"    },    {      "race": 8,      "voters": 2200,      "vp": 4800,      "voteGas": "310494364"    },    {      "race": 9,      "voters": 2200,      "vp": 4800,      "voteGas": "310494304"    },    {      "race": 10,      "voters": 2200,      "vp": 4800,      "voteGas": "310493464"    }  ],  "totalGas": "4874661411",  "transactions": 5016,  "recurringGas": "4357207229",  "recurringTransactions": 2793,  "gasPerVote": 141133.52745454546,  "winners": [    "0xf47C216EA8f2599195F63eA928D43A5EE5ad3536",    "0xcAB9292f4289E223c1A793a9E12379720a9613a9",    "0x459bb6E255106d666bBc202d06Fe01996eba5Dd7"  ]}
+    ✔ measures 10 full races x2200 voters x4800 VP, batch 25 (380036ms)
+
+
+  4 passing (27m)
+

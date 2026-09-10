@@ -153,3 +153,24 @@ Community season prize preparation/finalization cost remains an explicit
 full-supply stress scenario. Per-transaction batching does not resolve cumulative
 cost. No redesign is included in this commit; evaluate separately before launch.
 See `V7_HARDENING_REVIEW.md` and `V7_SETTLEMENT_GAS.json` for scope and receipts.
+
+## Sponsored Voting reconstruction — approved direction, local checkpoint
+
+The Sponsored Voting implementation has been reconstructed from integration commit
+`2f1445163ec39c4b426dd580b3ca1ca58f98108e` on `work/v7-sponsored-voting`.
+See `V7_SPONSORED_VOTING.md` for the exact API, adaptive flush strategy, trust
+limitations and fresh benchmark methodology. Earlier uncommitted implementation
+and benchmark outputs are not reused as verification evidence.
+
+Approved direction: one client encrypted/signed intent, HOF-sponsored inclusion,
+ciphertext in calldata/events, compact contract records, default target25 with
+smaller immediate/deadline/gas-limited batches, direct paid fallback using the
+same admitted signature. Admission refusal remains an accepted trust limitation.
+Relayer funding uses a separate limited operational wallet; owner/admin/treasury
+keys are not backend gas keys. Admission/eligibility checks, bounded rate limits
+and persistent broadcast-attempt budgets protect sponsorship.
+
+Community implementation remains stable; Variant C is not included or activated.
+The inherited 100-NFT mint at approximately13.96M gas is a separate optimization /
+deployment blocker. V7 Master, canonical horses, portraits and economic rules
+remain unchanged. No public deployment or production activation is performed.
