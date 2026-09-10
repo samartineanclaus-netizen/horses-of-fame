@@ -169,7 +169,8 @@ export async function ensureRobinhoodTestnet(ethereum: EthereumProvider) {
       method: "wallet_switchEthereumChain",
       params: [{ chainId: ROBINHOOD_TESTNET_CHAIN_ID_HEX }],
     });
-  } catch {
+  } catch (error) {
+    if ((error as { code?: number }).code !== 4902) throw error;
     await ethereum.request({
       method: "wallet_addEthereumChain",
       params: [
@@ -182,6 +183,15 @@ export async function ensureRobinhoodTestnet(ethereum: EthereumProvider) {
         },
       ],
     });
+    await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ROBINHOOD_TESTNET_CHAIN_ID_HEX }] });
+  }
+  await verifyRobinhoodChain(ethereum);
+}
+
+export async function verifyRobinhoodChain(ethereum: EthereumProvider) {
+  const chain = await ethereum.request({ method: "eth_chainId" });
+  if (typeof chain !== "string" || BigInt(chain) !== BigInt(ROBINHOOD_TESTNET_CHAIN_ID)) {
+    throw new Error("Wallet is not on Robinhood Chain Testnet. Transaction stopped.");
   }
 }
 
@@ -191,5 +201,6 @@ export async function requestAccount(ethereum: EthereumProvider): Promise<string
   if (!Array.isArray(accounts) || typeof accounts[0] !== "string") {
     throw new Error("No wallet account connected");
   }
+  await verifyRobinhoodChain(ethereum);
   return accounts[0];
 }

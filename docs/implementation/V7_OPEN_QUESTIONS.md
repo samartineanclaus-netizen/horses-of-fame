@@ -1,5 +1,14 @@
 # V7 decisions and remaining implementation blockers
 
+## Current MVP decision — Phase 1 security hardening
+
+External budget is $0. Sponsored Voting remains owner-trusted for MVP/testnet:
+HOF backend can technically decrypt before close. Threshold is suspended, not
+implemented or advertised as active; see `V7_THRESHOLD_FUTURE_UPGRADE.md`.
+The five approved testnet blockers are addressed in `V7_PHASE1_SECURITY.md`;
+no paid service, dependency upgrade, mainnet change or economic rule is added.
+Historical implementation status below is retained for provenance.
+
 ## Integration status — September 10
 
 The combined uncommitted work is on `work/v7-hof-integration`. See

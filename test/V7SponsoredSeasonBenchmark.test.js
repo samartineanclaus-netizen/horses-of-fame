@@ -31,8 +31,11 @@ describe('V7 sponsored full-season benchmark',function(){
   const key=await generateRaceKey(),start=(await time.latest())+100,chainId=(await ethers.provider.getNetwork()).chainId,abi=ethers.AbiCoder.defaultAbiCoder();
   const seasonScores=Array(2200).fill(0);
   for(let r=0;r<10;r++){
-   const opening=start+r*3*DAY,race=await(await ethers.getContractFactory('HOFRelayedRace')).deploy(g.target,opening,team.address,owner.address,backend.address,key.publicKey);
-   await record('race deployment',race.deploymentTransaction());await record('race registration',board.registerRace(race.target));await time.increaseTo(opening);
+   const opening=start+r*3*DAY,factory=await ethers.getContractAt('HOFCanonicalRaceFactory',await board.raceFactory());
+   const receipt=await record('race deployment',factory.createRace(1,1,r+1,opening,key.publicKey));
+   const address=receipt.logs.map(l=>{try{return factory.interface.parseLog(l);}catch{return null;}}).find(l=>l?.name==='RaceCreated').args.race;
+   const race=await ethers.getContractAt('HOFRelayedRace',address);
+  await record('race registration',board.registerRace(race.target));await time.increaseTo(opening);
    const ctxBase={chainId,race:race.target,keyId:ethers.keccak256(key.publicKey)},packets=[];
    const before=stages.vote?.gas||0n;
    for(let i=0;i<2200;i++){
@@ -64,7 +67,7 @@ describe('V7 sponsored full-season benchmark',function(){
   const initial=['initial approval','mint','distribution'];
   const report={batchSize:size,scenario:'10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community',stages,races,totalGas,transactions,recurringGas:totalGas-initial.reduce((n,k)=>n+stages[k].gas,0n),recurringTransactions:transactions-initial.reduce((n,k)=>n+stages[k].tx,0),gasPerVote:Number(stages.vote.gas)/22000,winners:reference};
   const serialized=JSON.stringify(report,(_,v)=>typeof v==='bigint'?v.toString():v,2);
-  fs.mkdirSync('docs/implementation/benchmarks',{recursive:true});fs.writeFileSync(`docs/implementation/benchmarks/mint-cap-sponsored-batch-${size}.json`,serialized);
+  fs.mkdirSync('docs/implementation/benchmarks',{recursive:true});fs.writeFileSync(`docs/implementation/benchmarks/phase1-sponsored-batch-${size}.json`,serialized);
   console.log('      SEASON_RESULT',serialized.replace(/\n/g,''));
   expect(stages.vote.max).lt(5000000n);expect(stages.scoring.max).lt(3000000n);
  });

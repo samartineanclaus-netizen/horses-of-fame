@@ -1,120 +1,25 @@
-const hre = require("hardhat");
-
-const { ethers } = hre;
-const ROBINHOOD_TESTNET_CHAIN_ID = BigInt(46630);
-const TEN_DAYS = BigInt(10 * 24 * 60 * 60);
-
-function required(name) {
-  const value = process.env[name];
-  if (!value || !value.trim()) throw new Error(`Missing required environment variable: ${name}`);
-  return value.trim();
+const {ethers}=require('hardhat');
+const {raceConfig,validateNetwork,code}=require('./v7-canonical-config.cjs');
+async function main(){
+ const c=raceConfig(process.env);await validateNetwork(ethers.provider);
+ const [owner]=await ethers.getSigners();if(!owner||owner.address!==c.owner)throw Error('Configured owner signer required');
+ await code(ethers.provider,c.board,'leaderboards');await code(ethers.provider,c.sale,'sale');
+ const board=await ethers.getContractAt('HOFTrustedLeaderboards',c.board),sale=await ethers.getContractAt('HOFGenesisSale',c.sale);
+ if(await board.hofOwner()!==c.owner||await board.backendSigner()!==c.admission||await board.teamReserveWallet()!==c.team)throw Error('Canonical role mismatch');
+ const genesis=await ethers.getContractAt('GenesisHorses',await board.genesisContract());
+ if(await sale.genesis()!==genesis.target||await genesis.saleContract()!==c.sale||await genesis.teamWallet()!==c.team)throw Error('Sale/Genesis mismatch');
+ if(!await sale.saleSuccessful()||await sale.soldOutAt()===0n)throw Error('Public mint must be sold out');
+ const head=await ethers.provider.getBlock('latest');if(c.opens<=BigInt(head.timestamp))throw Error('Race opening must be future');
+ const season=await board.currentSeason(),count=await board.raceCount();if(season>6n||count>=season*10n)throw Error('Season complete');
+ if(count%10n){const previous=await ethers.getContractAt('HOFRelayedRace',await board.races(count-1n));if(c.opens!==await previous.opensAt()+259200n)throw Error('Race cadence mismatch');}
+ else if(count){const end=await board.previousSeasonEnd();if(c.opens<end||c.opens>end+604800n)throw Error('Season gap mismatch');}
+ const factory=await ethers.getContractAt('HOFCanonicalRaceFactory',await board.raceFactory());
+ if(await factory.board()!==board.target||await factory.genesis()!==genesis.target)throw Error('Factory mismatch');
+ const receipt=await(await factory.createRace(1,season,count%10n+1n,c.opens,c.key)).wait();
+ const event=receipt.logs.map(l=>{try{return factory.interface.parseLog(l);}catch{return null;}}).find(l=>l?.name==='RaceCreated');
+ if(!event)throw Error('Missing canonical creation event');
+ await(await board.registerRace(event.args.race)).wait();
+ console.log(JSON.stringify({race:event.args.race,board:board.target,registered:true,chainId:46630}));
 }
-
-function requiredAddress(name) {
-  const value = required(name);
-  if (!ethers.isAddress(value) || value === ethers.ZeroAddress) {
-    throw new Error(`${name} must be a non-zero EVM address`);
-  }
-  return ethers.getAddress(value);
-}
-
-function requiredUnix(name) {
-  const value = required(name);
-  if (!/^\d+$/.test(value)) throw new Error(`${name} must be a Unix timestamp in seconds`);
-  return BigInt(value);
-}
-
-async function assertCode(address, label) {
-  const code = await ethers.provider.getCode(address);
-  if (code === "0x") throw new Error(`${label} has no contract bytecode at ${address}`);
-}
-
-async function main() {
-  const network = await ethers.provider.getNetwork();
-  if (network.chainId !== ROBINHOOD_TESTNET_CHAIN_ID) {
-    throw new Error(`Refusing deployment on chain ${network.chainId}. Expected Robinhood Chain Testnet 46630.`);
-  }
-
-  const [deployer] = await ethers.getSigners();
-  if (!deployer) throw new Error("No deployer signer. Set DEPLOYER_PRIVATE_KEY.");
-
-  const genesisAddress = requiredAddress("GENESIS_ADDRESS");
-  const saleAddress = requiredAddress("GENESIS_SALE_ADDRESS");
-  const teamReserveWallet = requiredAddress("TEAM_RESERVE_WALLET");
-  const opensAt = requiredUnix("RACE_OPENS_AT_UNIX");
-
-  await assertCode(genesisAddress, "GENESIS_ADDRESS");
-  await assertCode(saleAddress, "GENESIS_SALE_ADDRESS");
-
-  const latest = await ethers.provider.getBlock("latest");
-  if (!latest || opensAt < BigInt(latest.timestamp)) {
-    throw new Error("RACE_OPENS_AT_UNIX cannot be in the past");
-  }
-
-  const genesis = await ethers.getContractAt("GenesisHorses", genesisAddress);
-  const sale = await ethers.getContractAt("HOFGenesisSale", saleAddress);
-
-  const configuredTeamWallet = await genesis.teamWallet();
-  if (configuredTeamWallet.toLowerCase() !== teamReserveWallet.toLowerCase()) {
-    throw new Error(
-      `TEAM_RESERVE_WALLET does not match Genesis configuration (${configuredTeamWallet})`,
-    );
-  }
-
-  const saleGenesis = await sale.genesis();
-  if (saleGenesis.toLowerCase() !== genesisAddress.toLowerCase()) {
-    throw new Error(`GENESIS_SALE_ADDRESS points to a different Genesis contract (${saleGenesis})`);
-  }
-
-  // V7 section 9 locks the launch sequence Public Mint -> Sold Out -> Team
-  // Reserve secondary distribution -> First Race. This deploy operation can
-  // safely enforce the sold-out prerequisite. It intentionally does not invent
-  // the still-open Team Reserve distribution/reveal/audit completion mechanics.
-  if (!(await sale.saleSuccessful())) {
-    const sold = await sale.sold();
-    const publicSupply = await sale.PUBLIC_SUPPLY();
-    throw new Error(
-      `V7 race deployment blocked before Public Mint sell-out (${sold}/${publicSupply} sold)`,
-    );
-  }
-
-  const soldOutAt = await sale.soldOutAt();
-  if (soldOutAt === BigInt(0)) {
-    throw new Error("Sale reports success but has no sell-out timestamp");
-  }
-  const firstRaceTargetBy = soldOutAt + TEN_DAYS;
-  const firstRaceWithinTarget = opensAt <= firstRaceTargetBy;
-
-  const Voting = await ethers.getContractFactory("HOFRaceVoting");
-  const race = await Voting.deploy(genesisAddress, opensAt, teamReserveWallet);
-  await race.waitForDeployment();
-
-  const address = await race.getAddress();
-  const closesAt = await race.closesAt();
-
-  console.log(JSON.stringify({
-    chainId: Number(ROBINHOOD_TESTNET_CHAIN_ID),
-    deployer: deployer.address,
-    raceVoting: address,
-    genesis: genesisAddress,
-    genesisSale: saleAddress,
-    publicMintSoldOut: true,
-    soldOutAt: soldOutAt.toString(),
-    firstRaceTargetBy: firstRaceTargetBy.toString(),
-    firstRaceWithinTarget,
-    teamReserveWallet,
-    opensAt: opensAt.toString(),
-    closesAt: closesAt.toString(),
-  }, null, 2));
-  console.log(`\nNEXT_PUBLIC_HOF_RACE_VOTING_CONTRACT=${address}`);
-  console.log("Race registration in the Community/HOF leaderboards must occur only after this race closes.");
-  if (!firstRaceWithinTarget) {
-    console.warn("WARNING: RACE_OPENS_AT_UNIX is later than V7's 10-day post-sell-out target. V7 states this is a target subject to audit, Team Reserve distribution and final technical checks, so deployment is not blocked.");
-  }
-  console.log("Team Reserve secondary-distribution, audit and reveal prerequisites remain governed by the unresolved V7 launch items; this script does not invent them.");
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if(require.main===module)main().catch(e=>{console.error(e.message);process.exitCode=1;});
+module.exports={main};

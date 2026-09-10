@@ -12,7 +12,7 @@ async function fixture(){
  const genesis=await(await ethers.getContractFactory('GenesisHorses')).deploy('placeholder');
  await genesis.ownerMint(owner.address,22);
  for(const w of [a,b,c,owner,backend,team]) await genesis.ownerMint(w.address,1);
- const board=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(genesis.target,owner.address,backend.address,team.address);
+ const board=await(await ethers.getContractFactory('LegacyTrustedBoardHarness')).deploy(genesis.target,owner.address,backend.address,team.address);
  const opens=(await time.latest())+100;
  const race=await(await ethers.getContractFactory('HOFTrustedRace')).deploy(genesis.target,opens,team.address,owner.address,backend.address,key.publicKey);
  await board.registerRace(race.target);

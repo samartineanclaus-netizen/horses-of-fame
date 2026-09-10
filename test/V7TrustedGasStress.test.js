@@ -28,7 +28,7 @@ describe('V7 trusted full-supply settlement gas stress',function(){
    wallets.push(await ethers.getImpersonatedSigner(holder));
   }
   expect(await g.totalSupply()).eq(2222n);
-  const board=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(g.target,owner.address,backend.address,team.address);
+  const board=await(await ethers.getContractFactory('LegacyTrustedBoardHarness')).deploy(g.target,owner.address,backend.address,team.address);
   const key=await generateRaceKey(),start=(await time.latest())+100;
   const race=await(await ethers.getContractFactory('HOFTrustedRace')).deploy(g.target,start,team.address,owner.address,backend.address,key.publicKey);
   await board.registerRace(race.target);
@@ -88,7 +88,7 @@ describe('V7 trusted full-supply settlement gas stress',function(){
   const g=await(await ethers.getContractFactory('GenesisHorses')).deploy('placeholder');
   await g.ownerMint(owner.address,22);
   for(let i=0;i<25;i++) await g.ownerMint(ethers.getAddress('0x'+(100000+i).toString(16).padStart(40,'0')),1);
-  const board=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(g.target,owner.address,backend.address,team.address);
+  const board=await(await ethers.getContractFactory('LegacyTrustedBoardHarness')).deploy(g.target,owner.address,backend.address,team.address);
   const pairs=[],sums=new Set(),valid=[25,18,15,12,10,8,6,4,2,1,0];
   for(const a of valid)for(const b of valid)if(!sums.has(a+b)){sums.add(a+b);pairs.push([a,b]);}
   expect(pairs.length).gte(25);

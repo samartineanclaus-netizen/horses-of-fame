@@ -7,7 +7,7 @@ const DAY=86400;
 async function chapterReady(){
  const [owner,backend,team,other]=await ethers.getSigners();
  const genesis=await(await ethers.getContractFactory('GenesisHorses')).deploy('placeholder');
- const board=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(genesis.target,owner.address,backend.address,team.address);
+ const board=await(await ethers.getContractFactory('LegacyTrustedBoardHarness')).deploy(genesis.target,owner.address,backend.address,team.address);
  const key=await generateRaceKey();let last;
  for(let season=1;season<=6;season++){
   const start=(await time.latest())+100;
@@ -35,7 +35,7 @@ describe('V7 Chapter 2 activation gate',function(){
   const f=await loadFixture(chapterReady);
   await expect(f.board.activateChapter2()).revertedWith('race not finalized');
   await expect(f.board.connect(f.other).activateChapter2()).revertedWithCustomError(f.board,'OwnableUnauthorizedAccount');
-  const empty=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(f.genesis.target,f.owner.address,f.backend.address,f.other.address);
+  const empty=await(await ethers.getContractFactory('LegacyTrustedBoardHarness')).deploy(f.genesis.target,f.owner.address,f.backend.address,f.other.address);
   await expect(empty.activateChapter2()).revertedWith('Chapter 1 incomplete');
  });
  it('rejects 30 days minus one second from actual final Race Reveal',async()=>{

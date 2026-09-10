@@ -4,9 +4,12 @@ const {loadFixture,time}=require('@nomicfoundation/hardhat-network-helpers');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {fixture,packet}=require('./helpers/sponsored.cjs');
 const {SignedVoteQueue,RateLimiter,createSignedServer,flushDelay}=require('../lib/owner-voting/signed-service.cjs');
-function queue(f,options={}){return new SignedVoteQueue({race:f.race,relayer:f.relayer,treasuryAddress:f.treasury.address,journal:path.join(fs.mkdtempSync(path.join(os.tmpdir(),'hof-queue-')),'journal'),...options});}
+const ingressToken=require('node:crypto').randomBytes(32).toString('hex');
+const queues=[];
+function queue(f,options={}){const q=new SignedVoteQueue({race:f.race,relayer:f.relayer,treasuryAddress:f.treasury.address,journal:path.join(fs.mkdtempSync(path.join(os.tmpdir(),'hof-queue-')),'journal'),...options});queues.push(q);return q;}
 describe('V7 sponsored queue/adaptive deadline flush',function(){
  this.timeout(120000);
+ afterEach(async()=>{for(const q of queues.splice(0)){q.stop();while(q.busy)await new Promise(r=>setTimeout(r,10));q.close();}});
  it('defaults to25 and flushes one vote without waiting for a full batch',async()=>{const f=await loadFixture(fixture),q=queue(f);expect(q.batchSize).eq(25);await q.enqueue(await packet(f));await q.flush();expect(await f.race.ballotCount()).eq(1n);});
  it('wakes automatically on enqueue and drains a partial batch',async()=>{
   const f=await loadFixture(fixture),q=queue(f,{flushMs:5000});q.start();try{await q.enqueue(await packet(f));const end=Date.now()+5000;while(await f.race.ballotCount()===0n&&Date.now()<end)await new Promise(r=>setTimeout(r,20));expect(await f.race.ballotCount()).eq(1n);}finally{q.stop();}
@@ -24,7 +27,7 @@ describe('V7 sponsored queue/adaptive deadline flush',function(){
  });
  it('restarts from durable queue, deduplicates enqueue and processing',async()=>{
   const f=await loadFixture(fixture),q=queue(f),p=await packet(f);await q.enqueue(p);await q.enqueue(p);expect(q.jobs.size).eq(1);
-  const restored=queue(f,{journal:q.journal});await restored.flush();await restored.flush();expect(await f.race.ballotCount()).eq(1n);
+  q.close();const restored=queue(f,{journal:q.journal});await restored.flush();await restored.flush();expect(await f.race.ballotCount()).eq(1n);
  });
  it('direct fallback before worker causes no second vote or paid backend retry',async()=>{
   const f=await loadFixture(fixture),q=queue(f),p=await packet(f);await q.enqueue(p);await f.race.connect(f.voters[0]).submitSigned(p);const before=await ethers.provider.getTransactionCount(f.relayer.address);await q.flush();expect(await ethers.provider.getTransactionCount(f.relayer.address)).eq(before);expect(await f.race.ballotCount()).eq(1n);
@@ -39,23 +42,23 @@ describe('V7 sponsored queue/adaptive deadline flush',function(){
   const f=await loadFixture(fixture),q=queue(f);await q.enqueue(await packet(f,0,1));await q.enqueue(await packet(f,0,2));await Promise.all([q.flush(),q.flush()]);await q.flush();expect(await f.race.ballotCount()).eq(1n);
  });
  it('truncates torn unacknowledged journal append, preserving acknowledged votes',async()=>{
-  const f=await loadFixture(fixture),q=queue(f);await q.enqueue(await packet(f));fs.appendFileSync(q.journal,'{"torn":');const restored=queue(f,{journal:q.journal});expect(restored.jobs.size).eq(1);await restored.flush();expect(await f.race.ballotCount()).eq(1n);
+  const f=await loadFixture(fixture),q=queue(f);await q.enqueue(await packet(f));fs.appendFileSync(q.journal,'{"torn":');q.close();const restored=queue(f,{journal:q.journal});expect(restored.jobs.size).eq(1);await restored.flush();expect(await f.race.ballotCount()).eq(1n);
  });
  it('rate limits before expensive admission and never returns plaintext/private keys',async()=>{
-  const f=await loadFixture(fixture),q=queue(f),server=createSignedServer({race:f.race,admissionSigner:f.backend,privateKey:f.key.privateKey,queue:q,limiter:new RateLimiter({limit:2})});
+  const f=await loadFixture(fixture),q=queue(f),server=createSignedServer({ingressToken,race:f.race,admissionSigner:f.backend,privateKey:f.key.privateKey,queue:q,limiter:new RateLimiter({limit:2})});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));try{
    const p=await packet(f);delete p.admission;const base=`http://127.0.0.1:${server.address().port}`;
-   const res=await fetch(base+'/vote/prepare',{method:'POST',body:JSON.stringify(p)});expect(res.status).eq(200);const auth=await res.json();expect(Object.keys(auth)).deep.eq(['admission']);
-   const submit=await fetch(base+'/vote/submit',{method:'POST',body:JSON.stringify({...p,...auth})});expect(submit.status).eq(200);expect((await submit.json()).state).eq('Submitted');
-   const limited=await fetch(base+'/vote/prepare',{method:'POST',body:JSON.stringify(p)});expect(limited.status).eq(429);expect(await f.race.ballotCount()).eq(0n);await q.flush();expect(await f.race.ballotCount()).eq(1n);
+   const res=await fetch(base+'/vote/prepare',{method:'POST',headers:{Authorization:`Bearer ${ingressToken}`},body:JSON.stringify(p)});expect(res.status).eq(200);const auth=await res.json();expect(Object.keys(auth)).deep.eq(['admission']);
+   const submit=await fetch(base+'/vote/submit',{method:'POST',headers:{Authorization:`Bearer ${ingressToken}`},body:JSON.stringify({...p,...auth})});expect(submit.status).eq(200);expect((await submit.json()).state).eq('Submitted');
+   const limited=await fetch(base+'/vote/prepare',{method:'POST',headers:{Authorization:`Bearer ${ingressToken}`},body:JSON.stringify(p)});expect(limited.status).eq(429);expect(await f.race.ballotCount()).eq(0n);await q.flush();expect(await f.race.ballotCount()).eq(1n);
   }finally{await new Promise(r=>server.close(r));}
  });
  it('unauthenticated requests cannot exhaust another wallet admission quota',async()=>{
-  const f=await loadFixture(fixture),q=queue(f),server=createSignedServer({race:f.race,admissionSigner:f.backend,privateKey:f.key.privateKey,queue:q,walletLimiter:new RateLimiter({limit:1})});
+  const f=await loadFixture(fixture),q=queue(f),server=createSignedServer({ingressToken,race:f.race,admissionSigner:f.backend,privateKey:f.key.privateKey,queue:q,walletLimiter:new RateLimiter({limit:1})});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));try{
    const p=await packet(f),url=`http://127.0.0.1:${server.address().port}/vote/prepare`;
-   const bad=await fetch(url,{method:'POST',body:JSON.stringify({...p,signature:'0x00'})});expect(bad.status).eq(400);
-   const good=await fetch(url,{method:'POST',body:JSON.stringify(p)});expect(good.status).eq(200);
+   const bad=await fetch(url,{method:'POST',headers:{Authorization:`Bearer ${ingressToken}`},body:JSON.stringify({...p,signature:'0x00'})});expect(bad.status).eq(400);
+   const good=await fetch(url,{method:'POST',headers:{Authorization:`Bearer ${ingressToken}`},body:JSON.stringify(p)});expect(good.status).eq(200);
   }finally{await new Promise(r=>server.close(r));}
  });
  it('dispatches a bounded window before validating the rest of a backlog',async()=>{
@@ -80,9 +83,9 @@ describe('V7 sponsored queue/adaptive deadline flush',function(){
   const f=await loadFixture(fixture);
   const wrapped=new Proxy(f.race,{get(t,k){if(k==='connect')return signer=>{const c=t.connect(signer);return new Proxy(c,{get(target,key){const fn=Reflect.get(target,key,target);if(key==='submitSigned')return new Proxy(fn,{async apply(){throw Error('ambiguous broadcast failure');}});return fn;}});};return Reflect.get(t,k,t);}});
   const q=queue(f,{race:wrapped,maxAttempts:2}),p=await packet(f);await q.enqueue(p);
-  await expect(q.flush()).rejectedWith('ambiguous broadcast failure');await expect(q.flush()).rejectedWith('ambiguous broadcast failure');await q.flush();
-  expect(q.attemptsFor(p)).eq(2);const restored=queue(f,{journal:q.journal,maxAttempts:2});
-  await expect(restored.enqueue(await packet(f,0,2))).rejectedWith('retry budget exhausted');
+  await expect(q.flush()).rejectedWith('ambiguous broadcast failure');await q.flush();await q.flush();
+  expect(q.attemptsFor(p)).eq(1);q.close();const restored=queue(f,{journal:q.journal,maxAttempts:2});
+  await restored.enqueue(await packet(f,0,2));await restored.flush();expect(await f.race.ballotCount()).eq(0n);
   // Sponsorship exhaustion never changes the contract's valid direct fallback.
   await f.race.connect(f.voters[0]).submitSigned(p);expect(await f.race.ballotCount()).eq(1n);
  });

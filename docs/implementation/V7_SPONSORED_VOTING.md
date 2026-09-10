@@ -1,5 +1,12 @@
 # V7 Sponsored Voting — reconstructed checkpoint candidate
 
+> Phase 1 update: active trust remains owner-trusted. Current deployment,
+> ingress authentication, journal locks and nonce recovery are documented in
+> [V7_PHASE1_SECURITY.md](V7_PHASE1_SECURITY.md). Historical measurements below
+> describe the earlier checkpoint, not newly measured Phase 1 performance.
+> Mint100 was subsequently capped at 25 per call; it is not an allowed current call.
+> Threshold is suspended as a future upgrade with external budget $0.
+
 Base: `work/v7-hof-integration` at `2f1445163ec39c4b426dd580b3ca1ca58f98108e`.
 Working branch: `work/v7-sponsored-voting`.
 This is a reconstruction after the earlier uncommitted worktree was removed.

@@ -10,8 +10,11 @@ async function fixture(){
  await genesis.ownerMint(owner.address,22);
  for(const w of voters)await genesis.ownerMint(w.address,1);
  key ||= await generateRaceKey();const opens=(await time.latest())+100;
- const race=await(await ethers.getContractFactory('HOFRelayedRace')).deploy(genesis.target,opens,team.address,owner.address,backend.address,key.publicKey);
  const board=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(genesis.target,owner.address,backend.address,team.address);
+ const factory=await ethers.getContractAt('HOFCanonicalRaceFactory',await board.raceFactory());
+ const created=await(await factory.createRace(1,1,1,opens,key.publicKey)).wait();
+ const address=created.logs.map(l=>{try{return factory.interface.parseLog(l);}catch{return null;}}).find(l=>l?.name==='RaceCreated').args.race;
+ const race=await ethers.getContractAt('HOFRelayedRace',address);
  await board.registerRace(race.target);await time.increaseTo(opens);
  return {owner,backend,team,relayer,treasury,voters,genesis,race,board,key,opens};
 }

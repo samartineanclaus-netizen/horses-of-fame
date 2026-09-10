@@ -1,3 +1,4 @@
+throw new Error("Legacy V7 path disabled. Use canonical deployment and Sponsored Voting operations; see docs/implementation/V7_PHASE1_SECURITY.md");
 const hre = require("hardhat");
 
 async function main() {

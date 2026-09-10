@@ -34,7 +34,7 @@ describe('V7 canonical frontend / admission / actual protocol integration',funct
   }
   const opens=(await time.latest())+100;
   const race=await(await ethers.getContractFactory('HOFTrustedRace')).deploy(genesis.target,opens,team.address,owner.address,backend.address,key.publicKey);
-  const board=await(await ethers.getContractFactory('HOFTrustedLeaderboards')).deploy(genesis.target,owner.address,backend.address,team.address);
+  const board=await(await ethers.getContractFactory('LegacyTrustedBoardHarness')).deploy(genesis.target,owner.address,backend.address,team.address);
   await board.registerRace(race.target);
   const server=createAdmissionServer({race,signer:backend,privateKey:key.privateKey});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

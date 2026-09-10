@@ -9,6 +9,7 @@ import {
   ROBINHOOD_TESTNET_RPC,
   getEthereum,
   requestAccount,
+  verifyRobinhoodChain,
 } from "@/lib/hofClient";
 
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
@@ -89,6 +90,7 @@ export default function RefundPage() {
       setAccount(from);
       const ids = parseTokenIds(tokenIds);
       const data = encodeFunctionData({ abi: GENESIS_SALE_ABI, functionName: "refund", args: [ids] });
+      await verifyRobinhoodChain(ethereum);
       const hash = await ethereum.request({
         method: "eth_sendTransaction",
         params: [{ from, to: sale, data }],

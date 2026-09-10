@@ -2,6 +2,7 @@
 pragma solidity ^0.8.25;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./HOFTrustedRace.sol";
+import "./HOFCanonicalRaceFactory.sol";
 import "./HOFCommunitySeason.sol";
 
 interface ITrustedGenesisEnumeration is IGenesisEnumerable {
@@ -13,6 +14,7 @@ interface ITrustedGenesisEnumeration is IGenesisEnumerable {
 /// @notice Bounded reads over at most 60 races; a race's final flag atomically
 /// activates both Community and horse Season/All-Time scores. No wallet claims.
 contract HOFTrustedLeaderboards is Ownable {
+    HOFCanonicalRaceFactory public immutable raceFactory;
     uint256 public constant MAX_BATCH = 25;
     uint256 public constant CHAPTER_GAP = 30 days;
     uint256 public chapter2StartedAt;
@@ -55,6 +57,7 @@ contract HOFTrustedLeaderboards is Ownable {
     event CommunityTop3Finalized(uint8 indexed season, address first, address second, address third);
     constructor(address genesis_, address owner_, address signer_, address team_) Ownable(owner_) {
         require(genesis_ != address(0) && signer_ != address(0) && team_ != address(0), "zero address");
+        raceFactory = new HOFCanonicalRaceFactory(address(this), genesis_, owner_, signer_, team_);
         genesisContract = genesis_; hofOwner = owner_; backendSigner = signer_; teamReserveWallet = team_;
     }
     // Roles are pinned for this deployment so governance cannot silently change
@@ -64,12 +67,17 @@ contract HOFTrustedLeaderboards is Ownable {
     function registerRace(address race) external onlyOwner {
         require(currentSeason <= 6 && races.length < uint256(currentSeason) * 10, "season complete");
         require(!registeredRace[race] && race != address(0), "invalid race");
+        _requireCanonicalRace(race);
         HOFTrustedRace r = HOFTrustedRace(race);
         require(address(r.genesis()) == genesisContract && r.hofOwner() == hofOwner && r.backendSigner() == backendSigner && r.teamReserveWallet() == teamReserveWallet, "race configuration mismatch");
         require(block.timestamp < r.opensAt(), "register before opening");
         if (races.length % 10 != 0) require(r.opensAt() == races[races.length - 1].opensAt() + 3 days, "race cadence must be 3 days");
         else if (races.length != 0) require(r.opensAt() >= previousSeasonEnd && r.opensAt() <= previousSeasonEnd + 7 days, "season gap exceeds 7 days");
         registeredRace[race] = true; races.push(r); emit RaceRegistered(race, races.length);
+    }
+    function _requireCanonicalRace(address race) internal view virtual {
+        (uint8 chapter, uint8 season, uint8 number) = raceFactory.provenance(race);
+        require(chapter == 1 && season == currentSeason && number == races.length % 10 + 1, "noncanonical race");
     }
     function raceCount() external view returns (uint256) { return races.length; }
     function seasonHistory(uint8 season, address wallet) public view returns (uint256 points) {
