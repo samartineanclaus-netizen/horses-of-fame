@@ -16,6 +16,7 @@ interface IGenesisHorsesSaleMint {
 contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    uint256 public constant MAX_MINT_PER_TX = 25;
     uint256 public constant PUBLIC_SUPPLY = 2000;
     uint256 public constant MINT_PRICE = 30 * 1e6;
     uint256 public constant PRIZE_POOL_AMOUNT = 48_000 * 1e6;
@@ -68,6 +69,7 @@ contract HOFGenesisSale is Ownable, Pausable, ReentrancyGuard {
     }
 
     function mint(uint256 quantity) external whenNotPaused nonReentrant {
+        require(quantity <= MAX_MINT_PER_TX, "Mint batch exceeds 25");
         require(block.timestamp < deadline, "sale ended");
         require(quantity > 0, "zero quantity");
         require(sold + quantity <= PUBLIC_SUPPLY, "public supply exceeded");

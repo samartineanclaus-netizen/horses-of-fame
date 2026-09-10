@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const {expect}=require('chai');
 const {ethers}=require('hardhat');
 const {time}=require('@nomicfoundation/hardhat-network-helpers');
@@ -15,9 +16,9 @@ describe('V7 trusted full-supply settlement gas stress',function(){
   const sale=await(await ethers.getContractFactory('HOFGenesisSale')).deploy(usdc.target,g.target,(await time.latest())+DAY,backend.address,owner.address,team.address);
   await g.setSaleContract(sale.target);await g.setTeamWallet(team.address);
   await usdc.mint(owner.address,60000n*1000000n);await usdc.approve(sale.target,60000n*1000000n);
-  await g.ownerMint(owner.address,111);
-  for(let i=0;i<20;i++)await sale.mint(100);
-  await g.ownerMint(team.address,111);
+  await mintInBatches(g, 'ownerMint', [owner.address, 111]);
+  for(let i=0;i<20;i++)await mintInBatches(sale, 'mint', [100]);
+  await mintInBatches(g, 'ownerMint', [team.address, 111]);
   const wallets=[];
   for(let id=23;id<=2222;id++){
    const holder=ethers.getAddress('0x'+(100000+id-23).toString(16).padStart(40,'0'));

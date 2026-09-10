@@ -13,6 +13,7 @@ interface IV7PublicSaleState {
 contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     using Strings for uint256;
 
+    uint256 public constant MAX_MINT_PER_TX = 25;
     uint256 public constant MAX_SUPPLY = 2222;
     uint256 public constant HALL_OF_FAME_SUPPLY = 22;
     uint256 public constant VOTING_SUPPLY = 2200;
@@ -62,6 +63,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     /// locked 111 Community bucket. The paid Public Mint remains isolated in
     /// the configured sale contract.
     function ownerMint(address to, uint256 quantity) external onlyOwner whenNotPaused {
+        require(quantity <= MAX_MINT_PER_TX, "Mint batch exceeds 25");
         require(quantity > 0, "Quantity must be greater than zero");
 
         bool isTeamReserve = teamWallet != address(0) && to == teamWallet;
@@ -101,6 +103,7 @@ contract GenesisHorses is ERC721Enumerable, Ownable, Pausable {
     }
 
     function saleMint(address to, uint256 quantity) external whenNotPaused {
+        require(quantity <= MAX_MINT_PER_TX, "Mint batch exceeds 25");
         require(msg.sender == saleContract, "Only sale contract");
         require(publicMinted + quantity <= PUBLIC_MINT_SUPPLY, "Public allocation exceeded");
         publicMinted += quantity;

@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
@@ -71,8 +72,8 @@ describe("V7 final refund entitlement", function () {
     const { a, token, sale, deadline } = await fixture();
     await token.mint(a.address, 59_940_000_000n);
     await token.connect(a).approve(sale.target, 59_940_000_000n);
-    for (let i = 0; i < 19; i++) await sale.connect(a).mint(100);
-    await sale.connect(a).mint(98);
+    for (let i = 0; i < 19; i++) await mintInBatches(sale.connect(a), 'mint', [100]);
+    await mintInBatches(sale.connect(a), 'mint', [98]);
     await time.increaseTo(deadline);
     expect(await sale.refundsEnabled()).to.equal(false);
     await expect(sale.connect(a).refund([1])).to.be.revertedWith("refunds not enabled");

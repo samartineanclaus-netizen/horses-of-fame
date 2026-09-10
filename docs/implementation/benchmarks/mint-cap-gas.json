@@ -1,0 +1,37 @@
+{
+  "base": "d91d6921e2d1c6f61bf8f9999750d2d560ff5eed",
+  "environment": "Hardhat local, solc 0.8.25 optimizer 200, MockUSDC, EOA recipients; excludes approval",
+  "quantity": 25,
+  "measurements": [
+    {
+      "kind": "public",
+      "batch": 1,
+      "gas": 3621422
+    },
+    {
+      "kind": "public",
+      "batch": 2,
+      "gas": 3541522
+    },
+    {
+      "kind": "community",
+      "batch": 1,
+      "gas": 3000966
+    },
+    {
+      "kind": "community",
+      "batch": 2,
+      "gas": 2955266
+    },
+    {
+      "kind": "team",
+      "batch": 1,
+      "gas": 3000979
+    },
+    {
+      "kind": "team",
+      "batch": 2,
+      "gas": 2955279
+    }
+  ]
+}

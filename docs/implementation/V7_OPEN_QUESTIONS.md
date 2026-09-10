@@ -174,3 +174,12 @@ Community implementation remains stable; Variant C is not included or activated.
 The inherited 100-NFT mint at approximately13.96M gas is a separate optimization /
 deployment blocker. V7 Master, canonical horses, portraits and economic rules
 remain unchanged. No public deployment or production activation is performed.
+
+## Approved mint safety cap
+
+The owner approved maximum 25 per Public/Community/Team mint call, with explicit
+sequential Public UI batches and gas estimation. Implemented on
+`work/v7-mint-gas-optimization`; see `V7_MINT_BATCH_CAP.md`. The historical
+~13.96M mint(100) call is now rejected. This resolves the normal large-call mint
+blocker for new contracts; target-chain validation, arbitrary receiver gas and
+non-upgradeable existing deployments remain gates. No V7 economics changed.

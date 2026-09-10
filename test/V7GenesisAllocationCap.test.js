@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -26,14 +27,14 @@ describe("V7 Genesis allocation caps", function () {
     await genesis.waitForDeployment();
     await genesis.setTeamWallet(team.address);
 
-    await genesis.ownerMint(communityRecipient.address, 111);
+    await mintInBatches(genesis, 'ownerMint', [communityRecipient.address, 111]);
     expect(await genesis.communityAllocationMinted()).to.equal(111n);
     expect(await genesis.teamReserveMinted()).to.equal(0n);
 
     await expect(genesis.ownerMint(owner.address, 1))
       .to.be.revertedWith("Community allocation exceeded");
 
-    await genesis.ownerMint(team.address, 111);
+    await mintInBatches(genesis, 'ownerMint', [team.address, 111]);
     expect(await genesis.teamReserveMinted()).to.equal(111n);
     expect(await genesis.nonPublicAllocationMinted()).to.equal(222n);
     expect(await genesis.totalSupply()).to.equal(222n);
@@ -49,8 +50,8 @@ describe("V7 Genesis allocation caps", function () {
     await genesis.waitForDeployment();
     await genesis.setTeamWallet(team.address);
 
-    await genesis.ownerMint(communityA.address, 60);
-    await genesis.ownerMint(communityB.address, 51);
+    await mintInBatches(genesis, 'ownerMint', [communityA.address, 60]);
+    await mintInBatches(genesis, 'ownerMint', [communityB.address, 51]);
     await genesis.ownerMint(team.address, 20);
 
     expect(await genesis.communityAllocationMinted()).to.equal(111n);

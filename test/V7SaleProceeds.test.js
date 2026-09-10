@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -43,7 +44,7 @@ async function sellOut(sale, usdc, buyer) {
   // Chunk the 2,000 NFT public mint to keep each test transaction comfortably
   // below block gas limits while reaching the exact V7 success condition.
   for (let i = 0; i < 20; i++) {
-    await sale.connect(buyer).mint(100);
+    await mintInBatches(sale.connect(buyer), 'mint', [100]);
   }
 }
 

@@ -18,7 +18,7 @@ describe('V7 sponsored full-season benchmark',function(){
   const sale=await(await ethers.getContractFactory('HOFGenesisSale')).deploy(usdc.target,g.target,(await time.latest())+DAY,backend.address,owner.address,team.address);
   await g.setSaleContract(sale.target);await g.setTeamWallet(team.address);await usdc.mint(owner.address,60000_000000n);
   await record('initial approval',usdc.approve(sale.target,60000_000000n));
-  await record('mint',g.ownerMint(owner.address,111));for(let i=0;i<20;i++)await record('mint',sale.mint(100));await record('mint',g.ownerMint(team.address,111));
+  for(const n of [25,25,25,25,11])await record('mint',g.ownerMint(owner.address,n));for(let i=0;i<80;i++)await record('mint',sale.mint(25));for(const n of [25,25,25,25,11])await record('mint',g.ownerMint(team.address,n));
   const wallets=[],powers=[];
   for(let i=0;i<2200;i++){
    // Test-only deterministic signing identities, never live funds or secret env.
@@ -64,7 +64,7 @@ describe('V7 sponsored full-season benchmark',function(){
   const initial=['initial approval','mint','distribution'];
   const report={batchSize:size,scenario:'10 populated races x 2200 signed encrypted voters, 4800 VP/race; stable Community',stages,races,totalGas,transactions,recurringGas:totalGas-initial.reduce((n,k)=>n+stages[k].gas,0n),recurringTransactions:transactions-initial.reduce((n,k)=>n+stages[k].tx,0),gasPerVote:Number(stages.vote.gas)/22000,winners:reference};
   const serialized=JSON.stringify(report,(_,v)=>typeof v==='bigint'?v.toString():v,2);
-  fs.mkdirSync('docs/implementation/benchmarks',{recursive:true});fs.writeFileSync(`docs/implementation/benchmarks/sponsored-batch-${size}.json`,serialized);
+  fs.mkdirSync('docs/implementation/benchmarks',{recursive:true});fs.writeFileSync(`docs/implementation/benchmarks/mint-cap-sponsored-batch-${size}.json`,serialized);
   console.log('      SEASON_RESULT',serialized.replace(/\n/g,''));
   expect(stages.vote.max).lt(5000000n);expect(stages.scoring.max).lt(3000000n);
  });

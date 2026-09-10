@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const {expect}=require('chai');
 const {ethers}=require('hardhat');
 const {time,loadFixture}=require('@nomicfoundation/hardhat-network-helpers');
@@ -196,10 +197,10 @@ describe('V7 owner-trusted encrypted voting',function(){
  it('bounds winner scan by full Genesis supply and measures finalization gas',async()=>{
   const f={...await loadFixture(seasonReady)};
   await f.genesis.setSaleContract(f.owner.address);
-  for(let i=0;i<20;i++) await f.genesis.saleMint(f.owner.address,100);
+  for(let i=0;i<20;i++) await mintInBatches(f.genesis, 'saleMint', [f.owner.address, 100]);
   await f.genesis.setTeamWallet(f.team.address);
-  await f.genesis.ownerMint(f.team.address,111);
-  await f.genesis.ownerMint(f.owner.address,83);
+  await mintInBatches(f.genesis, 'ownerMint', [f.team.address, 111]);
+  await mintInBatches(f.genesis, 'ownerMint', [f.owner.address, 83]);
   expect(await f.genesis.totalSupply()).eq(2222n);
   await preparePrizeScan(f.board);
   const receipt=await(await f.board.finalizeSeason()).wait();

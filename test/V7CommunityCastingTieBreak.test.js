@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -11,9 +12,9 @@ describe("V7 Community casting tie-break", function () {
 
     // Token IDs are sequential. Give A #34 and B #121, matching the V7 example,
     // while keeping fixture mints inside the locked 111 Community / 111 Team buckets.
-    await genesis.ownerMint(teamFiller.address, 33); // #1-#33 Team
+    await mintInBatches(genesis, 'ownerMint', [teamFiller.address, 33]); // #1-#33 Team
     await genesis.ownerMint(walletA.address, 1); // #34 Community
-    await genesis.ownerMint(teamFiller.address, 78); // #35-#112, Team total = 111
+    await mintInBatches(genesis, 'ownerMint', [teamFiller.address, 78]); // #35-#112, Team total = 111
     await genesis.ownerMint(communityFiller.address, 8); // #113-#120 Community
     await genesis.ownerMint(walletB.address, 1); // #121 Community
 
@@ -40,7 +41,7 @@ describe("V7 Community casting tie-break", function () {
     await genesis.setTeamWallet(teamFiller.address);
 
     await genesis.ownerMint(walletA.address, 2); // #1, #2 Community
-    await genesis.ownerMint(teamFiller.address, 111); // #3-#113 Team
+    await mintInBatches(genesis, 'ownerMint', [teamFiller.address, 111]); // #3-#113 Team
     await genesis.ownerMint(communityFiller.address, 7); // #114-#120 Community
     await genesis.ownerMint(walletB.address, 2); // #121, #122 Community
 
@@ -61,9 +62,9 @@ describe("V7 Community casting tie-break", function () {
     await genesis.waitForDeployment();
     await genesis.setTeamWallet(teamFiller.address);
 
-    await genesis.ownerMint(teamFiller.address, 33); // #1-#33 Team
+    await mintInBatches(genesis, 'ownerMint', [teamFiller.address, 33]); // #1-#33 Team
     await genesis.ownerMint(walletB.address, 1); // #34 Community
-    await genesis.ownerMint(teamFiller.address, 78); // #35-#112, Team total = 111
+    await mintInBatches(genesis, 'ownerMint', [teamFiller.address, 78]); // #35-#112, Team total = 111
     await genesis.ownerMint(communityFiller.address, 8); // #113-#120 Community
     await genesis.ownerMint(walletA.address, 1); // #121 Community
 

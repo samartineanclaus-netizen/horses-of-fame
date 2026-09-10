@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -560,13 +561,7 @@ describe("HOFVoting - gas scalable batching", function () {
   });
 
   it("supports exactly 100 NFTs in one batch", async function () {
-    const mintTx =
-      await genesis.ownerMint(
-        alice.address,
-        100
-      );
-
-    await mintTx.wait();
+    await mintInBatches(genesis, 'ownerMint', [alice.address, 100]);
 
     const tokenIds = [];
 

@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { createPublicClient, encodeFunctionData, http } from "viem";
+import { runMint, planQuantity } from "../../../lib/mint/batches.cjs";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { createPublicClient, encodeFunctionData, http, parseEventLogs } from "viem";
 import {
   ERC20_APPROVE_ABI,
+  ERC20_BALANCE_ABI,
+  ROBINHOOD_TESTNET_CHAIN_ID_HEX,
   GENESIS_SALE_ABI,
   HOF_CONTRACTS,
   ROBINHOOD_TESTNET_RPC,
@@ -12,7 +15,6 @@ import {
   requestAccount,
 } from "@/lib/hofClient";
 
-const ONE_NFT_PRICE = BigInt(30_000_000); // V7: 30 USDC, 6 decimals.
 const PUBLIC_SUPPLY = BigInt(2000);
 const TEN_DAYS = BigInt(10 * 24 * 60 * 60);
 const publicClient = createPublicClient({ transport: http(ROBINHOOD_TESTNET_RPC) });
@@ -32,13 +34,6 @@ function parseTokenIds(value: string): bigint[] {
     if (!/^\d+$/.test(part)) throw new Error(`Invalid token ID: ${part}`);
     return BigInt(part);
   });
-}
-
-function parseQuantity(value: string): bigint {
-  if (!/^\d+$/.test(value)) throw new Error("Mint quantity must be a positive whole number");
-  const quantity = BigInt(value);
-  if (quantity < BigInt(1)) throw new Error("Mint quantity must be at least 1");
-  return quantity;
 }
 
 function formatTimestamp(timestamp: bigint) {
@@ -63,6 +58,7 @@ export default function MintPage() {
   const [refundIds, setRefundIds] = useState("");
   const [saleState, setSaleState] = useState<SaleState | null>(null);
   const [busy, setBusy] = useState(false);
+  const mintLock = useRef(false);
 
   const configured = useMemo(
     () => Boolean(HOF_CONTRACTS.sale && HOF_CONTRACTS.usdc),
@@ -115,47 +111,70 @@ export default function MintPage() {
       return;
     }
 
+    if (mintLock.current) return;
+    mintLock.current = true;
+    let engineStarted = false;
     try {
       setBusy(true);
-      const mintQuantity = parseQuantity(quantity);
-      if (saleState && saleState.sold + mintQuantity > PUBLIC_SUPPLY) {
-        throw new Error(`Only ${(PUBLIC_SUPPLY - saleState.sold).toString()} Public Mint NFT(s) remain.`);
-      }
-      const cost = ONE_NFT_PRICE * mintQuantity;
+      const mintQuantity = planQuantity(quantity);
       const from = await requestAccount(ethereum);
       setAccount(from);
-
-      setStatus(`1/2 — Approve ${(Number(cost) / 1_000_000).toLocaleString()} USDC.`);
-      const approveData = encodeFunctionData({
-        abi: ERC20_APPROVE_ABI,
-        functionName: "approve",
-        args: [sale, cost],
+      const key = `hof-mint:${ROBINHOOD_TESTNET_CHAIN_ID_HEX}:${sale.toLowerCase()}:${from.toLowerCase()}`;
+      const saved = localStorage.getItem(key);
+      const old = saved ? JSON.parse(saved) : null;
+      // Resume the saved purchase, including its pending hash, before starting another.
+      const journal = old && (old.pending || BigInt(old.confirmed) < BigInt(old.total)) ? old : null;
+      if (journal) setQuantity(journal.total);
+      async function identity() {
+        const accounts = await ethereum!.request({ method: "eth_accounts" }) as string[];
+        const chain = await ethereum!.request({ method: "eth_chainId" });
+        if (accounts[0]?.toLowerCase() !== from.toLowerCase() || chain !== ROBINHOOD_TESTNET_CHAIN_ID_HEX)
+          throw new Error("Wallet or chain changed. Restore the original wallet/network to resume.");
+      }
+      async function send(to: `0x${string}`, data: `0x${string}`) {
+        let padded: bigint;
+        try {
+        await identity();
+        const gas = await publicClient.estimateGas({ account: from as `0x${string}`, to, data });
+        padded = (gas * BigInt(120) + BigInt(99)) / BigInt(100);
+        if (padded > BigInt(5_000_000)) throw new Error("Estimated gas exceeds the 5M operational budget. No transaction sent; contact support.");
+        await identity();
+        } catch (error) { throw Object.assign(error as Error, { notBroadcast: true }); }
+        return ethereum!.request({ method: "eth_sendTransaction", params: [{ from, to, data, gas: `0x${padded.toString(16)}` }] });
+      }
+      engineStarted = true;
+      await runMint({
+        quantity: mintQuantity, journal,
+        save: (value: unknown) => localStorage.setItem(key, JSON.stringify(value)),
+        progress: setStatus,
+        read: async () => {
+          await identity();
+          const block = await publicClient.getBlock();
+          const blockNumber = block.number;
+          const [sold, deadline, balance, allowance] = await Promise.all([
+            publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "sold", blockNumber }),
+            publicClient.readContract({ address: sale, abi: GENESIS_SALE_ABI, functionName: "deadline", blockNumber }),
+            publicClient.readContract({ address: usdc, abi: ERC20_BALANCE_ABI, functionName: "balanceOf", args: [from as `0x${string}`], blockNumber }),
+            publicClient.readContract({ address: usdc, abi: [{ type: "function", name: "allowance", stateMutability: "view", inputs: [{type:"address"},{type:"address"}], outputs:[{type:"uint256"}] }], functionName: "allowance", args: [from as `0x${string}`, sale], blockNumber }),
+          ]);
+          return { remaining: PUBLIC_SUPPLY - sold, deadline, timestamp: block.timestamp, balance, allowance };
+        },
+        approve: (cost: bigint) => send(usdc, encodeFunctionData({ abi: ERC20_APPROVE_ABI, functionName: "approve", args: [sale, cost] })),
+        mint: (n: bigint) => send(sale, encodeFunctionData({ abi: GENESIS_SALE_ABI, functionName: "mint", args: [n] })),
+        wait: async (hash: `0x${string}`, pending: {kind: string; quantity: string}) => {
+          const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 120_000 });
+          if (receipt.status !== "success" || pending.kind !== "mint") return receipt;
+          const events = parseEventLogs({ abi: [{ type: "event", name: "Minted", inputs: [{name:"buyer",type:"address",indexed:true},{name:"quantity",type:"uint256",indexed:false},{name:"paid",type:"uint256",indexed:false}] }] as const, logs: receipt.logs.filter(log => log.address.toLowerCase() === sale.toLowerCase()) });
+          const included = events.some(event => event.args.buyer.toLowerCase() === from.toLowerCase() && event.args.quantity === BigInt(pending.quantity) && event.args.paid === BigInt(pending.quantity) * BigInt(30_000_000));
+          return { status: included ? "success" : "reverted" };
+        },
       });
-      const approveHash = await ethereum.request({
-        method: "eth_sendTransaction",
-        params: [{ from, to: usdc, data: approveData }],
-      });
-      setStatus("Waiting for USDC approval confirmation...");
-      await waitForSuccess(approveHash);
-
-      setStatus(`2/2 — Submit mint for ${mintQuantity.toString()} Genesis NFT(s).`);
-      const mintData = encodeFunctionData({
-        abi: GENESIS_SALE_ABI,
-        functionName: "mint",
-        args: [mintQuantity],
-      });
-      const mintHash = await ethereum.request({
-        method: "eth_sendTransaction",
-        params: [{ from, to: sale, data: mintData }],
-      });
-      setStatus("Waiting for Genesis mint confirmation...");
-      await waitForSuccess(mintHash);
-      setStatus(`Mint confirmed: ${String(mintHash)}`);
       await loadSaleState();
     } catch (error) {
       console.error(error);
-      setStatus(error instanceof Error ? error.message : "Mint failed or was cancelled.");
+      if (!engineStarted) setStatus(error instanceof Error ? error.message : "Mint failed or was cancelled.");
     } finally {
+      mintLock.current = false;
       setBusy(false);
     }
   }
@@ -248,7 +267,7 @@ export default function MintPage() {
               style={{ display: "block", width: "100%", padding: 12, marginTop: 8 }}
             />
           </label>
-          <p>Price: 30 USDC per NFT.</p>
+          <p>Price: 30 USDC per NFT. Maximum 25 NFT per transaction. Buying 100 requires four separate mint transactions, plus USDC approval if needed. Each confirmed batch is final even if a later batch fails. Supply is not reserved. Gas is estimated for each batch; the quantity cap does not guarantee gas usage for contract wallets. Pending purchases are checked before resuming.</p>
           <button
             type="button"
             onClick={mintGenesis}

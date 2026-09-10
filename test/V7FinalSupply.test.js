@@ -1,3 +1,4 @@
+const { mintInBatches } = require('./helpers/mint-batches.cjs');
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 describe("V7 isolated supply buckets", function () {
@@ -6,11 +7,11 @@ describe("V7 isolated supply buckets", function () {
     const g = await (await ethers.getContractFactory("GenesisHorses")).deploy("placeholder");
     await g.setTeamWallet(team.address);
     await g.setSaleContract(owner.address); // Only this test signer simulates sale.
-    await g.ownerMint(community.address, 111);
+    await mintInBatches(g, 'ownerMint', [community.address, 111]);
     await expect(g.ownerMint(community.address, 1)).to.be.revertedWith("Community allocation exceeded");
-    for (let i = 0; i < 20; i++) await g.saleMint(buyer.address, 100);
+    for (let i = 0; i < 20; i++) await mintInBatches(g, 'saleMint', [buyer.address, 100]);
     await expect(g.saleMint(buyer.address, 1)).to.be.revertedWith("Public allocation exceeded");
-    await g.ownerMint(team.address, 111);
+    await mintInBatches(g, 'ownerMint', [team.address, 111]);
     await expect(g.ownerMint(team.address, 1)).to.be.revertedWith("Team Reserve allocation exceeded");
     expect(await g.totalSupply()).to.equal(2222n);
     expect(await g.publicMinted()).to.equal(2000n);
