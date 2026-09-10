@@ -1,6 +1,7 @@
 const {getAddress,isAddress,ZeroAddress}=require('ethers');
 const {createPublicKey}=require('node:crypto');
 const CHAIN_ID=46630n;
+const {validatePlaceholder}=require('./v7-placeholder.cjs');
 function required(env,key){const v=env[key]?.trim();if(!v)throw Error(`Missing ${key}`);return v;}
 function address(env,key){const v=required(env,key);if(!isAddress(v)||getAddress(v)===ZeroAddress||/^0x0{32}/i.test(v))throw Error(`Invalid ${key}`);return getAddress(v);}
 function timestamp(env,key){const v=required(env,key);if(!/^\d+$/.test(v))throw Error(`Invalid ${key}`);return BigInt(v);}
@@ -26,5 +27,6 @@ async function validateSystem(ethers,c,signer){
  const mock=new ethers.Contract(c.usdc,['function testOnly() view returns(bool)','function name() view returns(string)'],ethers.provider);
  if(!await mock.testOnly()||await mock.name()!=='TEST ONLY / NO VALUE - MockUSDC')throw Error('Expected labelled test-only MockUSDC');
  const head=await ethers.provider.getBlock('latest');if(!head||c.deadline<=BigInt(head.timestamp))throw Error('Mint deadline must be future');
+ await validatePlaceholder(c.placeholder,CHAIN_ID);
 }
 module.exports={CHAIN_ID,required,address,timestamp,roles,systemConfig,raceConfig,validateNetwork,validateSystem,code};

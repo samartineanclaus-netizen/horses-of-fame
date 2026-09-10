@@ -263,3 +263,13 @@ These are not fixed by this task. No new lint error.
 - `test/readiness/mainnet-rejection.cjs`
 - `test/readiness/mainnet-rejection.config.cjs`
 - `web-test/testnet-token-config.test.cjs`
+
+## Approved Genesis testnet placeholder
+
+Use only the static `/genesis/unrevealed.json` metadata and unchanged
+`/assets/hof-logo.webp`; see `V7_GENESIS_PLACEHOLDER.md` for URL verification and
+relative-image compatibility. The canonical preflight/deployment now validates
+both resources before writing. Historical `set-test-metadata.js` scripts and
+`metadata/1.json` are not part of this path. No site domain is configured yet.
+For this testnet deployment, calculate the mint deadline immediately beforehand
+from the current chain timestamp plus 604800 seconds; do not reuse a saved date.
