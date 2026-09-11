@@ -15,7 +15,27 @@ describe('TESTNET sold-out operator',function(){
  it('restart after confirmed batch follows sold, not local counter',async()=>{const f=setup({sold:1950}),wait=f.api.wait;let calls=0;f.api.read=async()=>{if(++calls===5)throw Error('RPC offline');return {...f.state};};await expect(execute(f.api,f.options)).rejected;f.api.read=async()=>({...f.state});f.api.wait=wait;await execute(f.api,f.options);expect(f.state.sold).eq(2000);expect(f.sent.filter(x=>x.kind==='mint')).length(2);});
  it('ambiguous receipt stops; restart never resends unknown transaction',async()=>{const f=setup({sold:1999});f.api.wait=async()=>null;f.api.receipt=async()=>null;await expect(execute(f.api,f.options)).rejected;await expect(execute(f.api,f.options)).rejected;expect(f.sent).length(1);});
  it('lost broadcast response without hash requires manual nonce reconciliation',async()=>{const f=setup();f.api.send=async()=>{f.sent.push({});throw Error('timeout');};await expect(execute(f.api,f.options)).rejected;await expect(execute(f.api,f.options)).rejectedWith('Unknown broadcast');expect(f.sent).length(1);});
- it('approves exact remaining cost, never unlimited',async()=>{const f=setup({sold:1999,allowance:0n});await execute(f.api,f.options);expect(f.sent[0]).deep.eq({kind:'approve',amount:30000000n});});
+ it('approves exact remaining cost in a separate idempotent phase, never unlimited',async()=>{
+  const f=setup({sold:1999,allowance:0n});
+  await expect(execute(f.api,f.options)).rejectedWith('Separate approval phase required');
+  expect(f.sent).length(0);
+
+  const approved=await execute(f.api,{...f.options,mode:'approve'});
+  expect(approved.status).eq('approval complete');
+  expect(f.sent).deep.eq([{kind:'approve',amount:30000000n}]);
+  expect(f.state.allowance).eq(30000000n);
+
+  const repeated=await execute(f.api,{...f.options,mode:'approve'});
+  expect(repeated.status).eq('approval already sufficient; no repeat');
+  expect(f.sent).length(1);
+
+  await execute(f.api,f.options);
+  expect(f.sent).deep.eq([
+    {kind:'approve',amount:30000000n},
+    {kind:'mint',amount:1}
+  ]);
+  expect(f.state.sold).eq(2000);
+ });
  it('sufficient allowance does not approve',async()=>{const f=setup({sold:1999});await execute(f.api,f.options);expect(f.sent.some(x=>x.kind==='approve')).eq(false);});
  it('funding is separate and confirmed funding is never duplicated',async()=>{const f=setup({balance:0n,sold:1999});await expect(execute(f.api,f.options)).rejectedWith('Separate funding');await execute(f.api,{...f.options,mode:'fund'});await execute(f.api,{...f.options,mode:'fund'});expect(f.sent).deep.eq([{kind:'fund',amount:30000000n}]);});
  it('receipt failure, insufficient ETH and insufficient token balance fail closed',async()=>{const f=setup({sold:1999});f.api.quote=async()=>({sufficient:false});await expect(execute(f.api,f.options)).rejected;expect(f.sent).length(0);const g=setup({sold:1999});g.api.wait=async()=>({status:0});await expect(execute(g.api,g.options)).rejected;});
