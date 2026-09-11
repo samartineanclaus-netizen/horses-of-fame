@@ -17,10 +17,10 @@ async function createRuntime(env){
   if(await token.decimals()!==6n||!await token.testOnly()||await token.name()!=='TEST ONLY / NO VALUE - MockUSDC')throw Error('wrong test token');
   const treasury=address(env,'PROJECT_WALLET');if(getAddress(await sale.founderWallet())!==treasury)throw Error('project wallet mismatch');
   const keyDirectory=path.resolve(required(env,'HOF_DECRYPTION_KEY_DIRECTORY')),directory=path.resolve(required(env,'HOF_SERVICE_DIRECTORY'));
-  service=new RaceRevealService({board,signer,relayer,treasuryAddress:treasury,directory,ingressToken:required(env,'HOF_SIGNED_INGRESS_TOKEN'),
+  service=new RaceRevealService({raceDeploymentBlocks:require('../lib/owner-voting/scan-bound.cjs').configuredBounds(env),board,signer,relayer,treasuryAddress:treasury,directory,ingressToken:required(env,'HOF_SIGNED_INGRESS_TOKEN'),
    keyFor:async id=>{if(!/^0x[0-9a-fA-F]{64}$/.test(id))throw Error('bad key ID');return privateFile(path.join(keyDirectory,id.slice(2)+'.pem'));},
    raceAt:a=>new Contract(a,artifact('HOFRelayedRace'),provider),factoryAt:a=>new Contract(a,artifact('HOFCanonicalRaceFactory'),provider)});
-  await service.validate();return {service,provider};
+  const factory=await service.validate();for(let i=0;i<Number(await board.raceCount());i++)await service.canonical(factory,i);return {service,provider};
  }catch(e){if(service)await service.close();provider.destroy();throw e;}
 }
 async function main(){require('dotenv').config();if(process.env.HOF_ENABLE_SERVICE!=='YES')throw Error('explicit service enable required');const {service,provider}=await createRuntime(process.env);

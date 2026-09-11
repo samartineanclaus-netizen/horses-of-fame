@@ -28,7 +28,7 @@ describe('V7 automatic service full race',function(){this.timeout(600000);
    if(packets.length===25){await race.connect(relayer).submitBatch(packets);packets.length=0;}
   }
   expect(await race.ballotCount()).eq(2200);expect(await race.totalVP()).eq(4800);
-  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hof-reveal-stress-')),options={board,signer:backend,relayer,treasuryAddress:treasury.address,directory,keyFor:async()=>key.privateKey,raceAt:a=>ethers.getContractAt('HOFRelayedRace',a),factoryAt:a=>ethers.getContractAt('HOFCanonicalRaceFactory',a),ingressToken:'local-stress-ingress-'.repeat(3),allowLocal:true,lockDirectory:fs.mkdtempSync(path.join(os.tmpdir(),'hof-stress-locks-'))};
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hof-reveal-stress-')),options={raceDeploymentBlocks:{[race.target.toLowerCase()]:receipt.blockNumber},board,signer:backend,relayer,treasuryAddress:treasury.address,directory,keyFor:async()=>key.privateKey,raceAt:a=>ethers.getContractAt('HOFRelayedRace',a),factoryAt:a=>ethers.getContractAt('HOFCanonicalRaceFactory',a),ingressToken:'local-stress-ingress-'.repeat(3),allowLocal:true,lockDirectory:fs.mkdtempSync(path.join(os.tmpdir(),'hof-stress-locks-'))};
   let service=new RaceRevealService(options),restarted=false,gas=0n,max=0n,txCount=0;await time.increaseTo(opens+86400);
   try{
    for(let step=0;step<100&&!await race.finalized();step++){

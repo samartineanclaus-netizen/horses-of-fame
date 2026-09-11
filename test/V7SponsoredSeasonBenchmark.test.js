@@ -34,7 +34,7 @@ describe('V7 sponsored full-season benchmark',function(){
    const opening=start+r*3*DAY,factory=await ethers.getContractAt('HOFCanonicalRaceFactory',await board.raceFactory());
    const receipt=await record('race deployment',factory.createRace(1,1,r+1,opening,key.publicKey));
    const address=receipt.logs.map(l=>{try{return factory.interface.parseLog(l);}catch{return null;}}).find(l=>l?.name==='RaceCreated').args.race;
-   const race=await ethers.getContractAt('HOFRelayedRace',address);
+   const race=await ethers.getContractAt('HOFRelayedRace',address);race.scanFromBlock=receipt.blockNumber;
   await record('race registration',board.registerRace(race.target));await time.increaseTo(opening);
    const ctxBase={chainId,race:race.target,keyId:ethers.keccak256(key.publicKey)},packets=[];
    const before=stages.vote?.gas||0n;

@@ -28,7 +28,7 @@ describe('Readiness canonical local dry run',function(){this.timeout(180000);
   // Run the actual race operator script with local env, including sell-out checks.
   Object.assign(process.env,f.env,{HOF_TRUSTED_LEADERBOARDS:f.board.target,GENESIS_SALE_ADDRESS:f.sale.target,RACE_OPENS_AT_UNIX:String(start+(n-1)*259200),HOF_RACE_PUBLIC_KEY:key.publicKey});
   await require('../../scripts/deploy-v7-race.js').main();
-  const race=await ethers.getContractAt('HOFRelayedRace',await f.board.races(n-1));last=race;await time.increaseTo(Number(await race.opensAt()));
+  const race=await ethers.getContractAt('HOFRelayedRace',await f.board.races(n-1));race.scanFromBlock=(await ethers.provider.getBlockNumber())-1;last=race;await time.increaseTo(Number(await race.opensAt()));
   const packet=await signVote(race,f.buyer,1,[{id:23,vp:await f.genesis.votingPowerOf(23)}]);Object.assign(packet,await admitSigned(race,f.admission,key.privateKey,packet));
   const queue=new SignedVoteQueue({race,relayer:f.relayer,treasuryAddress:f.treasury.address,journal:path.join(fs.mkdtempSync(path.join(os.tmpdir(),'hof-readiness-')),'queue.journal')});
   try{await queue.enqueue(packet);await queue.flush();expect(await race.ballotCount()).eq(1);}finally{queue.stop();queue.close();}
@@ -41,7 +41,7 @@ describe('Readiness canonical local dry run',function(){this.timeout(180000);
  const f=await setup();await f.token.mint(f.buyer.address,60000000000n);await f.token.connect(f.buyer).approve(f.sale.target,60000000000n);await mintInBatches(f.sale.connect(f.buyer),'mint',[2000]);
  const key=await generateRaceKey(),opens=(await time.latest())+100;
  Object.assign(process.env,f.env,{HOF_TRUSTED_LEADERBOARDS:f.board.target,GENESIS_SALE_ADDRESS:f.sale.target,RACE_OPENS_AT_UNIX:String(opens),HOF_RACE_PUBLIC_KEY:key.publicKey});await require('../../scripts/deploy-v7-race.js').main();
- const race=await ethers.getContractAt('HOFRelayedRace',await f.board.races(0));await time.increaseTo(opens);
+ const race=await ethers.getContractAt('HOFRelayedRace',await f.board.races(0));const raceCreationBlock=(await ethers.provider.getBlockNumber())-1;await time.increaseTo(opens);
  const {createRuntime}=require('../../scripts/run-race-reveal-service.cjs'),ingress='local-test-ingress-'.repeat(3);
  const pem=require('node:crypto').KeyObject.from(key.privateKey).export({type:'pkcs8',format:'pem'});
  // Local JSON-RPC transport exercises the actual CLI bootstrap, ABI loading,
@@ -54,7 +54,7 @@ describe('Readiness canonical local dry run',function(){this.timeout(180000);
  for(const [file,index]of [[admissionFile,1],[relayerFile,2]]){const wallet=ethers.HDNodeWallet.fromPhrase(network.config.accounts.mnemonic,undefined,`m/44'/60'/0'/0/${index}`);fs.writeFileSync(file,wallet.privateKey,{mode:0o600});}
  fs.writeFileSync(path.join(directory,ethers.keccak256(key.publicKey).slice(2)+'.pem'),pem,{mode:0o600});
  let runtime;
- try{runtime=await createRuntime({...f.env,HOF_SERVICE_MODE:'testnetMockUSDC',HOF_RPC_URL:`http://127.0.0.1:${rpc.address().port}`,HOF_TRUSTED_LEADERBOARDS:f.board.target,GENESIS_SALE_ADDRESS:f.sale.target,HOF_ADMISSION_KEY_FILE:admissionFile,HOF_RELAYER_KEY_FILE:relayerFile,HOF_DECRYPTION_KEY_DIRECTORY:directory,HOF_SERVICE_DIRECTORY:path.join(directory,'journal'),HOF_SIGNED_INGRESS_TOKEN:ingress});}
+ try{runtime=await createRuntime({...f.env,HOF_RACE_ADDRESS:race.target,HOF_RACE_DEPLOYMENT_BLOCK:String(raceCreationBlock),HOF_SERVICE_MODE:'testnetMockUSDC',HOF_RPC_URL:`http://127.0.0.1:${rpc.address().port}`,HOF_TRUSTED_LEADERBOARDS:f.board.target,GENESIS_SALE_ADDRESS:f.sale.target,HOF_ADMISSION_KEY_FILE:admissionFile,HOF_RELAYER_KEY_FILE:relayerFile,HOF_DECRYPTION_KEY_DIRECTORY:directory,HOF_SERVICE_DIRECTORY:path.join(directory,'journal'),HOF_SIGNED_INGRESS_TOKEN:ingress});}
  catch(e){await new Promise(r=>rpc.close(r));fs.rmSync(directory,{recursive:true,force:true});throw e;}
  const {service,provider}=runtime;
  try{

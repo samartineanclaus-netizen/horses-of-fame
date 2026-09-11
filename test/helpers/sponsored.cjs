@@ -14,7 +14,7 @@ async function fixture(){
  const factory=await ethers.getContractAt('HOFCanonicalRaceFactory',await board.raceFactory());
  const created=await(await factory.createRace(1,1,1,opens,key.publicKey)).wait();
  const address=created.logs.map(l=>{try{return factory.interface.parseLog(l);}catch{return null;}}).find(l=>l?.name==='RaceCreated').args.race;
- const race=await ethers.getContractAt('HOFRelayedRace',address);
+ const race=await ethers.getContractAt('HOFRelayedRace',address);race.scanFromBlock=created.blockNumber;
  await board.registerRace(race.target);await time.increaseTo(opens);
  return {owner,backend,team,relayer,treasury,voters,genesis,race,board,key,opens};
 }

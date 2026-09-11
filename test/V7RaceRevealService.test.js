@@ -4,7 +4,7 @@ const {fixture,packet,authorize}=require('./helpers/sponsored.cjs');
 const {RaceRevealService}=require('../lib/owner-voting/race-reveal-service.cjs');
 const lockDirectory=fs.mkdtempSync(path.join(os.tmpdir(),'hof-service-test-locks-'));
 const live=[];const token='test-ingress-'.repeat(4);
-function service(f,extra={}){const s=new RaceRevealService({board:f.board,signer:f.backend,relayer:f.relayer,treasuryAddress:f.treasury.address,directory:fs.mkdtempSync(path.join(os.tmpdir(),'hof-reveal-')),keyFor:async()=>f.key.privateKey,raceAt:a=>ethers.getContractAt('HOFRelayedRace',a),factoryAt:a=>ethers.getContractAt('HOFCanonicalRaceFactory',a),ingressToken:token,lockDirectory,allowLocal:true,...extra});live.push(s);return s;}
+function service(f,extra={}){const s=new RaceRevealService({raceDeploymentBlocks:{[f.race.target.toLowerCase()]:f.race.scanFromBlock},board:f.board,signer:f.backend,relayer:f.relayer,treasuryAddress:f.treasury.address,directory:fs.mkdtempSync(path.join(os.tmpdir(),'hof-reveal-')),keyFor:async()=>f.key.privateKey,raceAt:a=>ethers.getContractAt('HOFRelayedRace',a),factoryAt:a=>ethers.getContractAt('HOFCanonicalRaceFactory',a),ingressToken:token,lockDirectory,allowLocal:true,...extra});live.push(s);return s;}
 async function finish(s,race){for(let i=0;i<150&&!await race.finalized();i++)await s.tick();expect(await race.finalized()).eq(true);await s.tick();}
 describe('V7 automatic Race Reveal service',function(){this.timeout(180000);
  afterEach(async()=>{await ethers.provider.send('evm_setAutomine',[true]);for(const s of live.splice(0))if(!s.testClosed){await s.close();s.testClosed=true;}});

@@ -26,7 +26,7 @@ describe('Phase 1 canonical provenance and configuration',function(){
    for(let number=1;number<=10;number++){
     const receipt=await(await f.factory.createRace(1,season,number,start+(number-1)*259200,f.key.publicKey)).wait();
     const address=receipt.logs.map(l=>{try{return f.factory.interface.parseLog(l);}catch{return null;}}).find(l=>l?.name==='RaceCreated').args.race;
-    await f.board.registerRace(address);last=await ethers.getContractAt('HOFRelayedRace',address);
+    await f.board.registerRace(address);last=await ethers.getContractAt('HOFRelayedRace',address);last.scanFromBlock=receipt.blockNumber;
     await time.increaseTo(Number(await last.closesAt()));await last.freeze();
     const result=await buildRelayedResult(last,f.backend,f.key.privateKey);
     await last.proposeResult(result.totals,result.root,result.signature);await last.finalize();

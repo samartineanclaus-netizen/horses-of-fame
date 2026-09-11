@@ -79,7 +79,7 @@ describe('V7 sponsored signed voting',function(){
  });
  it('rejects incomplete reconstruction and incomplete reveal; scores once with exact V7 mapping',async()=>{
   const f={...await loadFixture(fixture)};await f.race.submitBatch([await packet(f,0,1),await packet(f,1,22)]);
-  await expect(reconstructBallots(f.race,{fromBlock:(await ethers.provider.getBlockNumber())+1})).rejectedWith('incomplete records');
+  await expect(reconstructBallots(f.race,{fromBlock:(await ethers.provider.getBlockNumber())+1})).rejectedWith('exceeds current head');
   await time.increaseTo(f.opens+86400);await f.race.freeze();const r=await buildRelayedResult(f.race,f.backend,f.key.privateKey);
   await f.race.proposeResult(r.totals,r.root,r.signature);await f.race.prepareScores(0,[r.points[0]],[r.proofs[0]]);await expect(f.race.finalize()).revertedWith('incomplete result');
   expect(await f.board.allTimePoints(f.voters[0].address)).eq(0n);await expect(f.race.prepareScores(0,[r.points[0]],[r.proofs[0]])).revertedWith('wrong cursor');
