@@ -6,17 +6,16 @@ import "./voting.css";
 import "./hof.css";
 import "./luxury.css";
 
-const configuredOrigin = process.env.NEXT_PUBLIC_HOF_SITE_URL;
-const verifiedOrigin = configuredOrigin && /^https:\/\/[^<>\s]+$/.test(configuredOrigin)
-  ? new URL(configuredOrigin) : undefined;
+const productionOrigin = new URL("https://hof-site.vercel.app");
+const socialImage = "https://hof-site.vercel.app/brand/hof-banner.webp";
 
 export const metadata: Metadata = {
-  ...(verifiedOrigin ? { metadataBase: verifiedOrigin } : {}),
+  metadataBase: productionOrigin,
   title: "Horses of Fame — Chapter I: Genesis",
   description: "22 Hall of Fame race horses and 2,200 voting Genesis NFTs. The community decides.",
   icons: { icon: "/brand/hof-logo.webp", apple: "/brand/hof-logo.webp" },
-  openGraph: {title:"Horses of Fame — Genesis",description:"22 horses race. The community decides.",...(verifiedOrigin ? {images:[{url:"/brand/hof-banner.webp",width:2048,height:682,alt:"Horses of Fame official banner"}]} : {})},
-  twitter: {card:"summary_large_image",title:"Horses of Fame — Genesis",...(verifiedOrigin ? {images:["/brand/hof-banner.webp"]} : {})},
+  openGraph: {title:"Horses of Fame — Genesis",description:"22 horses race. The community decides.",images:[{url:socialImage,width:2048,height:682,type:"image/webp",alt:"Horses of Fame official banner"}]},
+  twitter: {card:"summary_large_image",title:"Horses of Fame — Genesis",images:[{url:socialImage,alt:"Horses of Fame official banner"}]},
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
