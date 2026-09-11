@@ -18,7 +18,7 @@ test('approved brand originals preserve their exact bytes and derived assets exi
 test('canonical TESTNET placeholder uses only generic approved branding',()=>{
  const metadata=require('../public/genesis/unrevealed.json');
  assert.deepEqual(Object.keys(metadata).sort(),['description','image','name']);
- assert.equal(metadata.image,'/brand/hof-logo.webp');
+ assert.equal(metadata.image,'https://hof-site.vercel.app/brand/hof-logo.webp');
  for(const marker of ['TESTNET','TEST ONLY','NO VALUE'])assert.ok(metadata.description.includes(marker));
 });
 test('public frontend does not reference retired collection artwork or legacy voting actions',()=>{
