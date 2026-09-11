@@ -56,7 +56,7 @@ async function waitForSuccess(hash: unknown) {
 
 export default function MintPage() {
   const [account, setAccount] = useState("");
-  const [status, setStatus] = useState("Ready");
+  const [status, setStatus] = useState("Testnet preview — public mint is not live yet.");
   const [quantity, setQuantity] = useState("1");
   const [refundIds, setRefundIds] = useState("");
   const [saleState, setSaleState] = useState<SaleState | null>(null);
@@ -206,14 +206,31 @@ export default function MintPage() {
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         <Link href="/" style={{ color: "#7cff6b" }}>← Horses of Fame</Link>
         <p style={{ marginTop: 48, letterSpacing: 2, color: "#7cff6b" }}>CHAPTER I — GENESIS · V7</p>
-        <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 20px" }}>PUBLIC MINT</h1>
+        <div
+          role="status"
+          style={{
+            margin: "18px 0 24px",
+            padding: "18px 20px",
+            border: "1px solid #d6ad52",
+            borderRadius: 12,
+            background: "rgba(214, 173, 82, 0.1)",
+          }}
+        >
+          <strong style={{ display: "block", color: "#f1cd7a", letterSpacing: 1.5 }}>
+            TESTNET PREVIEW
+          </strong>
+          <span style={{ display: "block", marginTop: 6, fontSize: 18 }}>
+            Public mint is not live yet.
+          </span>
+        </div>
+        <h1 style={{ fontSize: "clamp(42px, 8vw, 76px)", margin: "8px 0 20px" }}>MINT PREVIEW</h1>
         <p style={{ fontSize: 20, lineHeight: 1.6 }}>
-          2,000 Public Mint NFTs · 30 USDC each · Robinhood Chain. This page calls the V7 sale contract only when its testnet addresses are configured.
+          The future public mint includes 2,000 NFTs at 30 USDC each on Robinhood Chain. This preview calls the V7 testnet sale contract only when its testnet addresses are configured.
         </p>
 
         <div style={{ marginTop: 32, padding: 24, border: "1px solid #333", borderRadius: 12 }}>
           <p><strong>Wallet:</strong> {account || "Not connected"}</p>
-          <p><strong>Sale config:</strong> {configured ? "Configured" : "Waiting for deployed V7 addresses"}</p>
+          <p><strong>Testnet sale config:</strong> {configured ? "Configured" : "Waiting for deployed V7 testnet addresses"}</p>
           {saleState && (
             <>
               <p><strong>Public Mint sold:</strong> {saleState.sold.toString()} / 2,000</p>
